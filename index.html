@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <link rel="icon" href="https://getbootstrap.com/favicon.ico">
+
+  <link rel="stylesheet" type="text/css" href="http://www.chartjs.org/samples/latest/style.css">
+  <script src="http://www.chartjs.org/dist/2.7.2/Chart.bundle.js"></script>
+  <script src="http://www.chartjs.org/samples/latest/utils.js"></script>
+  <script src="http://www.chartjs.org/samples/latest/charts/area/analyser.js"></script>
+
+  <title>Collection</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="https://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Custom styles for this template -->
+  <link href="https://getbootstrap.com/docs/4.0/examples/pricing/pricing.css" rel="stylesheet">
+  <link href="https://getbootstrap.com/docs/4.0/examples/grid/grid.css" rel="stylesheet">
+</head>
+
+<body>
+
+
+
+
+  <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom box-shadow">
+    <h5 class="my-0 mr-md-auto font-weight-normal">Po-Han Huang (Joe)</h5>
+    <nav class="my-2 my-md-0 mr-md-3">
+      <a class="p-2 text-dark" href="#pi">Personal Information</a>        
+      <a class="p-2 text-dark" href="#edu">Education</a>
+      <a class="p-2 text-dark" href="#we">Work Experience</a>
+      <a class="p-2 text-dark" href="#sac">Skills and Competencies</a>
+      <a class="p-2 text-dark" href="#sra">Scientific Research Achievements</a>
+      <a class="p-2 text-dark" href="#col">Collection</a>
+    </nav>
+    <a class="btn btn-outline-primary" href="#">Contact</a>
+  </div>
+
+  <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto ">
+    <h1 class="display-4" id="pi">Personal Information</h1>
+    <p></p>
+    <div class="card mx-auto text-center" style="width:250px">
+      <img class="card-img-top" src="https://www.w3schools.com/bootstrap4/img_avatar1.png" alt="Card image">
+      <div class="card-body">
+        <h4 class="card-title">Po-Han Huang (Joe)</h4>
+        <p class="card-text">spyderhua@gmail.com</p>        
+      </div>
+    </div>
+    <hr class="featurette-divider">
+  </div>
+
+
+  <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto">
+    <h1 class="display-4" id="edu">Education</h1>
+    <p></p>
+    <p class="lead">Master of Institute of Multimedia Engineering. National Chiao Tung University (NCTU), Hsinchu, Taiwan.</p>
+    <p class="lead text-right">July 2015-November 2017</p>
+    <p class="lead">Bachelor of Department of Computer Science and Engineering. Yuan Ze University (YZU), Chung-Li, Taiwan.</p>
+    <p class="lead text-right">September 2011-June 2015</p>
+    <hr class="featurette-divider">
+
+    
+  </div>
+
+  <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto">
+    <h1 class="display-4" id="we">Work Experience</h1>
+    <p></p>
+    <p class="lead">Substitute Services (Educational services) in Education Bureau, Kaohsiung City Government, Kaohsiung, Taiwan.</p>
+    <p class="lead text-right">January 2018-Present</p>
+    <p class="lead">Intern in Microsoft Taiwan, Taipei, Taiwan.</p>
+    <p class="lead text-right">July 2014-June 2015</p>
+    <hr class="featurette-divider">   
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['timeline']});
+      google.charts.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var container = document.getElementById('timeline');
+        var chart = new google.visualization.Timeline(container);
+        var dataTable = new google.visualization.DataTable();
+
+        dataTable.addColumn({ type: 'string', id: 'Term' });
+        dataTable.addColumn({ type: 'string', id: 'Items' });
+        dataTable.addColumn({ type: 'date', id: 'Start' });
+        dataTable.addColumn({ type: 'date', id: 'End' });
+        dataTable.addRows([
+          [ '1', 'Substitute Services in Education Bureau', new Date(2018, 1, 2), new Date(2018, 11, 3) ],
+          [ '2', 'MSE in NCTU', new Date(2015, 6, 30), new Date(2017, 11, 1) ],
+          [ '3', 'Intern in Microsoft Taiwan',  new Date(2014, 7, 1),  new Date(2015, 6, 30) ],
+          [ '4', 'BSE in YZU',      new Date(2011, 9, 1),  new Date(2015, 6, 30) ]]);
+
+        chart.draw(dataTable);
+      }
+    </script>
+    <div id="timeline" style="height: 240px;"></div> 
+  </div>
+
+  <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto">
+    <h1 class="display-4" id="sac">Skills and Competencies</h1>
+    <p class="lead">Programming Languages - C/C++, Unity, Web, Java, Python</p>
+    <p class="lead">Five-point Scale: 1 (Beginner) <-> 3 (Intermediate) <-> and 5 (Expert)</p>
+
+    <div class="content">
+      <div class="wrapper" style="max-width: 512px; margin: auto">
+        <canvas id="chart-0"></canvas>
+      </div>
+    </div>
+
+    <p class="lead">Proficient with Microsoft Office (Word, Excel, Outlook, PowerPoint)</p>
+    <p class="lead">English - TOEIC 700/990</p>
+
+    
+      <hr class="featurette-divider">    
+
+      
+
+    
+
+    <script>
+      var presets = window.chartColors;
+      var utils = Samples.utils;
+      var data =  {
+        labels: ['C/C++', 'Unity', 'Java', 'Web', 'Python'],
+        datasets: [{
+          backgroundColor: utils.transparentize(presets.blue),
+          borderColor: presets.blue,
+          data: [5,4,3,3,3]
+        }]
+      };
+
+      var options = {       
+        legend: {
+          display: false,
+          labels: {
+                // This more specific font property overrides the global property
+                fontColor: 'red'
+            }
+        },
+        maintainAspectRatio: true,
+        scale: {       
+          ticks: {
+            beginAtZero: true
+          }
+        }
+      };
+
+      var chart = new Chart('chart-0', {
+        type: 'radar',
+        data: data,
+        options: options
+      });
+    </script>
+
+  </div>
+
+  <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto "> <!-- text-center -->    
+    <h1 class="display-4" id="col">Collection</h1>
+    <p class="lead">There are some of my works that I build before including the games we designed with my classmates, some websites that builted myself for query the open data and some interesting works, such as the predicted weather in the few days, the air pollution, and the barcode scanner.</p>
+    
+  </div>
+
+  <div class="container">
+    <div class="card-deck mb-3 text-center">
+      <div class="card mb-4 box-shadow">
+        <div class="card-header">
+          <h4 class="my-0 font-weight-normal">Game</h4>
+        </div>
+        <div class="card-body">
+          <img src="holder.js/100px225?theme=thumb&bg=55595c&fg=eceeef&text=Thumbnail" alt="mario" class="img-thumbnail">
+        </div>
+      </div>
+      <div class="card mb-4 box-shadow">
+        <div class="card-header">
+          <h4 class="my-0 font-weight-normal">Predicted Weather</h4>
+        </div>
+        <div class="card-body">
+          <img src="holder.js/100px225?theme=thumb&bg=55595c&fg=eceeef&text=Thumbnail" alt="weather" class="img-thumbnail">
+        </div>
+      </div>
+      <div class="card mb-4 box-shadow">
+        <div class="card-header">
+          <h4 class="my-0 font-weight-normal">Air Pollution</h4>
+        </div>
+        <div class="card-body">
+          <img src="holder.js/100px225?theme=thumb&bg=55595c&fg=eceeef&text=Thumbnail" alt="airpoll" class="img-thumbnail">
+        </div>
+      </div>
+      <div class="card mb-4 box-shadow">
+        <div class="card-header">
+          <h4 class="my-0 font-weight-normal">Barcode Scanner</h4>
+        </div>
+        <div class="card-body">          
+          <img src="holder.js/100px225?theme=thumb&bg=55595c&fg=eceeef&text=Thumbnail" alt="test" class="img-thumbnail">
+          <button type="button" class="btn btn-lg btn-block btn-primary">Contact us</button>
+        </div>
+      </div>
+      <div class="card mb-4 box-shadow">
+        <div class="card-header">
+          <h4 class="my-0 font-weight-normal">Barcode Scanner</h4>
+        </div>
+        <div class="card-body">          
+          <img src="holder.js/100px225?theme=thumb&bg=55595c&fg=eceeef&text=Thumbnail" alt="test" class="img-thumbnail">
+          <button type="button" class="btn btn-lg btn-block btn-primary">Contact us</button>
+        </div>
+      </div>
+      <div class="card mb-4 box-shadow">
+        <div class="card-header">
+          <h4 class="my-0 font-weight-normal">Barcode Scanner</h4>
+        </div>
+        <div class="card-body">          
+          <img src="holder.js/100px225?theme=thumb&bg=55595c&fg=eceeef&text=Thumbnail" alt="test" class="img-thumbnail">
+          <button type="button" class="btn btn-lg btn-block btn-primary">Contact us</button>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+
+
+    <!-- Bootstrap core JavaScript
+      ================================================== -->
+      <!-- Placed at the end of the document so the pages load faster -->
+      <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+      <script>window.jQuery || document.write('<script src="../../../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
+      <script src="https://getbootstrap.com/assets/js/vendor/popper.min.js"></script>
+      <script src="https://getbootstrap.com/dist/js/bootstrap.min.js"></script>
+      <script src="https://getbootstrap.com/assets/js/vendor/holder.min.js"></script>
+      <script>
+        Holder.addTheme('thumb', {
+          bg: '#55595c',
+          fg: '#eceeef',
+          text: 'Thumbnail'
+        });
+      </script>
+    </body>
+    </html>
