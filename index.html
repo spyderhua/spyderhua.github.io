@@ -7,11 +7,6 @@
   <meta name="author" content="">
   <link rel="icon" href="https://getbootstrap.com/favicon.ico">
 
-  <link rel="stylesheet" type="text/css" href="https://www.chartjs.org/samples/latest/style.css">
-  <script src="https://www.chartjs.org/dist/2.7.2/Chart.bundle.js"></script>
-  <script src="https://www.chartjs.org/samples/latest/utils.js"></script>
-  <script src="https://www.chartjs.org/samples/latest/charts/area/analyser.js"></script>
-
   <title>Collection</title>
 
   <!-- Bootstrap core CSS -->
@@ -57,105 +52,34 @@
   <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto">
     <h1 class="display-4" id="edu">Education</h1>
     <p></p>
-    <p class="lead">Master of Institute of Multimedia Engineering. National Chiao Tung University (NCTU), Hsinchu, Taiwan.</p>
+    <p class="lead">National Chiao Tung University (NCTU), Hsinchu, Taiwan. Master of Institute of Multimedia Engineering</p>
     <p class="lead text-right">July 2015-November 2017</p>
-    <p class="lead">Bachelor of Department of Computer Science and Engineering. Yuan Ze University (YZU), Chung-Li, Taiwan.</p>
+    <p class="lead">Yuan Ze University (YZU), Chung-Li, Taiwan. Bachelor of Department of Computer Science and Engineering</p>
     <p class="lead text-right">September 2011-June 2015</p>
     <hr class="featurette-divider">
-
-    
   </div>
 
   <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto">
     <h1 class="display-4" id="we">Work Experience</h1>
     <p></p>
-    <p class="lead">Substitute Services (Educational services) in Education Bureau, Kaohsiung City Government, Kaohsiung, Taiwan.</p>
-    <p class="lead text-right">January 2018-Present</p>
+	<p class="lead">Winbond Electronics Corporation, Taichung, Taiwan.</p>
+    <p class="lead text-right">December 2018-Present</p>
+    <p class="lead">Substitute Services(Educational services) in Education Bureau, Kaohsiung City Government, Kaohsiung, Taiwan.</p>
+    <p class="lead text-right">January 2018-November 2018</p>
     <p class="lead">Intern in Microsoft Taiwan, Taipei, Taiwan.</p>
     <p class="lead text-right">July 2014-June 2015</p>
-    <hr class="featurette-divider">   
-
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script type="text/javascript">
-      google.charts.load('current', {'packages':['timeline']});
-      google.charts.setOnLoadCallback(drawChart);
-      function drawChart() {
-        var container = document.getElementById('timeline');
-        var chart = new google.visualization.Timeline(container);
-        var dataTable = new google.visualization.DataTable();
-
-        dataTable.addColumn({ type: 'string', id: 'Term' });
-        dataTable.addColumn({ type: 'string', id: 'Items' });
-        dataTable.addColumn({ type: 'date', id: 'Start' });
-        dataTable.addColumn({ type: 'date', id: 'End' });
-        dataTable.addRows([
-          [ '1', 'Substitute Services in Education Bureau', new Date(2018, 1, 2), new Date(2018, 11, 3) ],
-          [ '2', 'MSE in NCTU', new Date(2015, 6, 30), new Date(2017, 11, 1) ],
-          [ '3', 'Intern in Microsoft Taiwan',  new Date(2014, 7, 1),  new Date(2015, 6, 30) ],
-          [ '4', 'BSE in YZU',      new Date(2011, 9, 1),  new Date(2015, 6, 30) ]]);
-
-        chart.draw(dataTable);
-      }
-    </script>
-    <div id="timeline" style="height: 240px;"></div> 
+    <hr class="featurette-divider">    
   </div>
 
-  <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto">
+    <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto">
     <h1 class="display-4" id="sac">Skills and Competencies</h1>
-    <p class="lead">Programming Languages - C/C++, Unity, Web, Java, Python</p>
-    <p class="lead">Five-point Scale: 1 (Beginner) <-> 3 (Intermediate) <-> and 5 (Expert)</p>
-
-    <div class="content">
-      <div class="wrapper" style="max-width: 512px; margin: auto">
-        <canvas id="chart-0"></canvas>
-      </div>
-    </div>
-
+	<p class="lead">Web - Angular(Front-End), C-Sharp(Back-End)</p>
+	<p class="lead">SQL - Oracle Database</p>
+    <p class="lead">Programming Languages - C, C++</p>
+	<p class="lead">Game Engine - Unity</p>
     <p class="lead">Proficient with Microsoft Office (Word, Excel, Outlook, PowerPoint)</p>
     <p class="lead">English - TOEIC 700/990</p>
-
-    
-      <hr class="featurette-divider">    
-
-      
-
-    
-
-    <script>
-      var presets = window.chartColors;
-      var utils = Samples.utils;
-      var data =  {
-        labels: ['C/C++', 'Unity', 'Java', 'Web', 'Python'],
-        datasets: [{
-          backgroundColor: utils.transparentize(presets.blue),
-          borderColor: presets.blue,
-          data: [5,4,3,3,3]
-        }]
-      };
-
-      var options = {       
-        legend: {
-          display: false,
-          labels: {
-                // This more specific font property overrides the global property
-                fontColor: 'red'
-            }
-        },
-        maintainAspectRatio: true,
-        scale: {       
-          ticks: {
-            beginAtZero: true
-          }
-        }
-      };
-
-      var chart = new Chart('chart-0', {
-        type: 'radar',
-        data: data,
-        options: options
-      });
-    </script>
-
+    <hr class="featurette-divider">    
   </div>
 
   <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto "> <!-- text-center -->    
@@ -171,7 +95,7 @@
           <h4 class="my-0 font-weight-normal">Game</h4>
         </div>
         <div class="card-body">
-          <img src="holder.js/100px225?theme=thumb&bg=55595c&fg=eceeef&text=Thumbnail" alt="mario" class="img-thumbnail">
+          <img src="https://i.pinimg.com/originals/0e/10/03/0e1003f589d3df8c89d658d53a12c3ef.jpg" alt="mario" class="img-thumbnail">
         </div>
       </div>
       <div class="card mb-4 box-shadow">
@@ -179,7 +103,7 @@
           <h4 class="my-0 font-weight-normal">Predicted Weather</h4>
         </div>
         <div class="card-body">
-          <img src="holder.js/100px225?theme=thumb&bg=55595c&fg=eceeef&text=Thumbnail" alt="weather" class="img-thumbnail">
+          <img src="https://goo.gl/X73jRF" alt="weather" class="img-thumbnail">
         </div>
       </div>
       <div class="card mb-4 box-shadow">
@@ -187,33 +111,21 @@
           <h4 class="my-0 font-weight-normal">Air Pollution</h4>
         </div>
         <div class="card-body">
-          <img src="holder.js/100px225?theme=thumb&bg=55595c&fg=eceeef&text=Thumbnail" alt="airpoll" class="img-thumbnail">
+          <img src="https://www.globalhealingcenter.com/natural-health/wp-content/uploads/2015/01/air-pollution.jpg" alt="airpoll" class="img-thumbnail">
         </div>
       </div>
       <div class="card mb-4 box-shadow">
         <div class="card-header">
           <h4 class="my-0 font-weight-normal">Barcode Scanner</h4>
         </div>
-        <div class="card-body">          
-          <img src="holder.js/100px225?theme=thumb&bg=55595c&fg=eceeef&text=Thumbnail" alt="test" class="img-thumbnail">
-          <button type="button" class="btn btn-lg btn-block btn-primary">Contact us</button>
-        </div>
-      </div>
-      <div class="card mb-4 box-shadow">
-        <div class="card-header">
-          <h4 class="my-0 font-weight-normal">Barcode Scanner</h4>
-        </div>
-        <div class="card-body">          
-          <img src="holder.js/100px225?theme=thumb&bg=55595c&fg=eceeef&text=Thumbnail" alt="test" class="img-thumbnail">
-          <button type="button" class="btn btn-lg btn-block btn-primary">Contact us</button>
-        </div>
-      </div>
-      <div class="card mb-4 box-shadow">
-        <div class="card-header">
-          <h4 class="my-0 font-weight-normal">Barcode Scanner</h4>
-        </div>
-        <div class="card-body">          
-          <img src="holder.js/100px225?theme=thumb&bg=55595c&fg=eceeef&text=Thumbnail" alt="test" class="img-thumbnail">
+        <div class="card-body">
+          <h1 class="card-title pricing-card-title">$29 <small class="text-muted">/ mo</small></h1>
+          <ul class="list-unstyled mt-3 mb-4">
+            <li>https://www.managertoday.com.tw/dictionary/cond/51857</li>
+            <li>15 GB of storage</li>
+            <li>Phone and email support</li>
+            <li>Help center access</li>
+          </ul>
           <button type="button" class="btn btn-lg btn-block btn-primary">Contact us</button>
         </div>
       </div>
