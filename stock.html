@@ -14,7 +14,7 @@
     <script src="https://unpkg.com/recharts@2.1.16/umd/Recharts.js"></script>
     <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Firebase (Compat Mode) -->
+    <!-- Firebase (Compat Mode) - 僅作為可選載入 -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -54,11 +54,11 @@
         };
 
         const INITIAL_DATA = [
-            { date: '2026-01-28', name: '台積電', type: 'LISTED', shares: 50, price: 1805, category: '一般' },
-            { date: '2026-01-26', name: '台積電', type: 'LISTED', shares: 50, price: 1775, category: '一般' },
-            { date: '2026-01-20', name: '鴻海', type: 'LISTED', shares: 200, price: 210, category: '存股' },
-            { date: '2026-01-15', name: '長榮', type: 'LISTED', shares: 100, price: 205, category: '短套' },
-            { date: '2026-01-12', name: '元大台灣50', type: 'ETF', shares: 500, price: 195, category: '定期定額' }
+            { id: 'init-1', date: '2026-01-28', name: '台積電', type: 'LISTED', shares: 50, price: 1805, category: '一般' },
+            { id: 'init-2', date: '2026-01-26', name: '台積電', type: 'LISTED', shares: 50, price: 1775, category: '一般' },
+            { id: 'init-3', date: '2026-01-20', name: '鴻海', type: 'LISTED', shares: 200, price: 210, category: '存股' },
+            { id: 'init-4', date: '2026-01-15', name: '長榮', type: 'LISTED', shares: 100, price: 205, category: '短套' },
+            { id: 'init-5', date: '2026-01-12', name: '元大台灣50', type: 'ETF', shares: 500, price: 195, category: '定期定額' }
         ];
 
         const BASE_FEE_RATE = 0.001425;
@@ -119,7 +119,6 @@
 
         // --- 主要組件 ---
         function App() {
-            const [user, setUser] = useState(null);
             const [transactions, setTransactions] = useState([]);
             const [loading, setLoading] = useState(true);
             const [stockPrices, setStockPrices] = useState({});
@@ -143,43 +142,67 @@
             const [showDataLabels, setShowDataLabels] = useState(false);
             const [clickedPoint, setClickedPoint] = useState(null);
             const [apiError, setApiError] = useState(null);
+            const [isLocalMode, setIsLocalMode] = useState(false);
 
             const fileInputRef = useRef(null);
 
-            // Firebase 配置
-            const firebaseConfigRaw = window.__firebase_config || '{}';
-            const firebaseConfig = JSON.parse(firebaseConfigRaw.includes('{') ? firebaseConfigRaw : '{}');
-            const appId = String(window.__app_id || 'stock-tracker-v1-static');
-            const initialAuthToken = window.__initial_auth_token || null;
-
+            // --- 資料持久化邏輯 ---
             useEffect(() => {
-                const init = async () => {
-                    try {
-                        if (firebaseConfig.apiKey) {
-                            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-                            const auth = firebase.auth();
-                            if (initialAuthToken && initialAuthToken !== 'undefined') {
-                                await auth.signInWithCustomToken(initialAuthToken);
-                            } else {
-                                await auth.signInAnonymously();
-                            }
-                            auth.onAuthStateChanged(u => setUser(u));
-                        } else { setLoading(false); }
-                    } catch (e) { console.error(e); setLoading(false); }
-                };
-                init();
+                const firebaseConfigRaw = window.__firebase_config || '{}';
+                let config = {};
+                try {
+                    config = JSON.parse(firebaseConfigRaw.includes('{') ? firebaseConfigRaw : '{}');
+                } catch(e) {}
+
+                if (config.apiKey) {
+                    // Firebase 模式
+                    if (!firebase.apps.length) firebase.initializeApp(config);
+                    const auth = firebase.auth();
+                    const db = firebase.firestore();
+                    const appId = String(window.__app_id || 'stock-pro-default');
+                    const initialAuthToken = window.__initial_auth_token || null;
+
+                    const initAuth = async () => {
+                        try {
+                            if (initialAuthToken && initialAuthToken !== 'undefined') await auth.signInWithCustomToken(initialAuthToken);
+                            else await auth.signInAnonymously();
+                            
+                            auth.onAuthStateChanged(u => {
+                                if (u) {
+                                    const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('transactions');
+                                    ref.onSnapshot(snap => {
+                                        setTransactions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                                        setLoading(false);
+                                    });
+                                }
+                            });
+                        } catch(e) { switchLocal(); }
+                    };
+                    initAuth();
+                } else {
+                    switchLocal();
+                }
+
+                function switchLocal() {
+                    setIsLocalMode(true);
+                    const saved = localStorage.getItem('stock_tracker_local_data');
+                    if (saved) {
+                        try {
+                            setTransactions(JSON.parse(saved));
+                        } catch(e) { setTransactions([]); }
+                    }
+                    setLoading(false);
+                }
             }, []);
 
+            // 本地儲存同步
             useEffect(() => {
-                if (!user) return;
-                const db = firebase.firestore();
-                const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('transactions');
-                return ref.onSnapshot(snap => {
-                    setTransactions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-                    setLoading(false);
-                });
-            }, [user]);
+                if (isLocalMode) {
+                    localStorage.setItem('stock_tracker_local_data', JSON.stringify(transactions));
+                }
+            }, [transactions, isLocalMode]);
 
+            // 市價同步
             const refreshPrices = async (data = transactions) => {
                 const names = Array.from(new Set(data.map(t => t.name)));
                 if (names.length === 0) return;
@@ -199,6 +222,7 @@
 
             useEffect(() => { if (transactions.length > 0 && !lastUpdated) refreshPrices(); }, [transactions]);
 
+            // 趨勢計算邏輯
             const getSampleDates = (freq, years) => {
                 const dates = [];
                 const now = new Date();
@@ -267,7 +291,7 @@
             }, [viewMode, samplingFreq, trendYears, transactions, selectedTrendStocks]);
 
             // 資料計算
-            const { listData, totalStats, portfolio, distData } = useMemo(() => {
+            const { listWithMetrics, totalStats, portfolioStocks, chartData } = useMemo(() => {
                 const list = transactions.map(t => {
                     const cur = stockPrices[t.name] || t.price;
                     return { ...t, cur, metrics: calculatePnL(t.shares, t.price, t.type, cur, sellFeeDiscount) };
@@ -289,10 +313,10 @@
                 });
 
                 return { 
-                    listData: list, 
+                    listWithMetrics: list, 
                     totalStats: total, 
-                    portfolio: Array.from(new Set(list.map(t => t.name))),
-                    distData: Object.values(groups)
+                    portfolioStocks: Array.from(new Set(list.map(t => t.name))),
+                    chartData: Object.values(groups).map(g => ({ name: g.name, pnl: g.pnl, val: g.val }))
                 };
             }, [transactions, stockPrices, groupBy, sellFeeDiscount]);
 
@@ -303,7 +327,7 @@
                 return { date: clickedPoint.date, diff, pct: clickedPoint.value ? (diff / clickedPoint.value * 100).toFixed(2) : 0 };
             }, [clickedPoint, totalAssetTrend]);
 
-            // --- 操作函數 ---
+            // --- 操作功能 ---
             const handleSave = async (e) => {
                 e.preventDefault();
                 const f = new FormData(e.target);
@@ -312,20 +336,34 @@
                 const found = Object.entries(STOCK_REGISTRY).find(([n, i]) => i.code === name);
                 if (found) name = found[0];
                 const id = editingTrade?.id || Date.now().toString();
-                const data = { date: f.get('date'), name, shares: Number(f.get('shares')), price: Number(f.get('price')), type: formStockType, category: f.get('category') || '一般' };
-                await firebase.firestore().collection('artifacts').doc(appId).collection('public').doc('data').collection('transactions').doc(id).set(data);
+                const data = { id, date: f.get('date'), name, shares: Number(f.get('shares')), price: Number(f.get('price')), type: formStockType, category: f.get('category') || '一般' };
+                
+                if (isLocalMode) {
+                    setTransactions(prev => {
+                        const filtered = prev.filter(t => t.id !== id);
+                        return [...filtered, data];
+                    });
+                } else {
+                    const db = firebase.firestore();
+                    const appId = String(window.__app_id || 'stock-pro-default');
+                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('transactions').doc(id).set(data);
+                }
                 setIsModalOpen(false);
             };
 
             const handleBulkDelete = async () => {
                 if (selectedIds.size === 0) return;
-                const db = firebase.firestore();
-                const batch = db.batch();
-                selectedIds.forEach(id => {
-                    const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('transactions').doc(id);
-                    batch.delete(ref);
-                });
-                await batch.commit();
+                if (isLocalMode) {
+                    setTransactions(prev => prev.filter(t => !selectedIds.has(t.id)));
+                } else {
+                    const db = firebase.firestore();
+                    const appId = String(window.__app_id || 'stock-pro-default');
+                    const batch = db.batch();
+                    selectedIds.forEach(id => {
+                        batch.delete(db.collection('artifacts').doc(appId).collection('public').doc('data').collection('transactions').doc(id));
+                    });
+                    await batch.commit();
+                }
                 setSelectedIds(new Set());
             };
 
@@ -335,7 +373,7 @@
                 const blob = new Blob([head + body], { type: "text/plain" });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
-                a.href = url; a.download = "stock_backup.txt"; a.click();
+                a.href = url; a.download = `stock_backup_${new Date().toISOString().split('T')[0]}.txt`; a.click();
             };
 
             const handleImport = (e) => {
@@ -344,47 +382,59 @@
                 const reader = new FileReader();
                 reader.onload = async (ev) => {
                     const lines = ev.target.result.split(/\r?\n/);
-                    const db = firebase.firestore();
-                    const batch = db.batch();
+                    const newData = [];
                     for (let i = 1; i < lines.length; i++) {
                         const cols = lines[i].trim().split('\t');
                         if (cols.length < 5) continue;
-                        const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('transactions').doc();
-                        batch.set(ref, { date: cols[0], name: cols[1], shares: Number(cols[2]), price: Number(cols[3]), type: cols[4], category: cols[5] || '一般' });
+                        newData.push({ id: `imported-${Date.now()}-${i}`, date: cols[0], name: cols[1], shares: Number(cols[2]), price: Number(cols[3]), type: cols[4], category: cols[5] || '一般' });
                     }
-                    await batch.commit();
+                    if (isLocalMode) {
+                        setTransactions(prev => [...prev, ...newData]);
+                    } else {
+                        const db = firebase.firestore();
+                        const appId = String(window.__app_id || 'stock-pro-default');
+                        const batch = db.batch();
+                        newData.forEach(d => {
+                            batch.set(db.collection('artifacts').doc(appId).collection('public').doc('data').collection('transactions').doc(d.id), d);
+                        });
+                        await batch.commit();
+                    }
                     setShowSettings(false);
                 };
                 reader.readAsText(file);
             };
 
             const handleSeed = async () => {
-                const db = firebase.firestore();
-                const batch = db.batch();
-                INITIAL_DATA.forEach((item, i) => {
-                    const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('transactions').doc(`init-${i}`);
-                    batch.set(ref, item);
-                });
-                await batch.commit();
+                if (isLocalMode) {
+                    setTransactions(prev => [...prev, ...INITIAL_DATA]);
+                } else {
+                    const db = firebase.firestore();
+                    const appId = String(window.__app_id || 'stock-pro-default');
+                    const batch = db.batch();
+                    INITIAL_DATA.forEach(item => {
+                        batch.set(db.collection('artifacts').doc(appId).collection('public').doc('data').collection('transactions').doc(item.id), item);
+                    });
+                    await batch.commit();
+                }
             };
 
-            if (loading) return <div class="min-h-screen flex items-center justify-center font-black text-slate-300">數據安全同步中...</div>;
+            if (loading) return <div className="min-h-screen flex items-center justify-center font-black text-slate-300">數據安全同步中...</div>;
 
             return (
-                <div class="min-h-screen pb-10 font-black">
-                    <header class="sticky top-0 bg-white/95 backdrop-blur-md border-b border-slate-200 z-40 px-5 py-4 flex justify-between items-center shadow-sm">
-                        <div class="flex items-center gap-2">
-                            <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-lg"><Icon name="activity" size={20}/></div>
-                            <h1 class="text-xl text-slate-800 tracking-tight">損益管理系統</h1>
+                <div className="min-h-screen pb-10 font-black">
+                    <header className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-slate-200 z-40 px-5 py-4 flex justify-between items-center shadow-sm">
+                        <div className="flex items-center gap-2">
+                            <div className="bg-indigo-600 p-2 rounded-xl text-white shadow-lg"><Icon name="activity" size={20}/></div>
+                            <h1 className="text-xl text-slate-800 tracking-tight">損益管理系統 {isLocalMode && <span className="text-[10px] bg-amber-100 text-amber-600 px-2 py-0.5 rounded ml-1">本地模式</span>}</h1>
                         </div>
-                        <div class="flex items-center gap-3 font-black">
-                            <button onClick={() => setShowSettings(!showSettings)} class={`p-2.5 rounded-full border transition-all ${showSettings ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-white border-slate-200 text-slate-400'}`}><Icon name="settings"/></button>
-                            <button onClick={() => { setEditingTrade(null); setFormSearchInput(''); setIsModalOpen(true); }} class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md flex items-center gap-2 active:scale-95 transition-all"><Icon name="plus" size={18}/> 新增成交</button>
+                        <div className="flex items-center gap-3">
+                            <button onClick={() => setShowSettings(!showSettings)} className={`p-2.5 rounded-full border transition-all ${showSettings ? 'bg-indigo-600 text-white' : 'bg-white text-slate-400'}`}><Icon name="settings"/></button>
+                            <button onClick={() => { setEditingTrade(null); setFormSearchInput(''); setIsModalOpen(true); }} className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md active:scale-95 transition-all"><Icon name="plus" size={18}/> 新增成交</button>
                         </div>
                     </header>
 
-                    <main class="max-w-6xl mx-auto p-4 space-y-4">
-                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-center">
+                    <main className="max-w-6xl mx-auto p-4 space-y-4">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-center">
                             <StatCard label="當前總市值" value={totalStats.val} />
                             <StatCard label="投資總成本" value={totalStats.cost} />
                             <StatCard label="目前總損益" value={totalStats.pnl} isPnl />
@@ -392,88 +442,89 @@
                         </div>
 
                         {transactions.length === 0 && !showSettings && (
-                            <div class="bg-white border-2 border-dashed border-slate-200 rounded-[2rem] p-12 text-center space-y-4 animate-in">
+                            <div className="bg-white border-2 border-dashed border-slate-200 rounded-[2rem] p-12 text-center space-y-4 animate-in">
                                 <Icon name="database" size={48} className="mx-auto text-slate-200"/>
-                                <h2 class="text-lg text-slate-800">庫存紀錄為空</h2>
-                                <p class="text-sm text-slate-400 max-w-xs mx-auto">匯入範例股票，或開始手動新增交易明細。</p>
-                                <button onClick={handleSeed} class="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-lg">匯入範例股票</button>
+                                <h2 className="text-lg text-slate-800">目前的紀錄為空</h2>
+                                <button onClick={handleSeed} className="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-lg">匯入範例股票</button>
                             </div>
                         )}
 
                         {transactions.length > 0 && (
-                            <div class="space-y-4">
-                                <section class="flex flex-col sm:flex-row gap-3 sm:items-center justify-between bg-white p-2 rounded-xl border border-slate-200 shadow-sm text-[11px]">
-                                    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-                                        <button onClick={() => setViewMode('list')} class={`px-5 py-2.5 rounded-xl transition-all ${viewMode === 'list' ? 'bg-indigo-100 text-indigo-600' : 'text-slate-400'}`}>清單模式</button>
-                                        <button onClick={() => setViewMode('chart')} class={`px-5 py-2.5 rounded-xl transition-all ${viewMode === 'chart' ? 'bg-indigo-100 text-indigo-600' : 'text-slate-400'}`}>分析圖表</button>
-                                        <div class="h-4 w-px bg-slate-100 mx-1"></div>
-                                        <select value={groupBy} onChange={(e) => setGroupBy(e.target.value)} class="bg-transparent border-none focus:ring-0 uppercase cursor-pointer font-black">
-                                            <option value="none">原始明細</option>
+                            <div className="space-y-4">
+                                <section className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between bg-white p-2 rounded-xl border border-slate-200 shadow-sm text-[11px]">
+                                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                                        <button onClick={() => setViewMode('list')} className={`px-5 py-2.5 rounded-xl transition-all ${viewMode === 'list' ? 'bg-indigo-100 text-indigo-600' : 'text-slate-400'}`}>清單模式</button>
+                                        <button onClick={() => setViewMode('chart')} className={`px-5 py-2.5 rounded-xl transition-all ${viewMode === 'chart' ? 'bg-indigo-100 text-indigo-600' : 'text-slate-400'}`}>分析圖表</button>
+                                        <div className="h-4 w-px bg-slate-100 mx-1"></div>
+                                        <select value={groupBy} onChange={(e) => setGroupBy(e.target.value)} className="bg-transparent border-none focus:ring-0 uppercase cursor-pointer">
+                                            <option value="none">原始時序</option>
                                             <option value="name">個股摘要</option>
                                             <option value="category">標籤分類</option>
                                         </select>
                                     </div>
                                     {selectedIds.size > 0 && (
-                                        <div class="flex items-center gap-2 animate-in font-black">
-                                            <span class="text-slate-400 px-2 font-black">已選擇 {selectedIds.size} 筆</span>
-                                            <button onClick={handleBulkDelete} class="flex items-center gap-1.5 bg-rose-50 text-rose-500 px-3 py-2 rounded-lg hover:bg-rose-100 transition-colors font-black">
+                                        <div className="flex items-center gap-2 animate-in font-black">
+                                            <span className="text-slate-400 px-2 font-black">已選擇 {selectedIds.size} 筆</span>
+                                            <button onClick={handleBulkDelete} className="flex items-center gap-1.5 bg-rose-50 text-rose-500 px-3 py-2 rounded-lg hover:bg-rose-100 transition-colors">
                                                 <Icon name="trash" size={14}/> 刪除選取
                                             </button>
-                                            <button onClick={() => setSelectedIds(new Set())} class="text-slate-400 px-3 py-2 border border-slate-100 rounded-lg">取消</button>
+                                            <button onClick={() => setSelectedIds(new Set())} className="text-slate-400 px-3 py-2 border border-slate-100 rounded-lg">取消</button>
                                         </div>
                                     )}
                                 </section>
 
                                 {viewMode === 'list' ? (
-                                    <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm text-xs animate-in font-black">
+                                    <div className="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm text-xs animate-in">
                                         <TableUI 
-                                            data={listData} 
+                                            data={listWithMetrics} 
                                             selected={selectedIds} 
                                             toggle={id => { const n = new Set(selectedIds); if(n.has(id)) n.delete(id); else n.add(id); setSelectedIds(n); }} 
                                             toggleAll={() => {
-                                                if (selectedIds.size === listData.length) setSelectedIds(new Set());
-                                                else setSelectedIds(new Set(listData.map(t => t.id)));
+                                                if (selectedIds.size === listWithMetrics.length) setSelectedIds(new Set());
+                                                else setSelectedIds(new Set(listWithMetrics.map(t => t.id)));
                                             }}
                                             edit={t=>{setEditingTrade(t); setFormSearchInput(t.name); setIsModalOpen(true);}} 
+                                            onTrendClick={(item) => {
+                                                // 快速查看單一趨勢可在此實現
+                                            }}
                                         />
                                     </div>
                                 ) : (
-                                    <div class="space-y-6 animate-in font-black">
-                                        {/* 趨勢回測區域 */}
-                                        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
-                                            <div class="flex flex-wrap justify-between items-start gap-6">
+                                    <div className="space-y-6 animate-in font-black">
+                                        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+                                            <div className="flex flex-wrap justify-between items-start gap-6">
                                                 <div>
-                                                    <h3 class="text-[10px] text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-2 font-black"><Icon name="history" size={12}/> 資產趨勢回測分析 (10Y)</h3>
+                                                    <h3 className="text-[10px] text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-2 font-black"><Icon name="history" size={12}/> 資產趨勢回測分析 (10Y)</h3>
                                                     {comparison ? (
-                                                        <div class="flex flex-col animate-in font-black">
-                                                            <span class="text-3xl text-slate-800 font-black">${totalAssetTrend[totalAssetTrend.length-1]?.value.toLocaleString()}</span>
-                                                            <p class={`text-[10px] mt-1 font-black px-2 py-1 rounded-lg w-fit ${comparison.diff >= 0 ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-500'}`}>
+                                                        <div className="flex flex-col animate-in">
+                                                            <span className="text-3xl text-slate-800 font-black">${totalAssetTrend[totalAssetTrend.length-1]?.value.toLocaleString()}</span>
+                                                            <p className={`text-[10px] mt-1 font-black px-2 py-1 rounded-lg w-fit ${comparison.diff >= 0 ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-500'}`}>
                                                                 較 {comparison.date} : {comparison.diff >= 0 ? '+' : ''}{comparison.diff.toLocaleString()} ({comparison.pct}%)
                                                             </p>
                                                         </div>
                                                     ) : (
-                                                        <span class="text-3xl text-slate-800 font-black">${totalAssetTrend[totalAssetTrend.length-1]?.value.toLocaleString() || '--'}</span>
+                                                        <span className="text-3xl text-slate-800 font-black">${totalAssetTrend[totalAssetTrend.length-1]?.value.toLocaleString() || '--'}</span>
                                                     )}
                                                 </div>
-                                                <div class="flex flex-col gap-2 items-end">
-                                                    <div class="flex gap-1 bg-slate-50 p-1.5 rounded-xl text-[9px] border border-slate-100 font-black">
-                                                        {[1, 3, 5, 10].map(y => <button key={y} onClick={() => setTrendYears(y)} class={`px-3 py-1 rounded-lg transition-all ${trendYears === y ? 'bg-indigo-600 text-white shadow-md font-bold' : 'text-slate-400'}`}>{y}Y</button>)}
+                                                <div className="flex flex-col gap-2 items-end">
+                                                    <div className="flex gap-1 bg-slate-50 p-1.5 rounded-xl text-[9px] border border-slate-100">
+                                                        {[1, 3, 5, 10].map(y => <button key={y} onClick={() => setTrendYears(y)} className={`px-3 py-1 rounded-lg transition-all ${trendYears === y ? 'bg-indigo-600 text-white shadow-md font-bold' : 'text-slate-400'}`}>{y}Y</button>)}
                                                     </div>
-                                                    <div class="flex gap-1 bg-slate-100 p-1.5 rounded-xl text-[9px] font-black">
-                                                        {[{l:'日',v:'day'}, {l:'月',v:'month'}, {l:'季',v:'quarter'}, {l:'年',v:'year'}].map(b => <button key={b.v} onClick={() => setSamplingFreq(b.v)} class={`px-3 py-1 rounded-lg transition-all ${samplingFreq === b.v ? 'bg-white text-indigo-600 shadow-sm font-bold' : 'text-slate-400'}`}>{b.l}</button>)}
+                                                    <div className="flex gap-1 bg-slate-100 p-1.5 rounded-xl text-[9px]">
+                                                        {[{l:'日',v:'day'}, {l:'月',v:'month'}, {l:'季',v:'quarter'}, {l:'年',v:'year'}].map(b => <button key={b.v} onClick={() => setSamplingFreq(b.v)} className={`px-3 py-1 rounded-lg transition-all ${samplingFreq === b.v ? 'bg-white text-indigo-600 shadow-sm font-bold' : 'text-slate-400'}`}>{b.l}</button>)}
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="flex flex-wrap gap-2 items-center border-t border-slate-50 pt-5 mt-6 font-black">
-                                                <span class="text-[9px] text-slate-400 tracking-widest uppercase mr-2 flex items-center gap-1 font-black font-black"><Icon name="filter" size={10}/> 比較範圍:</span>
-                                                <button onClick={() => setSelectedTrendStocks(new Set())} class={`px-4 py-1.5 rounded-full text-[10px] font-black transition-all ${selectedTrendStocks.size === 0 ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-500'}`}>全部總計</button>
-                                                {portfolio.map(name => (
-                                                    <button key={name} onClick={() => { const n = new Set(selectedTrendStocks); if(n.has(name)) n.delete(name); else n.add(name); setSelectedTrendStocks(n); }} class={`px-4 py-1.5 rounded-full text-[10px] font-black transition-all ${selectedTrendStocks.has(name) ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 text-slate-500'}`}>{name}</button>
+                                            <div className="flex flex-wrap gap-2 items-center border-t border-slate-50 pt-5 mt-6 font-black">
+                                                <span className="text-[9px] text-slate-400 tracking-widest uppercase mr-2 flex items-center gap-1 font-black font-black"><Icon name="filter" size={10}/> 比較範圍:</span>
+                                                <button onClick={() => setSelectedTrendStocks(new Set())} className={`px-4 py-1.5 rounded-full text-[10px] font-black transition-all ${selectedTrendStocks.size === 0 ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-500'}`}>全部總計</button>
+                                                {portfolioStocks.map(name => (
+                                                    <button key={name} onClick={() => { const n = new Set(selectedTrendStocks); if(n.has(name)) n.delete(name); else n.add(name); setSelectedTrendStocks(n); }} className={`px-4 py-1.5 rounded-full text-[10px] font-black transition-all ${selectedTrendStocks.has(name) ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 text-slate-500'}`}>{name}</button>
                                                 ))}
-                                                <button onClick={() => setShowDataLabels(!showDataLabels)} class={`ml-auto px-4 py-1.5 rounded-xl border text-[10px] font-black transition-all ${showDataLabels ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-white border-slate-200 text-slate-400'}`}>{showDataLabels ? "隱藏標籤" : "顯示標籤"}</button>
+                                                <button onClick={() => setShowDataLabels(!showDataLabels)} className={`ml-auto px-4 py-1.5 rounded-xl border text-[10px] font-black transition-all ${showDataLabels ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-white border-slate-200 text-slate-400'}`}>{showDataLabels ? "隱藏標籤" : "顯示標籤"}</button>
                                             </div>
-                                            <div class="h-[400px] w-full mt-8 relative chart-container font-black font-black font-black">
-                                                {isTrendLoading && <div class="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-sm z-10 rounded-3xl font-black font-black"><div class="animate-spin border-4 border-indigo-600 border-t-transparent w-10 h-10 rounded-full"></div></div>}
+                                            <div className="h-[380px] w-full mt-8 relative chart-container font-black font-black">
+                                                {isTrendLoading && <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-sm z-10 rounded-3xl"><div className="animate-spin border-4 border-indigo-600 border-t-transparent w-10 h-10 rounded-full"></div></div>}
                                                 <ResponsiveContainer width="100%" height="100%">
                                                     <AreaChart data={totalAssetTrend} onClick={d => d && d.activePayload && setClickedPoint(d.activePayload[0].payload)}>
                                                         <defs><linearGradient id="gC" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#4F46E5" stopOpacity={0.15}/><stop offset="95%" stopColor="#4F46E5" stopOpacity={0}/></linearGradient></defs>
@@ -488,48 +539,64 @@
                                                 </ResponsiveContainer>
                                             </div>
                                         </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 h-[350px] shadow-sm flex flex-col items-center">
+                                                <h3 className="text-[10px] text-slate-400 uppercase tracking-widest mb-6 font-black">個股預估損益對比</h3>
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <BarChart data={chartData} margin={{bottom: 20}}><XAxis dataKey="name" tick={{fontSize: 9}} angle={-30} textAnchor="end" interval={0} /><YAxis hide /><Tooltip cursor={{fill: '#f8fafc'}} /><Bar dataKey="pnl" radius={[6,6,0,0]}>{chartData.map((e,i)=><Cell key={i} fill={e.pnl>=0?'#F43F5E':'#10B981'}/>)}</Bar></BarChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 h-[350px] shadow-sm flex flex-col items-center font-black">
+                                                <h3 className="text-[10px] text-slate-400 uppercase tracking-widest mb-6 font-black">資產市值比例分佈</h3>
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart><Pie data={chartData.filter(d=>d.val>0)} dataKey="val" cx="50%" cy="50%" outerRadius={70}>{chartData.map((_,i)=><Cell key={i} fill={['#6366F1','#F43F5E','#10B981','#F59E0B','#94A3B8'][i%5]}/>)}</Pie><Tooltip/></PieChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
                             </div>
                         )}
 
                         {showSettings && (
-                            <div class="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-2xl animate-in font-black text-xs space-y-6 max-w-xl mx-auto">
-                                <h4 class="text-base text-slate-800 font-black border-b border-slate-100 pb-4">設定與數據管理</h4>
-                                <div class="flex items-center justify-between bg-slate-50 p-5 rounded-2xl border border-slate-100 font-black">
-                                    <div class="space-y-1 font-black"><p class="font-black text-slate-700">自動手續費折扣</p><p class="text-[10px] text-slate-400">預設套用賣出 6 折手續費</p></div>
-                                    <button onClick={() => setSellFeeDiscount(!sellFeeDiscount)} class={`w-12 h-6 rounded-full relative transition-colors ${sellFeeDiscount ? 'bg-indigo-600' : 'bg-slate-300'}`}><div class={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${sellFeeDiscount ? 'translate-x-6' : ''}`}></div></button>
+                            <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-2xl animate-in font-black text-xs space-y-6 max-w-xl mx-auto">
+                                <h4 className="text-base text-slate-800 font-black border-b border-slate-100 pb-4">設定與數據管理</h4>
+                                <div className="flex items-center justify-between bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                                    <div className="space-y-1 font-black"><p className="font-black text-slate-700">自動手續費折扣</p><p className="text-[10px] text-slate-400">計算損益時套用賣出 6 折手續費</p></div>
+                                    <button onClick={() => setSellFeeDiscount(!sellFeeDiscount)} className={`w-12 h-6 rounded-full relative transition-colors ${sellFeeDiscount ? 'bg-indigo-600' : 'bg-slate-300'}`}><div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${sellFeeDiscount ? 'translate-x-6' : ''}`}></div></button>
                                 </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <button onClick={handleExport} class="py-4 rounded-2xl bg-slate-800 text-white shadow-md flex items-center justify-center gap-2 hover:bg-slate-900 transition-colors font-black"><Icon name="download" size={16}/> 匯出備份</button>
-                                    <button onClick={() => fileInputRef.current.click()} class="py-4 rounded-2xl bg-white text-slate-700 border border-slate-200 shadow-sm flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors font-black"><Icon name="upload" size={16}/> 匯入還原</button>
-                                    <input type="file" ref={fileInputRef} class="hidden" accept=".txt" onChange={handleImport} />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button onClick={handleExport} className="py-4 rounded-2xl bg-slate-800 text-white shadow-md flex items-center justify-center gap-2 hover:bg-slate-900 transition-colors font-black"><Icon name="download" size={16}/> 匯出資料</button>
+                                    <button onClick={() => fileInputRef.current.click()} className="py-4 rounded-2xl bg-white text-slate-700 border border-slate-200 shadow-sm flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors font-black"><Icon name="upload" size={16}/> 匯入還原</button>
+                                    <input type="file" ref={fileInputRef} className="hidden" accept=".txt" onChange={handleImport} />
                                 </div>
-                                <div class="space-y-3 font-black">
-                                    <button onClick={handleSeed} class="w-full py-4 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 shadow-sm flex items-center justify-center gap-2 hover:bg-indigo-100 transition-all font-black"><Icon name="database" size={16}/> 匯入 5 筆預設範例個股</button>
-                                    <button onClick={() => { historyCache.current = {}; refreshPrices(); }} class="w-full py-4 rounded-2xl bg-indigo-600 text-white shadow-lg font-black hover:bg-indigo-700 active:scale-95 transition-all">重新載入市價與刷新歷史快取</button>
+                                <div className="space-y-3 font-black">
+                                    <button onClick={handleSeed} className="w-full py-3 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 shadow-sm flex items-center justify-center gap-2 hover:bg-indigo-100 transition-all font-black"><Icon name="database" size={16}/> 匯入 5 筆預設範例個股</button>
+                                    <button onClick={() => { historyCache.current = {}; refreshPrices(); }} className="w-full py-4 rounded-2xl bg-indigo-600 text-white shadow-lg font-black hover:bg-indigo-700 active:scale-95 transition-all">重新載入市價與刷新快取</button>
                                 </div>
                             </div>
                         )}
                     </main>
 
                     {isModalOpen && (
-                        <div class="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-slate-900/70 backdrop-blur-md animate-in font-black font-black">
-                            <div class="bg-white rounded-t-[3rem] sm:rounded-[3rem] w-full max-w-lg shadow-2xl p-10 max-h-[90vh] overflow-y-auto no-scrollbar relative font-black font-black">
-                                <h3 class="text-2xl font-black text-slate-800 mb-8 font-black">{editingTrade ? '修改交易明細' : '新增成交紀錄'}</h3>
-                                <form onSubmit={handleSave} class="space-y-6">
-                                    <div class="grid grid-cols-2 gap-5 font-black">
-                                        <div class="space-y-2 font-black"><label class="text-[10px] text-slate-400 ml-1 font-black">成交日期</label><input required name="date" type="date" defaultValue={editingTrade?.date || new Date().toISOString().split('T')[0]} class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none" /></div>
-                                        <div class="space-y-2 font-black"><label class="text-[10px] text-slate-400 ml-1 font-black">代碼搜尋</label><input required name="name" list="sL" value={formSearchInput} onChange={e=>setFormSearchInput(e.target.value)} class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none" placeholder="例 2330" />
-                                            <datalist id="sL">{Object.entries(STOCK_REGISTRY).map(([n,i]) => <option key={i.code} value={`${i.code} ${n}`} />)}</datalist>
+                        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-slate-900/70 backdrop-blur-md animate-in">
+                            <div className="bg-white rounded-t-[3rem] sm:rounded-[3rem] w-full max-w-lg shadow-2xl p-10 max-h-[90vh] overflow-y-auto no-scrollbar relative font-black font-black">
+                                <h3 className="text-2xl font-black text-slate-800 mb-8 font-black">{editingTrade ? '修改交易明細' : '新增成交紀錄'}</h3>
+                                <form onSubmit={handleSave} className="space-y-6">
+                                    <div className="grid grid-cols-2 gap-5 font-black">
+                                        <div className="space-y-2 font-black"><label className="text-[10px] text-slate-400 ml-1 font-black">成交日期</label><input required name="date" type="date" defaultValue={editingTrade?.date || new Date().toISOString().split('T')[0]} className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-100" /></div>
+                                        <div className="space-y-2 font-black"><label className="text-[10px] text-slate-400 ml-1 font-black">代碼搜尋</label><input required name="name" list="sList" value={formSearchInput} onChange={e=>setFormSearchInput(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-100" placeholder="例 2330" />
+                                            <datalist id="sList">{Object.entries(STOCK_REGISTRY).map(([n,i]) => <option key={i.code} value={`${i.code} ${n}`} />)}</datalist>
                                         </div>
                                     </div>
-                                    <div class="grid grid-cols-2 gap-5 font-black">
-                                        <div class="space-y-2 font-black"><label class="text-[10px] text-slate-400 ml-1 font-black">成交股數</label><input required name="shares" type="number" defaultValue={editingTrade?.shares} class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl" /></div>
-                                        <div class="space-y-2 font-black"><label class="text-[10px] text-slate-400 ml-1 font-black">買入單價</label><input required name="price" type="number" step="0.01" defaultValue={editingTrade?.price} class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl" /></div>
+                                    <div className="grid grid-cols-2 gap-5 font-black">
+                                        <div className="space-y-2 font-black"><label className="text-[10px] text-slate-400 ml-1">成交股數</label><input required name="shares" type="number" defaultValue={editingTrade?.shares} className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-black" /></div>
+                                        <div className="space-y-2 font-black"><label className="text-[10px] text-slate-400 ml-1">買入單價</label><input required name="price" type="number" step="0.01" defaultValue={editingTrade?.price} className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-black" /></div>
                                     </div>
-                                    <button type="submit" class="w-full bg-indigo-600 text-white py-5 rounded-[2rem] shadow-xl font-black text-lg">確認儲存</button>
-                                    <button type="button" onClick={() => setIsModalOpen(false)} class="w-full py-2 text-slate-300 font-bold font-black">取消</button>
+                                    <div className="space-y-2 font-black"><label className="text-[10px] text-slate-400 ml-1">分類標籤</label><input name="category" defaultValue={editingTrade?.category || '一般'} className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-black" /></div>
+                                    <button type="submit" className="w-full bg-indigo-600 text-white py-5 rounded-[2rem] shadow-xl font-black text-lg">確認儲存</button>
+                                    <button type="button" onClick={() => setIsModalOpen(false)} className="w-full py-2 text-slate-300 font-bold font-black">取消</button>
                                 </form>
                             </div>
                         </div>
@@ -541,9 +608,9 @@
         function StatCard({ label, value, isPnl }) {
             const isPos = String(value).indexOf('-') === -1;
             return (
-                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm text-center transition-all hover:translate-y-[-2px] font-black">
-                    <p class="text-[9px] text-slate-400 uppercase mb-3 tracking-widest">{label}</p>
-                    <h2 class={`text-lg lg:text-xl truncate font-black ${isPnl ? (isPos && value !== '0%' && value !== 0 ? 'text-rose-500' : 'text-emerald-500') : 'text-slate-800'}`}>
+                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm text-center transition-all hover:translate-y-[-2px] font-black">
+                    <p className="text-[9px] text-slate-400 uppercase mb-3 tracking-widest">{label}</p>
+                    <h2 className={`text-base lg:text-xl truncate font-black ${isPnl ? (isPos && value !== '0%' && value !== 0 ? 'text-rose-500' : 'text-emerald-500') : 'text-slate-800'}`}>
                         {isPnl && isPos && value !== '0%' && value !== 0 ? '+' : ''}{typeof value === 'number' ? value.toLocaleString() : value}
                     </h2>
                 </div>
@@ -553,37 +620,37 @@
         function TableUI({ data, selected, toggle, toggleAll, edit }) {
             const isAllSelected = data.length > 0 && selected.size === data.length;
             return (
-                <div class="overflow-x-auto">
-                    <table class="w-full border-collapse min-w-[750px]">
-                        <thead class="bg-[#FBFCFD] text-slate-400 text-[10px] uppercase border-b border-slate-100 font-black">
+                <div className="overflow-x-auto">
+                    <table className="w-full border-collapse min-w-[750px]">
+                        <thead className="bg-[#FBFCFD] text-slate-400 text-[10px] uppercase border-b border-slate-100 font-black">
                             <tr>
-                                <th class="px-6 py-6 text-center w-16">
-                                    <input type="checkbox" checked={isAllSelected} onChange={toggleAll} class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                                <th className="px-6 py-6 text-center w-16">
+                                    <input type="checkbox" checked={isAllSelected} onChange={toggleAll} className="w-4 h-4 rounded border-slate-300 text-indigo-600" />
                                 </th>
-                                <th class="px-6 py-6 text-left">標的與日期</th>
-                                <th class="px-8 py-6 text-left">股數 / 成本</th>
-                                <th class="px-6 py-6 text-left">目前市價</th>
-                                <th class="px-6 py-6 text-left">預估損益</th>
-                                <th class="px-8 py-6 text-right">編輯</th>
+                                <th className="px-6 py-6 text-left">標的與日期</th>
+                                <th className="px-8 py-6 text-left">股數 / 成本</th>
+                                <th className="px-6 py-6 text-left">目前市價</th>
+                                <th className="px-6 py-6 text-left">預估損益</th>
+                                <th className="px-8 py-6 text-right">操作</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-50">
+                        <tbody className="divide-y divide-slate-50 font-black">
                             {data.map(t => (
-                                <tr key={t.id} class={`hover:bg-slate-50/50 transition-colors ${selected.has(t.id) ? 'bg-indigo-50/40' : ''}`}>
-                                    <td class="px-6 py-6 text-center">
-                                        <input type="checkbox" checked={selected.has(t.id)} onChange={()=>toggle(t.id)} class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                                <tr key={t.id} className={`hover:bg-slate-50/50 transition-colors ${selected.has(t.id) ? 'bg-indigo-50/40' : ''}`}>
+                                    <td className="px-6 py-6 text-center">
+                                        <input type="checkbox" checked={selected.has(t.id)} onChange={()=>toggle(t.id)} className="w-4 h-4 rounded border-slate-300 text-indigo-600" />
                                     </td>
-                                    <td class="px-6 py-6">
-                                        <div class="flex items-center gap-3 font-black"><div class="font-black text-slate-800 text-sm font-black">{t.name}</div><div class="px-2 py-0.5 bg-slate-100 rounded text-[9px] text-slate-400 uppercase font-black">{t.type}</div></div>
-                                        <div class="text-[10px] text-slate-300 mt-1 font-black">{t.date}</div>
+                                    <td className="px-6 py-6">
+                                        <div className="flex items-center gap-3 font-black"><div className="font-black text-slate-800 text-sm">{t.name}</div><div className="px-2 py-0.5 bg-slate-100 rounded text-[9px] text-slate-400 uppercase">{t.type}</div></div>
+                                        <div className="text-[10px] text-slate-300 mt-1 font-black">{t.date}</div>
                                     </td>
-                                    <td class="px-8 py-6 text-slate-600 font-black text-sm font-black"><div>{t.shares.toLocaleString()} 股</div><div class="text-[10px] text-slate-300 mt-1 font-black">@{t.price}</div></td>
-                                    <td class="px-6 py-6 text-indigo-500 text-base font-black font-black">${t.cur.toLocaleString()}</td>
-                                    <td class="px-6 py-6 font-black font-black">
-                                        <div class={`${t.metrics.pnl>=0?'text-rose-500':'text-emerald-500'} text-sm font-black`}>{t.metrics.pnl>=0?'+':''}{t.metrics.pnl.toLocaleString()}</div>
-                                        <div class="text-[10px] opacity-30 mt-0.5 font-black">{t.metrics.pnlPercent.toFixed(2)}%</div>
+                                    <td className="px-8 py-6 text-slate-600 font-black text-sm"><div>{t.shares.toLocaleString()} 股</div><div className="text-[10px] text-slate-300 mt-1 font-black">@{t.price}</div></td>
+                                    <td className="px-6 py-6 text-indigo-500 text-base font-black">${t.cur.toLocaleString()}</td>
+                                    <td className="px-6 py-6 font-black">
+                                        <div className={`${t.metrics.pnl>=0?'text-rose-500':'text-emerald-500'} text-sm font-black`}>{t.metrics.pnl>=0?'+':''}{t.metrics.pnl.toLocaleString()}</div>
+                                        <div className="text-[10px] opacity-30 mt-0.5 font-black">{t.metrics.pnlPercent.toFixed(2)}%</div>
                                     </td>
-                                    <td class="px-8 py-6 text-right"><button onClick={()=>edit(t)} class="text-slate-200 hover:text-indigo-600 p-2 font-black font-black font-black"><Icon name="edit" size={16}/></button></td>
+                                    <td className="px-8 py-6 text-right"><button onClick={()=>edit(t)} className="text-slate-200 hover:text-indigo-600 p-2"><Icon name="edit" size={16}/></button></td>
                                 </tr>
                             ))}
                         </tbody>
