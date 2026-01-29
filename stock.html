@@ -1,0 +1,573 @@
+    <!DOCTYPE html>
+    <html lang="zh-TW">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>股票損益管理系統 - 專業回測版</title>
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <!-- 基礎 React 資源 -->
+        <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+        <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+        <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+        <!-- Recharts -->
+        <script src="https://unpkg.com/recharts@2.1.16/umd/Recharts.js"></script>
+        <!-- Babel -->
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        <!-- Firebase (Compat Mode) -->
+        <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+            body { font-family: 'Noto Sans TC', sans-serif; -webkit-tap-highlight-color: transparent; }
+            .animate-in { animation: fadeIn 0.3s ease-out; }
+            @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+            .no-scrollbar::-webkit-scrollbar { display: none; }
+            .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+            .chart-container .recharts-cartesian-axis-tick-value { font-weight: 700; fill: #64748b; }
+        </style>
+    </head>
+    <body class="bg-[#F8FAFC]">
+        <div id="root"></div>
+
+        <script type="text/babel">
+            // 確保 Recharts 能抓到 React 環境
+            window.React = React;
+            const { useState, useMemo, useEffect, useRef } = React;
+            const { 
+                BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
+                PieChart, Pie, Legend, AreaChart, Area, LabelList 
+            } = Recharts;
+
+            // --- SVG 圖標組件定義 ---
+            const Icon = ({ name, size = 20, className = "" }) => {
+                const icons = {
+                    activity: <path d="M22 12h-4l-3 9L9 3l-3 9H2" />,
+                    settings: <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2zM12 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" />,
+                    plus: <path d="M12 5v14M5 12h14" />,
+                    history: <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8m0-4v4h4" />,
+                    clock: <path d="M12 6v6l4 2" />,
+                    filter: <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />,
+                    eye: <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />,
+                    eyeOff: <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19M1 1l22 22M12 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" />,
+                    database: <path d="M12 5c4.42 0 8 1.34 8 3s-3.58 3-8 3-8-1.34-8-3 3.58-3 8-3zM4 12c0 1.66 3.58 3 8 3s8-1.34 8-3M4 17c0 1.66 3.58 3 8 3s8-1.34 8-3M20 8v9M4 8v9" />,
+                    alert: <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01" />,
+                    x: <path d="M18 6L6 18M6 6l12 12" />,
+                    chevronRight: <path d="M9 18l6-6-6-6" />,
+                    edit: <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />,
+                    download: <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />,
+                    upload: <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />,
+                    chart: <path d="M3 3v18h18M18 17l-4-4-4 4-4-4" />
+                };
+                return (
+                    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                        {icons[name] || null}
+                    </svg>
+                );
+            };
+
+            // --- Firebase 配置 ---
+            const firebaseConfigRaw = window.__firebase_config || '{}';
+            const firebaseConfig = JSON.parse(firebaseConfigRaw.includes('{') ? firebaseConfigRaw : '{}');
+            const appId = String(window.__app_id || 'stock-tracker-pro-static');
+            const initialAuthToken = window.__initial_auth_token || null;
+
+            if (firebaseConfig.apiKey) { firebase.initializeApp(firebaseConfig); }
+            const auth = firebase.apps.length ? firebase.auth() : null;
+            const db = firebase.apps.length ? firebase.firestore() : null;
+
+            // --- 常量定義 ---
+            const STOCK_REGISTRY = {
+                '台積電': { code: '2330', type: 'LISTED' },
+                '聯發科': { code: '2454', type: 'LISTED' },
+                '鴻海': { code: '2317', type: 'LISTED' },
+                '長榮': { code: '2603', type: 'LISTED' },
+                '廣達': { code: '2382', type: 'LISTED' },
+                '元大台灣50': { code: '0050', type: 'ETF' },
+                '富邦台50': { code: '006208', type: 'ETF' },
+                '元大高股息': { code: '0056', type: 'ETF' },
+                '國泰永續高股息': { code: '00878', type: 'ETF' },
+                '群益台灣精選高息': { code: '00919', type: 'ETF' }
+            };
+
+            const BASE_FEE_RATE = 0.001425;
+            const TAX_RATES = { LISTED: 0.003, ETF: 0.001 };
+
+            // --- 計算與 API 邏輯 ---
+            const fetchWithRetry = async (url, retries = 5, backoff = 1000) => {
+                try {
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error('Fetch Error');
+                    return await res.json();
+                } catch (error) {
+                    if (retries > 0) {
+                        await new Promise(r => setTimeout(r, backoff));
+                        return fetchWithRetry(url, retries - 1, backoff * 2);
+                    }
+                    throw error;
+                }
+            };
+
+            const calculatePnL = (shares, buyPrice, type, currentPrice, discount = true) => {
+                const cost = shares * buyPrice;
+                const fee = Math.floor(cost * BASE_FEE_RATE * 0.6);
+                const totalCost = cost + fee;
+                const sellVal = shares * currentPrice;
+                const sellFee = Math.floor(sellVal * (discount ? BASE_FEE_RATE * 0.6 : BASE_FEE_RATE));
+                const tax = Math.floor(sellVal * TAX_RATES[type]);
+                const pnl = sellVal - sellFee - tax - totalCost;
+                return { totalCost, pnl, marketValue: sellVal, pnlPercent: totalCost > 0 ? (pnl / totalCost) * 100 : 0 };
+            };
+
+            // --- 主要組件 ---
+            function App() {
+                const [user, setUser] = useState(null);
+                const [transactions, setTransactions] = useState([]);
+                const [loading, setLoading] = useState(true);
+                const [stockPrices, setStockPrices] = useState({});
+                const [lastUpdated, setLastUpdated] = useState(null);
+                const [viewMode, setViewMode] = useState('list');
+                const [groupBy, setGroupBy] = useState('none');
+                const [showSettings, setShowSettings] = useState(false);
+                const [selectedIds, setSelectedIds] = useState(new Set());
+                const [isModalOpen, setIsModalOpen] = useState(false);
+                const [editingTrade, setEditingTrade] = useState(null);
+                const [formSearchInput, setFormSearchInput] = useState('');
+                const [formStockType, setFormStockType] = useState('LISTED');
+
+                // 歷史快取與趨勢
+                const historyCache = useRef({}); 
+                const [totalAssetTrend, setTotalAssetTrend] = useState([]);
+                const [isTrendLoading, setIsTrendLoading] = useState(false);
+                const [samplingFreq, setSamplingFreq] = useState('month');
+                const [trendYears, setTrendYears] = useState(5);
+                const [selectedTrendStocks, setSelectedTrendStocks] = useState(new Set());
+                const [showDataLabels, setShowDataLabels] = useState(false);
+                const [clickedPoint, setClickedPoint] = useState(null);
+                const [apiError, setApiError] = useState(null);
+
+                const fileInputRef = useRef(null);
+
+                // 初始化 Auth
+                useEffect(() => {
+                    if (!auth) { setLoading(false); return; }
+                    const init = async () => {
+                        try {
+                            if (initialAuthToken) await auth.signInWithCustomToken(initialAuthToken);
+                            else await auth.signInAnonymously();
+                        } catch (e) { console.error("Auth error", e); }
+                    };
+                    init();
+                    return auth.onAuthStateChanged(u => setUser(u));
+                }, []);
+
+                // 數據監聽
+                useEffect(() => {
+                    if (!user || !db) return;
+                    const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('transactions');
+                    return ref.onSnapshot(snap => {
+                        setTransactions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                        setLoading(false);
+                    });
+                }, [user]);
+
+                // 同步現價
+                const refreshPrices = async (data = transactions) => {
+                    const names = Array.from(new Set(data.map(t => t.name)));
+                    if (names.length === 0) return;
+                    const nextPrices = { ...stockPrices };
+                    try {
+                        for (const name of names) {
+                            const code = STOCK_REGISTRY[name]?.code || (name.match(/\d+/)?.[0]);
+                            if (!code) continue;
+                            const res = await fetchWithRetry(`https://api.finmindtrade.com/api/v4/data?dataset=TaiwanStockPrice&data_id=${code}&start_date=${new Date(Date.now() - 86400000 * 7).toISOString().split('T')[0]}`);
+                            if (res.data?.length > 0) nextPrices[name] = res.data[res.data.length - 1].close;
+                        }
+                        setStockPrices(nextPrices);
+                        setLastUpdated(new Date().toLocaleString('zh-TW', { hour12: false }));
+                        setApiError(null);
+                    } catch (e) { setApiError("市價同步失敗，請檢查網路。"); }
+                };
+
+                useEffect(() => { if (transactions.length > 0 && !lastUpdated) refreshPrices(); }, [transactions]);
+
+                // 趨勢採樣邏輯
+                const getSampleDates = (freq, years) => {
+                    const dates = [];
+                    const now = new Date();
+                    if (freq === 'day') {
+                        for (let i = 0; i <= 90; i++) {
+                            const d = new Date(now); d.setDate(now.getDate() - i);
+                            dates.push(d.toISOString().split('T')[0]);
+                        }
+                    } else {
+                        let interval = 1;
+                        if (freq === 'quarter') interval = 3;
+                        if (freq === 'year') interval = 12;
+                        for (let i = 0; i <= (years * 12); i += interval) {
+                            const d = new Date(now); d.setMonth(now.getMonth() - i);
+                            dates.push(d.toISOString().split('T')[0]);
+                        }
+                    }
+                    return dates.reverse();
+                };
+
+                const fetchTrendData = async (freq, years, filters) => {
+                    if (transactions.length === 0) return;
+                    setIsTrendLoading(true);
+                    setClickedPoint(null);
+                    try {
+                        const targets = filters.size > 0 ? Array.from(filters) : Array.from(new Set(transactions.map(t => t.name)));
+                        const limitDate = new Date(); limitDate.setFullYear(limitDate.getFullYear() - 10);
+                        const limitDateStr = limitDate.toISOString().split('T')[0];
+
+                        for (const name of targets) {
+                            const code = STOCK_REGISTRY[name]?.code || (name.match(/\d+/)?.[0]);
+                            if (!code) continue;
+                            if (!historyCache.current[code]) {
+                                const res = await fetchWithRetry(`https://api.finmindtrade.com/api/v4/data?dataset=TaiwanStockPrice&data_id=${code}&start_date=${limitDateStr}`);
+                                if (res.data) historyCache.current[code] = res.data;
+                                await new Promise(r => setTimeout(r, 200));
+                            }
+                        }
+
+                        const samples = getSampleDates(freq, years);
+                        const trend = samples.map(tDate => {
+                            let totalValue = 0;
+                            transactions.forEach(tx => {
+                                if (targets.includes(tx.name)) {
+                                    const hist = historyCache.current[STOCK_REGISTRY[tx.name]?.code || tx.name.match(/\d+/)?.[0]];
+                                    if (hist) {
+                                        const closest = [...hist].reverse().find(d => d.date <= tDate) || hist[0];
+                                        totalValue += (tx.shares * closest.close);
+                                    }
+                                }
+                            });
+                            return { date: tDate, label: freq === 'year' ? tDate.slice(0, 4) : tDate.slice(0, 7), value: totalValue };
+                        });
+                        setTotalAssetTrend(trend);
+                    } catch (e) { setApiError("回測數據載入失敗。"); }
+                    finally { setIsTrendLoading(false); }
+                };
+
+                useEffect(() => {
+                    if (viewMode === 'chart' && transactions.length > 0) fetchTrendData(samplingFreq, trendYears, selectedTrendStocks);
+                }, [viewMode, samplingFreq, trendYears, transactions, selectedTrendStocks]);
+
+                const { listData, totalStats, portfolio, distData } = useMemo(() => {
+                    const list = transactions.map(t => ({
+                        ...t,
+                        cur: stockPrices[t.name] || t.price,
+                        metrics: calculatePnL(t.shares, t.price, t.type, stockPrices[t.name] || t.price)
+                    })).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                    const total = list.reduce((acc, i) => {
+                        acc.cost += i.metrics.totalCost;
+                        acc.pnl += i.metrics.pnl;
+                        acc.val += i.metrics.marketValue;
+                        return acc;
+                    }, { cost: 0, pnl: 0, val: 0 });
+
+                    const groups = {};
+                    list.forEach(i => {
+                        const k = groupBy === 'none' ? i.name : String(i[groupBy] || '未分類');
+                        if (!groups[k]) groups[k] = { name: k, pnl: 0, val: 0 };
+                        groups[k].pnl += i.metrics.pnl;
+                        groups[k].val += i.metrics.marketValue;
+                    });
+
+                    return { 
+                        listData: list, 
+                        totalStats: total, 
+                        portfolio: Array.from(new Set(list.map(t => t.name))),
+                        distData: Object.values(groups)
+                    };
+                }, [transactions, stockPrices, groupBy]);
+
+                const comparison = useMemo(() => {
+                    if (!clickedPoint || totalAssetTrend.length === 0) return null;
+                    const nowVal = totalAssetTrend[totalAssetTrend.length - 1].value;
+                    const diff = nowVal - clickedPoint.value;
+                    return { date: clickedPoint.date, diff, pct: clickedPoint.value ? (diff / clickedPoint.value * 100).toFixed(2) : 0 };
+                }, [clickedPoint, totalAssetTrend]);
+
+                // 操作處理
+                const handleSave = async (e) => {
+                    e.preventDefault();
+                    const f = new FormData(e.target);
+                    let raw = formSearchInput.trim();
+                    let name = raw.includes(' ') ? raw.split(' ')[1] : raw;
+                    const found = Object.entries(STOCK_REGISTRY).find(([n, i]) => i.code === name);
+                    if (found) name = found[0];
+                    const id = editingTrade?.id || Date.now().toString();
+                    const data = { date: f.get('date'), name, shares: Number(f.get('shares')), price: Number(f.get('price')), type: formStockType, category: f.get('category') || '一般' };
+                    if (db) await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('transactions').doc(id).set(data);
+                    setIsModalOpen(false);
+                };
+
+                const handleExport = () => {
+                    const head = "日期\t名稱\t股數\t買價\t類別\t標籤\r\n";
+                    const body = transactions.map(t => `${t.date}\t${t.name}\t${t.shares}\t${t.price}\t${t.type}\t${t.category}`).join("\r\n");
+                    const blob = new Blob([head + body], { type: "text/plain" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url; a.download = "stock_data.txt"; a.click();
+                };
+
+                const handleImport = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = async (ev) => {
+                        const lines = ev.target.result.split(/\r?\n/);
+                        const batch = db.batch();
+                        for (let i = 1; i < lines.length; i++) {
+                            const cols = lines[i].trim().split('\t');
+                            if (cols.length < 5) continue;
+                            const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('transactions').doc();
+                            batch.set(ref, { date: cols[0], name: cols[1], shares: Number(cols[2]), price: Number(cols[3]), type: cols[4], category: cols[5] || '一般' });
+                        }
+                        await batch.commit();
+                        setShowSettings(false);
+                    };
+                    reader.readAsText(file);
+                };
+
+                const handleSeed = async () => {
+                    const batch = db.batch();
+                    INITIAL_DATA.forEach((item, i) => batch.set(db.collection('artifacts').doc(appId).collection('public').doc('data').collection('transactions').doc(`init-${i}`), item));
+                    await batch.commit();
+                };
+
+                if (loading) return <div class="min-h-screen flex items-center justify-center font-black text-slate-300 animate-pulse">資料加載中...</div>;
+
+                return (
+                    <div class="min-h-screen pb-10">
+                        <header class="sticky top-0 bg-white/95 backdrop-blur-md border-b border-slate-200 z-40 px-5 py-4 flex justify-between items-center shadow-sm font-black">
+                            <div class="flex items-center gap-2">
+                                <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-lg"><Icon name="activity" size={20}/></div>
+                                <h1 class="text-xl text-slate-800 tracking-tight">損益管理系統</h1>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <button onClick={() => setShowSettings(!showSettings)} class={`p-2 rounded-full border transition-all ${showSettings ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-slate-200 text-slate-400'}`}><Icon name="settings"/></button>
+                                <button onClick={() => { setEditingTrade(null); setFormSearchInput(''); setIsModalOpen(true); }} class="bg-indigo-600 text-white px-5 py-2 rounded-xl font-bold text-sm shadow-md flex items-center gap-2 hover:bg-indigo-700 active:scale-95 transition-all"><Icon name="plus" size={18}/> 新增明細</button>
+                            </div>
+                        </header>
+
+                        <main class="max-w-6xl mx-auto p-4 space-y-4 font-black">
+                            {apiError && <div class="bg-amber-50 text-amber-600 text-[10px] p-2 text-center rounded-xl border border-amber-100 flex items-center justify-center gap-2 animate-in"><Icon name="alert" size={12}/> {apiError}</div>}
+                            
+                            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-center">
+                                <StatCard label="當前總市值" value={totalStats.val} />
+                                <StatCard label="投資總成本" value={totalStats.cost} />
+                                <StatCard label="目前總損益" value={totalStats.pnl} isPnl />
+                                <StatCard label="累計報酬率" value={(totalStats.cost ? (totalStats.pnl / totalStats.cost) * 100 : 0).toFixed(2) + '%'} isPnl />
+                            </div>
+
+                            {transactions.length === 0 && !showSettings && (
+                                <div class="bg-white border-2 border-dashed border-slate-200 rounded-[2rem] p-12 text-center space-y-4 animate-in">
+                                    <Icon name="database" size={48} className="mx-auto text-slate-200"/>
+                                    <h2 class="text-lg text-slate-800">數據庫目前為空</h2>
+                                    <button onClick={handleSeed} class="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-lg active:scale-95 transition-all">匯入範例股票</button>
+                                </div>
+                            )}
+
+                            {transactions.length > 0 && (
+                                <div class="space-y-4">
+                                    <section class="flex items-center justify-between bg-white p-2 rounded-xl border border-slate-200 shadow-sm text-[11px] font-black">
+                                        <div class="flex items-center gap-2 w-full overflow-x-auto no-scrollbar py-1">
+                                            <button onClick={() => setViewMode('list')} class={`px-5 py-2 rounded-xl transition-all ${viewMode === 'list' ? 'bg-indigo-100 text-indigo-600' : 'text-slate-400'}`}>清單模式</button>
+                                            <button onClick={() => setViewMode('chart')} class={`px-5 py-2 rounded-xl transition-all ${viewMode === 'chart' ? 'bg-indigo-100 text-indigo-600' : 'text-slate-400'}`}>分析圖表</button>
+                                            <div class="h-4 w-px bg-slate-100 mx-1"></div>
+                                            <select value={groupBy} onChange={(e) => setGroupBy(e.target.value)} class="bg-transparent border-none focus:ring-0 uppercase font-black cursor-pointer">
+                                                <option value="none">原始明細</option>
+                                                <option value="name">個股摘要</option>
+                                                <option value="category">標籤分類</option>
+                                            </select>
+                                        </div>
+                                    </section>
+
+                                    {viewMode === 'list' ? (
+                                        <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm text-xs animate-in font-black">
+                                            <TableUI data={listData} selected={selectedIds} toggle={id => { const n = new Set(selectedIds); if(n.has(id)) n.delete(id); else n.add(id); setSelectedIds(n); }} edit={t=>{setEditingTrade(t); setFormSearchInput(t.name); setIsModalOpen(true);}} />
+                                        </div>
+                                    ) : (
+                                        <div class="space-y-6 animate-in font-black">
+                                            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+                                                <div class="flex flex-wrap justify-between items-start gap-6">
+                                                    <div>
+                                                        <h3 class="text-[10px] text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-2 font-black"><Icon name="history" size={12}/> 資產趨勢回測分析 (10Y)</h3>
+                                                        {comparison ? (
+                                                            <div class="flex flex-col animate-in">
+                                                                <span class="text-3xl text-slate-800 font-black">${totalAssetTrend[totalAssetTrend.length-1]?.value.toLocaleString()}</span>
+                                                                <p class={`text-[10px] mt-1 font-black px-2 py-1 rounded-lg w-fit ${comparison.diff >= 0 ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-500'}`}>
+                                                                    相對於 {comparison.date} : {comparison.diff >= 0 ? '+' : ''}{comparison.diff.toLocaleString()} ({comparison.pct}%)
+                                                                </p>
+                                                            </div>
+                                                        ) : (
+                                                            <span class="text-3xl text-slate-800 font-black">${totalAssetTrend[totalAssetTrend.length-1]?.value.toLocaleString() || '--'}</span>
+                                                        )}
+                                                    </div>
+                                                    <div class="flex flex-col gap-2 items-end font-black">
+                                                        <div class="flex gap-1 bg-slate-50 p-1.5 rounded-xl text-[9px] border border-slate-100">
+                                                            {[1, 3, 5, 10].map(y => <button key={y} onClick={() => setTrendYears(y)} class={`px-3 py-1 rounded-lg transition-all ${trendYears === y ? 'bg-indigo-600 text-white shadow-md font-bold' : 'text-slate-400'}`}>{y}Y</button>)}
+                                                        </div>
+                                                        <div class="flex gap-1 bg-slate-100 p-1.5 rounded-xl text-[9px]">
+                                                            {[{l:'日',v:'day'}, {l:'月',v:'month'}, {l:'季',v:'quarter'}, {l:'年',v:'year'}].map(b => <button key={b.v} onClick={() => setSamplingFreq(b.v)} class={`px-3 py-1 rounded-lg transition-all ${samplingFreq === b.v ? 'bg-white text-indigo-600 shadow-sm font-bold' : 'text-slate-400'}`}>{b.l}</button>)}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="flex flex-wrap gap-2 items-center border-t border-slate-50 pt-5 mt-6">
+                                                    <span class="text-[9px] text-slate-400 tracking-widest uppercase mr-2 flex items-center gap-1 font-black"><Icon name="filter" size={10}/> 比較範圍:</span>
+                                                    <button onClick={() => setSelectedTrendStocks(new Set())} class={`px-4 py-1.5 rounded-full text-[10px] font-black transition-all ${selectedTrendStocks.size === 0 ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-500'}`}>全部總計</button>
+                                                    {portfolio.map(name => (
+                                                        <button key={name} onClick={() => { const n = new Set(selectedTrendStocks); if(n.has(name)) n.delete(name); else n.add(name); setSelectedTrendStocks(n); }} class={`px-4 py-1.5 rounded-full text-[10px] font-black transition-all ${selectedTrendStocks.has(name) ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 text-slate-500'}`}>{name}</button>
+                                                    ))}
+                                                    <button onClick={() => setShowDataLabels(!showDataLabels)} class={`ml-auto px-4 py-1.5 rounded-xl border text-[10px] font-black transition-all ${showDataLabels ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-white border-slate-200 text-slate-400'}`}>{showDataLabels ? <Icon name="eye" size={12}/> : <Icon name="eyeOff" size={12}/>}</button>
+                                                </div>
+                                                <div class="h-[380px] w-full mt-8 relative">
+                                                    {isTrendLoading && <div class="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-sm z-10 rounded-3xl"><Loader2 className="animate-spin text-indigo-600" size={40} /></div>}
+                                                    <ResponsiveContainer width="100%" height="100%">
+                                                        <AreaChart data={totalAssetTrend} onClick={d => d && d.activePayload && setClickedPoint(d.activePayload[0].payload)}>
+                                                            <defs><linearGradient id="gC" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#4F46E5" stopOpacity={0.15}/><stop offset="95%" stopColor="#4F46E5" stopOpacity={0}/></linearGradient></defs>
+                                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                                            <XAxis dataKey="label" axisLine={false} tickLine={false} dy={10} minTickGap={50} />
+                                                            <YAxis axisLine={false} tickLine={false} tickFormatter={v => v.toLocaleString()} width={70} dx={-10} />
+                                                            <Tooltip contentStyle={{borderRadius:'16px', border:'none', boxShadow:'0 20px 25px -5px rgb(0 0 0 / 0.1)'}} formatter={v => [`$${v.toLocaleString()}`, '資產值']} />
+                                                            <Area type="monotone" dataKey="value" stroke="#4F46E5" strokeWidth={4} fill="url(#gC)" isAnimationActive={true}>
+                                                                {showDataLabels && <LabelList dataKey="value" position="top" offset={15} formatter={v => v > 1000 ? (v/1000).toFixed(1) + 'K' : v} style={{fontSize: '10px', fontWeight: '900', fill: '#6366F1'}} />}
+                                                            </Area>
+                                                        </AreaChart>
+                                                    </ResponsiveContainer>
+                                                </div>
+                                            </div>
+
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 h-[350px] shadow-sm flex flex-col items-center">
+                                                    <h3 class="text-[10px] text-slate-400 uppercase tracking-widest mb-6 font-black">個股損益對比</h3>
+                                                    <ResponsiveContainer width="100%" height="100%">
+                                                        <BarChart data={distData} margin={{bottom: 20}}><XAxis dataKey="name" tick={{fontSize: 9}} angle={-30} textAnchor="end" /><YAxis hide /><Tooltip /><Bar dataKey="pnl" radius={[6,6,0,0]}>{distData.map((e,i)=><Cell key={i} fill={e.pnl>=0?'#F43F5E':'#10B981'}/>)}</Bar></BarChart>
+                                                    </ResponsiveContainer>
+                                                </div>
+                                                <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 h-[350px] shadow-sm flex flex-col items-center font-black">
+                                                    <h3 class="text-[10px] text-slate-400 uppercase tracking-widest mb-6 font-black">資產比例分配</h3>
+                                                    <ResponsiveContainer width="100%" height="100%">
+                                                        <PieChart><Pie data={distData.filter(d=>d.val>0)} dataKey="val" cx="50%" cy="50%" outerRadius={70}>{distData.map((_,i)=><Cell key={i} fill={['#6366F1','#F43F5E','#10B981','#F59E0B','#94A3B8'][i%5]}/>)}</Pie><Tooltip/></PieChart>
+                                                    </ResponsiveContainer>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {showSettings && (
+                                <div class="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-2xl animate-in font-black text-xs space-y-6 max-w-xl mx-auto">
+                                    <h4 class="text-base text-slate-800 font-black border-b border-slate-100 pb-4">系統管理與數據設定</h4>
+                                    <div class="flex items-center justify-between bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                                        <div class="space-y-1"><p class="font-black text-slate-700">自動手續費 6 折</p><p class="text-[10px] text-slate-400">計算賣出損益時自動套用折扣</p></div>
+                                        <button onClick={() => setSellFeeDiscount(!sellFeeDiscount)} class={`w-12 h-6 rounded-full relative transition-colors ${sellFeeDiscount ? 'bg-indigo-600' : 'bg-slate-300'}`}><div class={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${sellFeeDiscount ? 'translate-x-6' : ''}`}></div></button>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4 font-black">
+                                        <button onClick={handleExport} class="py-4 rounded-2xl bg-slate-800 text-white shadow-md flex items-center justify-center gap-2 hover:bg-slate-900 transition-colors"><Icon name="download" size={16}/> 匯出資料</button>
+                                        <button onClick={() => fileInputRef.current.click()} class="py-4 rounded-2xl bg-white text-slate-700 border border-slate-200 shadow-sm flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"><Icon name="upload" size={16}/> 匯入還原</button>
+                                        <input type="file" ref={fileInputRef} class="hidden" accept=".txt" onChange={handleImport} />
+                                    </div>
+                                    <button onClick={() => { historyCache.current = {}; refreshPrices(); }} class="w-full py-4 rounded-2xl bg-indigo-600 text-white shadow-lg font-black hover:bg-indigo-700 transition-all flex items-center justify-center gap-2"><Icon name="history" size={16}/> 重新整理並重新載入快取</button>
+                                </div>
+                            )}
+                        </main>
+
+                        {isModalOpen && (
+                            <div class="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-slate-900/70 backdrop-blur-md animate-in">
+                                <div class="bg-white rounded-t-[3rem] sm:rounded-[3rem] w-full max-w-lg shadow-2xl p-10 max-h-[90vh] overflow-y-auto no-scrollbar relative font-black">
+                                    <div class="flex justify-between items-center mb-8">
+                                        <h3 class="text-2xl font-black text-slate-800 tracking-tight">{editingTrade ? '修改交易' : '新增紀錄'}</h3>
+                                        <button onClick={() => setIsModalOpen(false)} class="p-2 text-slate-300 hover:bg-slate-50 rounded-full"><Icon name="x" size={24}/></button>
+                                    </div>
+                                    <form onSubmit={handleSave} class="space-y-6">
+                                        <div class="grid grid-cols-2 gap-5 font-black">
+                                            <div class="space-y-2 font-black"><label class="text-[10px] text-slate-400 ml-1 font-black">成交日期</label><input required name="date" type="date" defaultValue={editingTrade?.date || new Date().toISOString().split('T')[0]} class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-100" /></div>
+                                            <div class="space-y-2 font-black"><label class="text-[10px] text-slate-400 ml-1 font-black">股票代碼</label><input required name="name" list="sList" value={formSearchInput} onChange={e=>setFormSearchInput(e.target.value)} class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-100" placeholder="例 2330" />
+                                                <datalist id="sList">{Object.entries(STOCK_REGISTRY).map(([n,i]) => <option key={i.code} value={`${i.code} ${n}`} />)}</datalist>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-5">
+                                            <div class="space-y-2"><label class="text-[10px] text-slate-400 ml-1">成交股數</label><input required name="shares" type="number" defaultValue={editingTrade?.shares} class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-black" /></div>
+                                            <div class="space-y-2"><label class="text-[10px] text-slate-400 ml-1">買入單價</label><input required name="price" type="number" step="0.01" defaultValue={editingTrade?.price} class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-black" /></div>
+                                        </div>
+                                        <div class="space-y-2"><label class="text-[10px] text-slate-400 ml-1">分類標籤</label><input name="category" defaultValue={editingTrade?.category || '一般'} class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-black" /></div>
+                                        <button type="submit" class="w-full bg-indigo-600 text-white py-5 rounded-[2rem] shadow-xl font-black text-lg hover:bg-indigo-700 transition-all font-black">儲存交易紀錄</button>
+                                    </form>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+
+            function StatCard({ label, value, isPnl }) {
+                const isPos = String(value).indexOf('-') === -1;
+                return (
+                    <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm text-center transition-all hover:translate-y-[-3px] font-black">
+                        <p class="text-[10px] text-slate-400 uppercase mb-3 tracking-widest">{label}</p>
+                        <h2 class={`text-lg lg:text-xl truncate font-black ${isPnl ? (isPos && value !== '0%' && value !== 0 ? 'text-rose-500' : 'text-emerald-500') : 'text-slate-800'}`}>
+                            {isPnl && isPos && value !== '0%' && value !== 0 ? '+' : ''}{typeof value === 'number' ? value.toLocaleString() : value}
+                        </h2>
+                    </div>
+                );
+            }
+
+            function TableUI({ data, selected, toggle, edit }) {
+                return (
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse min-w-[700px]">
+                            <thead class="bg-[#FBFCFD] text-slate-400 text-[10px] uppercase border-b border-slate-100 font-black">
+                                <tr>
+                                    <th class="px-8 py-6 text-left w-16 font-black">#</th>
+                                    <th class="px-6 py-6 text-left font-black">標的與日期</th>
+                                    <th class="px-8 py-6 text-left font-black">股數 / 成本</th>
+                                    <th class="px-6 py-6 text-left font-black">目前市價</th>
+                                    <th class="px-6 py-6 text-left font-black">預估損益</th>
+                                    <th class="px-8 py-6 text-right font-black">編輯</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50 font-black">
+                                {data.map(t => (
+                                    <tr key={t.id} class={`hover:bg-slate-50/50 transition-colors ${selected.has(t.id) ? 'bg-indigo-50/40' : ''}`}>
+                                        <td class="px-8 py-6 text-center"><input type="checkbox" checked={selected.has(t.id)} onChange={()=>toggle(t.id)} class="w-4 h-4 rounded border-slate-300 text-indigo-600" /></td>
+                                        <td class="px-6 py-6">
+                                            <div class="flex items-center gap-3">
+                                                <div class="font-black text-slate-800 text-sm font-black">{t.name}</div>
+                                                <div class="px-2 py-0.5 bg-slate-100 rounded text-[9px] text-slate-400 uppercase font-black">{t.type}</div>
+                                            </div>
+                                            <div class="text-[10px] text-slate-300 mt-1 font-black font-black">{t.date}</div>
+                                        </td>
+                                        <td class="px-8 py-6 text-slate-600 font-black text-sm">
+                                            <div>{t.shares.toLocaleString()} 股</div>
+                                            <div class="text-[10px] text-slate-300 mt-1 font-black">@{t.price}</div>
+                                        </td>
+                                        <td class="px-6 py-6 text-indigo-500 text-base font-black">${t.cur.toLocaleString()}</td>
+                                        <td class="px-6 py-6">
+                                            <div class={`font-black text-sm ${t.metrics.pnl>=0?'text-rose-500':'text-emerald-500'}`}>{t.metrics.pnl>=0?'+':''}{t.metrics.pnl.toLocaleString()}</div>
+                                            <div class="text-[10px] opacity-30 mt-0.5 font-black">{t.metrics.pnlPercent.toFixed(2)}%</div>
+                                        </td>
+                                        <td class="px-8 py-6 text-right"><button onClick={()=>edit(t)} class="text-slate-200 hover:text-indigo-600 p-2"><Icon name="edit" size={16}/></button></td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                );
+            }
+
+            const Loader2 = ({ className, size }) => (
+                <svg class={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>
+            );
+
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<App />);
+        </script>
+    </body>
+    </html>
