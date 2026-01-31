@@ -2,13 +2,28 @@
 
 個人作品集網站，展示專業經驗、技能和專案成果。
 
+**主人：Po-Han Huang** | 資深工程師，專注於軟體開發與技術創新，現職於華邦電子 (Winbond Electronics Corporation)
+
+## 🎯 個人簡介
+
+- **現職**：Senior Engineer at Winbond Electronics Corporation (華邦電子) | 台中
+- **學歷**：
+  - 國立交通大學 (NCTU) 多媒體工程研究所 碩士 (2015-2017)
+  - 元智大學 (YZU) 資訊工程學系 學士 (2011-2015)
+- **經驗**：
+  - 台灣微軟 (Microsoft Taiwan) RD 實習 (2014-2015)
+  - 高雄市政府教育局 替代役教育役 (2018)
+
 ## 🌟 功能介紹
 
 ### 📄 個人作品集 (index.html)
 一個現代化的個人品牌網站，包含：
-- **個人資訊**：工作經驗、技能專長展示
+- **個人介紹**：工作經驗、教育背景一目了然
+- **工作經驗**：詳細的職涯發展時間軸
+- **教育背景**：學位和教育機構信息
+- **技能專長**：核心技術能力展示
 - **專案展示**：各類開發專案詳細介紹
-- **聯絡方式**：便於潛在客戶或合作夥伴聯繫
+- **聯絡方式**：LinkedIn 和 Email 聯繫方式
 - **多語言支持**：中文 (繁體) 和英文切換
 - **深色模式**：提供亮色和深色主題選擇
 - **響應式設計**：完美適配桌面、平板和手機裝置
@@ -39,6 +54,9 @@
 - **互動式 Demo**：模擬檔案系統操作界面
 - **代碼範例**：SQL、Python、Java 實作展示
 
+### 📺 YouTube 播放清單 (playlist.html)
+整合個人推薦與技術相關的 YouTube 影片清單，打造個性化的影音學習庫。
+
 ## 🛠️ 技術棧
 
 ### 前端技術
@@ -47,6 +65,7 @@
 - **JavaScript (ES6+)** - 互動功能實現
 - **React 18** - 股票系統 UI 元件化
 - **Babel** - JSX 轉譯
+- **Mermaid Diagram** - UML 和 ERD 繪製
 
 ### 數據可視化
 - **Recharts** - 專業圖表庫（股票系統）
@@ -64,9 +83,10 @@
 
 ```
 spyderhua.github.io/
-├── index.html              # 個人作品集主頁
+├── index.html              # 個人作品集主頁（含工作經驗、教育、技能、專案）
 ├── stock.html              # 股票損益管理系統
-├── file_system.html        # 檔案管理系統分析文檔
+├── file_system.html        # 雲端檔案管理系統 - 需求分析與設計
+├── playlist.html           # YouTube 播放清單（可能存在）
 ├── profile.jpg             # 頭像圖片（可選）
 └── README.md               # 本文件
 ```
@@ -153,16 +173,24 @@ const STOCK_REGISTRY = {
 };
 ```
 
-## 📝 許可證
+## � 技能專長詳細
 
-本項目開源發布，歡迎使用和修改。
+### 開發工具和語言
+- **AI 工具應用** - 善用 ChatGPT、Gemini 等 AI 工具
+- **前端框架** - Angular
+- **後端語言** - C#、Java
+- **系統編程** - C / C++
+- **數據庫** - SQL
+- **作業系統** - Linux
 
 ## 📧 聯絡方式
 
-如有任何問題或建議，歡迎通過以下方式聯繫：
-- 📧 Email：透過網站聯絡表單
-- 🔗 GitHub：https://github.com/spyderhua
+歡迎透過以下方式與我聯繫，期待與您的交流！
+- **LinkedIn** - [Po-Han Huang](https://www.linkedin.com/in/spyderhua)
+- **Email** - spyderhua@gmail.com
+- **GitHub** - https://github.com/spyderhua
 
 ---
 
-**Last Updated**: 2026年1月31日
+**Last Updated**: 2026年1月31日  
+**Built with**: HTML5 + Tailwind CSS + React + Recharts + Mermaid

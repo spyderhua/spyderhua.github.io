@@ -42,6 +42,8 @@
             transform: scale(1.05);
             rotate: 2deg;
         }
+        /* 平滑捲動 */
+        html { scroll-behavior: smooth; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans transition-all">
@@ -57,6 +59,7 @@
                 <!-- Desktop Menu -->
                 <div class="hidden md:flex space-x-6 items-center text-sm font-medium">
                     <a href="#experience" class="hover:text-blue-500 transition-colors" data-i18n="nav.exp">工作經驗</a>
+                    <a href="#education" class="hover:text-blue-500 transition-colors" data-i18n="nav.edu">教育背景</a>
                     <a href="#skills" class="hover:text-blue-500 transition-colors" data-i18n="nav.skills">技能專長</a>
                     <a href="#projects" class="hover:text-blue-500 transition-colors" data-i18n="nav.proj">專案展示</a>
                     <a href="#contact" class="hover:text-blue-500 transition-colors" data-i18n="nav.contact">聯絡方式</a>
@@ -71,11 +74,30 @@
                     </div>
                 </div>
 
-                <!-- Mobile Menu Button -->
+                <!-- Mobile Header Right Side -->
                 <div class="md:hidden flex items-center space-x-2">
-                    <button id="langToggleMobile" class="p-2 text-xs font-bold">EN</button>
                     <button id="themeToggleMobile" class="p-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 18v1m9-9h1M3 9h1m17.364-7.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    </button>
+                    <button id="menuToggle" class="p-2 text-slate-600 dark:text-slate-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobileMenu" class="hidden md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-xl">
+            <div class="px-4 pt-2 pb-6 space-y-1">
+                <a href="#experience" class="block px-3 py-3 text-base font-medium rounded-md hover:bg-slate-100 dark:hover:bg-slate-800" data-i18n="nav.exp">工作經驗</a>
+                <a href="#education" class="block px-3 py-3 text-base font-medium rounded-md hover:bg-slate-100 dark:hover:bg-slate-800" data-i18n="nav.edu">教育背景</a>
+                <a href="#skills" class="block px-3 py-3 text-base font-medium rounded-md hover:bg-slate-100 dark:hover:bg-slate-800" data-i18n="nav.skills">技能專長</a>
+                <a href="#projects" class="block px-3 py-3 text-base font-medium rounded-md hover:bg-slate-100 dark:hover:bg-slate-800" data-i18n="nav.proj">專案展示</a>
+                <a href="#contact" class="block px-3 py-3 text-base font-medium rounded-md hover:bg-slate-100 dark:hover:bg-slate-800" data-i18n="nav.contact">聯絡方式</a>
+                <div class="flex items-center justify-between px-3 py-3 mt-4 border-t border-slate-100 dark:border-slate-800">
+                    <span class="text-sm font-bold text-slate-500" data-i18n="nav.lang">切換語言</span>
+                    <button id="langToggleMobile" class="px-4 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-sm font-bold border border-blue-200 dark:border-blue-800">
+                        EN
                     </button>
                 </div>
             </div>
@@ -147,6 +169,29 @@
         </div>
     </section>
 
+    <!-- Education -->
+    <section id="education" class="section-padding">
+        <div class="max-w-4xl mx-auto px-4">
+            <h2 class="text-3xl font-bold mb-12 flex items-center">
+                <span class="w-8 h-1 bg-blue-500 inline-block mr-4"></span>
+                <span data-i18n="nav.edu">教育背景</span>
+            </h2>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+                    <p class="text-blue-500 font-bold text-sm mb-2">2015 - 2017</p>
+                    <h3 class="text-xl font-bold mb-1" data-i18n="edu.nctu.title">多媒體工程研究所 碩士</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm" data-i18n="edu.nctu.school">國立交通大學 (NCTU)</p>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+                    <p class="text-blue-500 font-bold text-sm mb-2">2011 - 2015</p>
+                    <h3 class="text-xl font-bold mb-1" data-i18n="edu.yzu.title">資訊工程學系 學士</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm" data-i18n="edu.yzu.school">元智大學 (YZU)</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Skills & Competencies -->
     <section id="skills" class="section-padding bg-white dark:bg-slate-800/50">
         <div class="max-w-4xl mx-auto px-4">
@@ -162,7 +207,7 @@
                     <div class="w-10 h-10 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     </div>
-                    <h3 class="font-bold text-lg mb-1" data-i18n="skills.ai.name">AI Tools</h3>
+                    <h3 class="font-bold text-lg mb-1" data-i18n="skills.ai.name">AI 工具應用</h3>
                     <p class="text-sm text-slate-500" data-i18n="skills.ai.desc">善用 AI 工具 (ChatGPT, Gemini)</p>
                 </div>
                 <!-- Angular -->
@@ -224,7 +269,7 @@
                 <span class="w-8 h-1 bg-blue-500 inline-block mr-4"></span>
                 <span data-i18n="nav.proj">專案展示</span>
             </h2>
-            <div class="grid md:grid-cols-2 gap-8 mt-12">
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
                 <!-- Stock Dashboard Project Card -->
                 <a href="stock.html" target="_blank" rel="noopener noreferrer" class="group block bg-white dark:bg-slate-800 rounded-3xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 transition-all">
                     <div class="h-48 bg-slate-900 flex items-center justify-center relative overflow-hidden">
@@ -238,8 +283,6 @@
                             <circle cx="150" cy="55" r="3" fill="#3b82f6" />
                             <circle cx="180" cy="25" r="3" fill="#3b82f6" />
                             <rect x="20" y="20" width="40" height="10" rx="2" fill="#334155" />
-                            <rect x="70" y="20" width="40" height="10" rx="2" fill="#334155" />
-                            <rect x="120" y="20" width="40" height="10" rx="2" fill="#334155" />
                         </svg>
                         <div class="absolute inset-0 bg-blue-600/10 group-hover:bg-transparent transition-colors"></div>
                     </div>
@@ -257,10 +300,7 @@
                     <div class="h-48 bg-slate-900 flex items-center justify-center relative overflow-hidden">
                         <svg class="w-full h-full p-8 text-cyan-500" viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M100 20C75 20 60 40 60 40C40 40 40 65 60 65H140C160 65 160 40 140 40C140 40 125 20 100 20Z" fill="#334155" stroke="#06b6d4" stroke-width="3" stroke-linejoin="round"/>
-                            <rect x="70" y="75" width="20" height="25" rx="2" fill="#06b6d4" opacity="0.6"/>
-                            <rect x="110" y="75" width="20" height="25" rx="2" fill="#06b6d4" opacity="0.6"/>
                             <rect x="90" y="85" width="20" height="25" rx="2" fill="#06b6d4"/>
-                            <path d="M100 65V75" stroke="#06b6d4" stroke-width="2" stroke-dasharray="2 2"/>
                         </svg>
                         <div class="absolute inset-0 bg-cyan-600/10 group-hover:bg-transparent transition-colors"></div>
                     </div>
@@ -269,14 +309,32 @@
                             <h3 class="text-xl font-bold" data-i18n="proj.file.title">雲端檔案管理系統 - 需求分析與設計</h3>
                             <svg class="w-5 h-5 text-slate-300 group-hover:text-cyan-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                         </div>
-                        <p class="text-slate-600 dark:text-slate-400 text-sm" data-i18n="proj.file.desc">針對大規模雲端存儲系統進行深入的需求分析與架構設計，涵蓋權限管理與分散式存儲方案。</p>
+                        <p class="text-slate-600 dark:text-slate-400 text-sm" data-i18n="proj.file.desc">針對大規模雲端存儲系統進行深入的需求分析與架構設計。</p>
                     </div>
                 </a>
-                
-                <!-- Placeholder for future projects -->
-                <div class="bg-slate-100 dark:bg-slate-800/30 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-3xl flex flex-col items-center justify-center p-8 text-center">
-                    <p class="text-slate-400 font-medium" data-i18n="proj.more">更多專案開發中...</p>
-                </div>
+
+                <!-- YouTube Playlist Project Card -->
+                <a href="playlist.html" target="_blank" rel="noopener noreferrer" class="group block bg-white dark:bg-slate-800 rounded-3xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 transition-all">
+                    <div class="h-48 bg-slate-900 flex items-center justify-center relative overflow-hidden">
+                        <!-- YouTube Schematic SVG -->
+                        <svg class="w-full h-full p-10 text-red-500" viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="20" y="20" width="160" height="80" rx="10" fill="#2d3748" />
+                            <path d="M40 35 H160 V45 H40 Z" fill="#ef4444" />
+                            <path d="M40 55 H140 V60 H40 Z" fill="#718096" />
+                            <path d="M40 70 H120 V75 H40 Z" fill="#718096" />
+                            <path d="M40 85 H100 V90 H40 Z" fill="#718096" />
+                            <path d="M150 65 L170 75 L150 85 Z" fill="#ef4444" />
+                        </svg>
+                        <div class="absolute inset-0 bg-red-600/10 group-hover:bg-transparent transition-colors"></div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-xl font-bold" data-i18n="proj.playlist.title">YouTube 播放清單</h3>
+                            <svg class="w-5 h-5 text-slate-300 group-hover:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                        </div>
+                        <p class="text-slate-600 dark:text-slate-400 text-sm" data-i18n="proj.playlist.desc">整合個人推薦與技術相關的 YouTube 影片清單，打造個性化的影音學習庫。</p>
+                    </div>
+                </a>
             </div>
         </div>
     </section>
@@ -321,6 +379,7 @@
     <script>
         document.getElementById('year').innerText = new Date().getFullYear();
 
+        // Theme Toggle Logic
         const themeToggle = document.getElementById('themeToggle');
         const themeToggleMobile = document.getElementById('themeToggleMobile');
         const sunIcon = document.getElementById('sunIcon');
@@ -354,6 +413,22 @@
         themeToggle.addEventListener('click', toggleTheme);
         themeToggleMobile.addEventListener('click', toggleTheme);
 
+        // Mobile Menu Logic
+        const menuToggle = document.getElementById('menuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const mobileLinks = mobileMenu.querySelectorAll('a');
+
+        menuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+
+        // Date Calculation Logic
         function getWinbondExperience(lang) {
             const startDate = new Date(2018, 11, 1); // 2018-12-01
             const today = new Date();
@@ -365,19 +440,20 @@
 
         const i18n = {
             zh: {
-                'nav.exp': '工作經驗', 'nav.edu': '教育背景', 'nav.skills': '技能專長', 'nav.hobby': '興趣嗜好', 'nav.proj': '專案展示', 'nav.contact': '聯絡方式',
+                'nav.exp': '工作經驗', 'nav.edu': '教育背景', 'nav.skills': '技能專長', 'nav.hobby': '興趣嗜好', 'nav.proj': '專案展示', 'nav.contact': '聯絡方式', 'nav.lang': '語言切換',
                 'hero.sub': '資深工程師，專注於軟體開發與技術創新，現職於華邦電子。', 'hero.btn1': '查看專案', 'hero.btn2': '關於我',
                 'exp.winbond.title': 'Senior Engineer 資深工程師', 'exp.winbond.company': 'Winbond Electronics Corporation (華邦電子) | 台中',
-                'exp.edu.date': '2018年1月 - 2018年11月 (1年)', 'exp.edu.title': 'Substitute Services 替代役 (教育役)', 'exp.edu.company': 'Education Bureau, Kaohsiung City Government (高雄市政府教育局) | 高雄',
-                'exp.ms.date': '2014年7月 - 2015年6月 (1年)', 'exp.ms.title': 'RD Intern 研發實習生', 'exp.ms.company': 'Microsoft Taiwan (台灣微軟) | 台北',
+                'exp.edu.title': 'Substitute Services 替代役 (教育役)', 'exp.edu.company': 'Education Bureau, Kaohsiung City Government (高雄市政府教育局) | 高雄',
+                'exp.ms.title': 'RD Intern 研發實習生', 'exp.ms.company': 'Microsoft Taiwan (台灣微軟) | 台北',
                 'edu.nctu.title': '多媒體工程研究所 碩士', 'edu.nctu.school': '國立交通大學 (NCTU)', 'edu.yzu.title': '資訊工程學系 學士', 'edu.yzu.school': '元智大學 (YZU)',
                 'skills.sub': '核心技術能力與開發工具。', 'skills.ai.name': 'AI 工具應用', 'skills.ai.desc': '善用 AI 工具 (ChatGPT, Gemini)', 'skills.fe': '前端開發', 'skills.be': '後端開發', 'skills.sys': '系統程式設計', 'skills.os': '系統與環境', 'skills.app': '應用程式開發', 'skills.db': '資料庫管理',
                 'proj.stock.title': '股票庫存損益管理儀表板', 'proj.stock.desc': '提供完整的股票庫存追蹤與即時損益分析，幫助投資者更精確地管理資產組合。',
-                'proj.file.title': '雲端檔案管理系統 - 需求分析與設計', 'proj.file.desc': '針對大規模雲端存儲系統進行深入的需求分析與架構設計，涵蓋權限管理與分散式存儲方案處理。',
+                'proj.file.title': '雲端檔案管理系統 - 需求分析與設計', 'proj.file.desc': '針對大規模雲端存儲系統進行深入的需求分析與架構設計。',
+                'proj.playlist.title': 'YouTube 播放清單', 'proj.playlist.desc': '整合個人推薦與技術相關的 YouTube 影片清單，打造個性化的影音學習庫。',
                 'proj.more': '更多專案開發中...', 'contact.sub': '歡迎透過以下方式與我聯繫，期待與您的交流！'
             },
             en: {
-                'nav.exp': 'Experience', 'nav.edu': 'Education', 'nav.skills': 'Skills', 'nav.hobby': 'Interests', 'nav.proj': 'Projects', 'nav.contact': 'Contact',
+                'nav.exp': 'Experience', 'nav.edu': 'Education', 'nav.skills': 'Skills', 'nav.hobby': 'Interests', 'nav.proj': 'Projects', 'nav.contact': 'Contact', 'nav.lang': 'Language',
                 'hero.sub': 'Senior Engineer specialized in software development and innovation, currently at Winbond.', 'hero.btn1': 'View Projects', 'hero.btn2': 'About Me',
                 'exp.winbond.title': 'Senior Engineer', 'exp.winbond.company': 'Winbond Electronics Corporation, Taichung, Taiwan',
                 'exp.edu.date': 'Jan 2018 - Nov 2018 (1 year)', 'exp.edu.title': 'Substitute Services (Educational Services)', 'exp.edu.company': 'Education Bureau, Kaohsiung City Government, Taiwan',
@@ -386,6 +462,7 @@
                 'skills.sub': 'Core technical competencies and tools.', 'skills.ai.name': 'AI Tools', 'skills.ai.desc': 'Proficient in AI Tools (ChatGPT, Gemini)', 'skills.fe': 'Front-End Development', 'skills.be': 'Back-End Development', 'skills.sys': 'System Programming', 'skills.os': 'System & Environment', 'skills.app': 'Application Development', 'skills.db': 'Database Management',
                 'proj.stock.title': 'Stock Portfolio Dashboard', 'proj.stock.desc': 'A comprehensive dashboard for tracking stock inventory and real-time P&L analysis.',
                 'proj.file.title': 'Cloud File System - Analysis & Design', 'proj.file.desc': 'In-depth requirement analysis and architectural design for large-scale cloud storage systems.',
+                'proj.playlist.title': 'YouTube Playlist', 'proj.playlist.desc': 'Curated list of technical and personal favorite YouTube videos for personalized learning.',
                 'proj.more': 'More projects coming soon...', 'contact.sub': 'Feel free to reach out to me. Looking forward to connecting!'
             }
         };
@@ -398,7 +475,9 @@
             i18n[lang]['exp.winbond.date'] = getWinbondExperience(lang);
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                if (i18n[lang][key]) el.innerText = i18n[lang][key];
+                if (i18n[lang][key]) {
+                    el.innerText = i18n[lang][key];
+                }
             });
             langToggle.innerText = lang === 'zh' ? 'EN' : '中文';
             langToggleMobile.innerText = lang === 'zh' ? 'EN' : '中文';
@@ -406,7 +485,10 @@
         }
 
         langToggle.addEventListener('click', () => updateLanguage(currentLang === 'zh' ? 'en' : 'zh'));
-        langToggleMobile.addEventListener('click', () => updateLanguage(currentLang === 'zh' ? 'en' : 'zh'));
+        langToggleMobile.addEventListener('click', () => {
+            updateLanguage(currentLang === 'zh' ? 'en' : 'zh');
+            mobileMenu.classList.add('hidden');
+        });
         
         window.addEventListener('DOMContentLoaded', () => {
             updateLanguage('zh');
