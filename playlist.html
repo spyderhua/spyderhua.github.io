@@ -1,135 +1,201 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>蔡阿嘎歌單</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <title>音樂播放清單</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body, html {
-            height: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        body {
+            background-color: #0f172a;
         }
-        .container-fluid {
-            min-height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        }
-        .card {
-            border-radius: 1rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            border: none;
-        }
-        .btn {
-            transition: all 0.3s ease;
-        }
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        .song-card:hover {
+            transform: translateY(-2px);
+            transition: all 0.2s ease;
         }
     </style>
 </head>
-<body>
+<body class="text-gray-100 antialiased font-sans">
 
-    <div class="container-fluid p-4">
-        <div class="card p-4 p-sm-5" style="max-width: 500px; width: 100%;">
-            <div class="card-body text-center">
-                <h1 class="card-title mb-4">蔡阿嘎歌單</h1>
-                
-                <div class="d-grid gap-3">
-                    <!-- 歌曲按鈕 -->
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=21m33s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        愛是什麼
-                    </a>
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=31m21s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        愚人節快樂
-                    </a>
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=38m40s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        地球上最浪漫的一首歌
-                    </a>
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=47m31s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        怪情歌
-                    </a>
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=58m35s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        候鳥
-                    </a>
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=1h16m33s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        Sorry
-                    </a>
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=1h26m52s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        離開的一路上
-                    </a>
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=1h35m34s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        你聽見了我沒有
-                    </a>
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=1h43m04s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        愛到無命不知驚
-                    </a>
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=1h51m36s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        怎麼了
-                    </a>
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=2h03m20s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        愛是什麼
-                    </a>
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=2h12m14s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        那些你很冒險的夢
-                    </a>
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=2h44m18s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        最想念的季節
-                    </a>
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=2h48m03s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        孤單北半球
-                    </a>
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=2h54m09s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        人生尾路
-                    </a>
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=3h00m49s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        預感
-                    </a>
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=3h08m06s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        我可以
-                    </a>
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=3h16m40s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        黑夜問白天
-                    </a>
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=3h27m51s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        軌跡
-                    </a>
-                    <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=3h36m54s" target="_blank" class="btn btn-outline-primary btn-lg">
-                        就一起
-                    </a>
-                </div>
+    <div class="max-w-2xl mx-auto px-4 py-8 md:py-16">
+        <!-- 頁首標題 -->
+        <header class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-white mb-3">
+                精選音樂清單
+            </h1>
+            <p class="text-gray-400">點擊下方歌曲，直接開啟 YouTube 跳轉至指定片段</p>
+        </header>
 
-                <!-- 返回主頁按鈕 -->
-                <div class="mt-5">
-                    <button id="returnHomeBtn" class="btn btn-light">返回主頁</button>
+        <!-- 清單容器 -->
+        <div class="space-y-3">
+            <!-- 歌曲項目開始 -->
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=21m33s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">01</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">愛是什麼</span>
                 </div>
-            </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">21:33</span>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=31m21s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">02</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">愚人節快樂</span>
+                </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">31:21</span>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=38m40s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">03</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">地球上最浪漫的一首歌</span>
+                </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">38:40</span>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=47m31s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">04</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">怪情歌</span>
+                </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">47:31</span>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=58m35s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">05</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">候鳥</span>
+                </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">58:35</span>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=1h16m33s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">06</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">Sorry</span>
+                </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">1:16:33</span>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=1h26m52s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">07</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">離開的一路上</span>
+                </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">1:26:52</span>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=1h35m34s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">08</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">你聽見了我沒有</span>
+                </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">1:35:34</span>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=1h43m04s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">09</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">愛到無命不知驚</span>
+                </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">1:43:04</span>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=1h51m36s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">10</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">怎麼了</span>
+                </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">1:51:36</span>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=2h03m20s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">11</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">愛是什麼</span>
+                </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">2:03:20</span>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=2h12m14s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">12</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">那些你很冒險的夢</span>
+                </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">2:12:14</span>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=2h44m18s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">13</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">最想念的季節</span>
+                </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">2:44:18</span>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=2h48m03s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">14</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">孤單北半球</span>
+                </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">2:48:03</span>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=2h54m09s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">15</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">人生尾路</span>
+                </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">2:54:09</span>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=3h00m49s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">16</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">預感</span>
+                </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">3:00:49</span>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=3h08m06s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">17</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">我可以</span>
+                </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">3:08:06</span>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=3h16m40s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">18</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">黑夜問白天</span>
+                </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">3:16:40</span>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=3h27m51s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">19</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">軌跡</span>
+                </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">3:27:51</span>
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=pRT_z_dAzM8&t=3h36m54s" target="_blank" class="song-card flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl shadow-sm group">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 font-mono text-sm">20</span>
+                    <span class="text-lg font-medium group-hover:text-blue-400">就一起</span>
+                </div>
+                <span class="text-sm bg-gray-900 text-gray-400 px-3 py-1 rounded-full group-hover:bg-blue-900 group-hover:text-blue-200">3:36:54</span>
+            </a>
+            <!-- 歌曲項目結束 -->
         </div>
+
+        <footer class="mt-16 text-center text-gray-600 text-sm">
+            <p>點擊連結將於新分頁中開啟 YouTube</p>
+            <p class="mt-1">Designed for Mobile & Desktop Reading</p>
+        </footer>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script>
-        document.getElementById('returnHomeBtn').addEventListener('click', async () => {
-            try {
-                // 向後端發送登出請求
-                await fetch('/api/logout', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ type: 'playlist' }),
-                });
-            } catch (error) {
-                console.error('登出時發生錯誤:', error);
-            } finally {
-                // 無論成功或失敗，都跳轉回首頁
-                window.location.href = '/';
-            }
-        });
-    </script>
 </body>
 </html>
