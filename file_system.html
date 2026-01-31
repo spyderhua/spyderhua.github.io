@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>雲端檔案管理系統 - 需求分析與設計</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 使用標準 Script 載入 Mermaid 以確保全域存取穩定性 -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        .tree-node { margin-left: 20px; border-left: 1px dashed #ccc; padding-left: 10px; position: relative; }
+        .file-icon { color: #6b7280; }
+        .folder-icon { color: #f59e0b; }
+        .tab-content { display: none; opacity: 0; transition: opacity 0.3s ease-in-out; }
+        .tab-content.active { display: block; opacity: 1; }
+        .tab-btn.active { 
+            border-bottom: 4px solid #1e40af; 
+            color: #1e40af; 
+            font-weight: 700;
+        }
+        .mermaid { min-height: 250px; display: flex; justify-content: center; }
+        .control-panel { background: #f8fafc; border: 1px solid #e2e8f0; }
+        .delete-btn { opacity: 0; transition: opacity 0.2s; }
+        .tree-item-row:hover .delete-btn { opacity: 1; }
+        #terminal-output { white-space: pre-wrap; word-wrap: break-word; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans leading-relaxed">
+
+    <div class="max-w-5xl mx-auto py-12 px-6">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-extrabold text-blue-800 mb-4">雲端檔案管理系統分析與設計</h1>
+            <p class="text-lg text-gray-600">系統分析師：Gemini | 修正後的資料庫架構與實作</p>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="flex border-b border-gray-200 mb-8 sticky top-0 bg-gray-50 z-20">
+            <button onclick="openTab(event, 'arch')" class="tab-btn active px-6 py-3 text-gray-500 hover:text-blue-600 transition-all focus:outline-none">系統架構</button>
+            <button onclick="openTab(event, 'domain')" class="tab-btn px-6 py-3 text-gray-500 hover:text-blue-600 transition-all focus:outline-none">領域模型 (UML)</button>
+            <button onclick="openTab(event, 'er')" class="tab-btn px-6 py-3 text-gray-500 hover:text-blue-600 transition-all focus:outline-none">資料庫設計 (ERD)</button>
+            <button onclick="openTab(event, 'demo')" class="tab-btn px-6 py-3 text-gray-500 hover:text-blue-600 transition-all focus:outline-none">系統 Demo</button>
+        </div>
+
+        <!-- 1. 系統架構說明 -->
+        <div id="arch" class="tab-content active">
+            <section class="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-2xl font-bold border-b-2 border-blue-500 pb-2 mb-6">1. 核心設計規範</h2>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3 text-blue-700">修正後的資料庫思路</h3>
+                        <ul class="list-disc list-inside space-y-2 text-gray-700">
+                            <li><strong>正規化實體</strong>：透過 `USERS` 與 `NODES` 的關聯實作權限基礎。</li>
+                            <li><strong>高擴充性</strong>：採用 TPT 模式，未來若新增「影片」或「音樂」類型，只需增加元數據表，不影響核心表結構。</li>
+                            <li><strong>階層優化</strong>：`NODES` 表的 `parent_id` 建立索引，優化遞迴讀取效能。</li>
+                        </ul>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h3 class="text-xl font-semibold mb-3 text-blue-800">業務規則摘要</h3>
+                        <p class="text-sm">
+                            系統支援無限層級目錄。檔案總大小為其所在節點所有子項目的權重總和。XML 匯出支援標準標籤定義，便於跨平台整合。
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 2. Domain Model (UML) -->
+        <div id="domain" class="tab-content">
+            <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-2xl font-bold border-b-2 border-blue-500 pb-2 mb-6">2. 領域模型 (Domain Model)</h2>
+                <div class="overflow-x-auto py-4">
+                    <pre class="mermaid">
+classDiagram
+    class Node {
+        &lt;&lt;abstract&gt;&gt;
+        +UUID id
+        +String name
+        +DateTime created_at
+        +get_display_name() String
+        +toXML() String
+        +getTotalSize() long
+    }
+
+    class Folder {
+        +List~Node~ children
+        +add_child(Node node)
+        +remove_child(UUID id)
+        +find_by_extension(String ext) List~Node~
+    }
+
+    class File {
+        &lt;&lt;abstract&gt;&gt;
+        +long size_bytes
+        +get_size_display() String
+    }
+
+    class WordDocument { +int pages }
+    class ImageFile { +int width, int height }
+    class TextFile { +String encoding }
+
+    Node <|-- Folder
+    Node <|-- File
+    File <|-- WordDocument
+    File <|-- ImageFile
+    File <|-- TextFile
+    Folder "1" o-- "*" Node : contains
+                    </pre>
+                </div>
+            </section>
+        </div>
+
+        <!-- 3. ER Diagram (修正後的設計) -->
+        <div id="er" class="tab-content">
+            <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-2xl font-bold border-b-2 border-blue-500 pb-2 mb-6">3. 修正後的資料庫設計 (ER Diagram)</h2>
+                <div class="overflow-x-auto py-4">
+                    <pre class="mermaid">
+erDiagram
+    USERS ||--o{ NODES : "owns"
+    NODES ||--o{ NODES : "contains (parent_id)"
+    NODES ||--o| FILES : "specializes"
+    FILES ||--o| WORD_DOCS : "is_type"
+    FILES ||--o| IMAGE_FILES : "is_type"
+    FILES ||--o| TEXT_FILES : "is_type"
+
+    USERS {
+        uuid id PK
+        string username "使用者名稱"
+        string email "電子郵件"
+    }
+
+    NODES {
+        uuid id PK
+        uuid parent_id FK "父節點 ID"
+        uuid owner_id FK "擁有者 ID"
+        string name "名稱"
+        enum node_type "FOLDER, FILE"
+        datetime created_at
+        datetime updated_at
+    }
+
+    FILES {
+        uuid node_id PK, FK "關聯至 NODES"
+        bigint size_bytes "檔案大小"
+        string checksum "校驗碼"
+    }
+
+    WORD_DOCS {
+        uuid file_id PK, FK
+        int page_count "頁數"
+        string author "作者"
+    }
+
+    IMAGE_FILES {
+        uuid file_id PK, FK
+        int width "像素寬"
+        int height "像素高"
+        string color_space "如 RGB"
+    }
+
+    TEXT_FILES {
+        uuid file_id PK, FK
+        string encoding "如 UTF-8"
+        boolean has_bom "是否有 BOM"
+    }
+                    </pre>
+                </div>
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-100">
+                    <h4 class="font-bold text-gray-700 mb-2">修正重點解析：</h4>
+                    <ul class="text-sm text-gray-600 list-disc list-inside space-y-1">
+                        <li><strong>實體化使用者</strong>：檔案系統不再是孤立的，現在每個節點都有明確的 `owner_id`。</li>
+                        <li><strong>解決空值問題</strong>：透過 `FILES` 中介表與各 `_METADATA` 表的 1:1 關聯，資料庫中不再有大量的 NULL 欄位。</li>
+                        <li><strong>維護一致性</strong>：將 `updated_at` 獨立出來，方便追蹤資料夾內容的最後變動時間。</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <!-- 4. 系統實作與 Demo -->
+        <div id="demo" class="tab-content">
+            <section class="space-y-6">
+                <!-- 互動控制面板 -->
+                <div class="control-panel p-6 rounded-xl shadow-sm">
+                    <h3 class="text-lg font-bold mb-4 text-blue-800 flex items-center">
+                        <span class="mr-2">🛠️</span> 互動控制面板
+                    </h3>
+                    
+                    <!-- 新增功能列 -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">新增至資料夾</label>
+                            <select id="parent-select" class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 bg-white"></select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">物件類型</label>
+                            <select id="type-select" onchange="toggleFields()" class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 bg-white">
+                                <option value="FOLDER">📁 資料夾</option>
+                                <option value="WORD">📄 Word 檔案</option>
+                                <option value="IMAGE">🖼️ 圖片檔案</option>
+                                <option value="TEXT">📄 純文字檔</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">名稱</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="node-name" placeholder="名稱" class="flex-grow p-2 border border-gray-300 rounded text-sm">
+                                <button onclick="handleAddNode()" class="bg-blue-600 text-white px-4 rounded text-sm font-bold">新增</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 進階操作按鈕列 -->
+                    <div class="border-t border-gray-200 pt-4 mt-2">
+                        <label class="block text-xs font-bold text-gray-400 mb-3 uppercase tracking-widest">進階分析功能</label>
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="showTotalSize()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-4 rounded shadow-sm transition-colors">
+                                📊 計算總大小
+                            </button>
+                            <button onclick="findDocxFiles()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-2 px-4 rounded shadow-sm transition-colors">
+                                🔍 找尋 .docx 檔案
+                            </button>
+                            <button onclick="exportToXML()" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-2 px-4 rounded shadow-sm transition-colors">
+                                📜 匯出 XML 格式
+                            </button>
+                            <button onclick="refreshUI()" class="bg-gray-500 hover:bg-gray-600 text-white text-xs font-bold py-2 px-4 rounded shadow-sm transition-colors ml-auto">
+                                🔄 還原結構檢視
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 特殊欄位 -->
+                    <div id="extra-fields" class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 hidden p-3 bg-blue-50 rounded">
+                        <div id="field-pages">
+                            <label class="block text-xs font-bold text-gray-500 mb-1">頁數</label>
+                            <input type="number" id="node-pages" value="1" class="w-full p-2 border rounded text-sm">
+                        </div>
+                        <div id="field-width" class="hidden">
+                            <label class="block text-xs font-bold text-gray-500 mb-1">寬度</label>
+                            <input type="number" id="node-width" value="1920" class="w-full p-2 border rounded text-sm">
+                        </div>
+                        <div id="field-height" class="hidden">
+                            <label class="block text-xs font-bold text-gray-500 mb-1">高度</label>
+                            <input type="number" id="node-height" value="1080" class="w-full p-2 border rounded text-sm">
+                        </div>
+                        <div id="field-encoding" class="hidden">
+                            <label class="block text-xs font-bold text-gray-500 mb-1">編碼</label>
+                            <select id="node-encoding" class="w-full p-2 border rounded text-sm">
+                                <option value="UTF-8">UTF-8</option>
+                                <option value="ASCII">ASCII</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1">大小 (B)</label>
+                            <input type="number" id="node-size" value="1024" class="w-full p-2 border rounded text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 結果呈現 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h3 id="terminal-title" class="text-sm font-bold mb-3 text-gray-400 uppercase tracking-widest">終端機輸出</h3>
+                        <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-xs overflow-x-auto border-l-4 border-green-500 h-96 shadow-inner">
+                            <pre id="terminal-output">// 系統準備就緒...</pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h3 class="text-sm font-bold mb-3 text-gray-400 uppercase tracking-widest">視覺化結構圖</h3>
+                        <div id="tree-visual" class="space-y-1 bg-gray-50 p-4 rounded-lg border border-gray-100 h-96 overflow-y-auto shadow-inner text-sm"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        // 初始化 Mermaid
+        mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
+
+        // --- 核心類別定義 ---
+        class Node {
+            constructor(name) {
+                this.id = crypto.randomUUID();
+                this.name = name;
+                this.created_at = new Date();
+            }
+            get_display_name() { return this.name; }
+            display() { throw new Error("Method not implemented."); }
+            toXML() { throw new Error("Method not implemented."); }
+            getTotalSize() { return 0; }
+        }
+
+        class Folder extends Node {
+            constructor(name) {
+                super(name);
+                this.children = [];
+            }
+            add_child(node) { this.children.push(node); }
+            remove_child(nodeId) { this.children = this.children.filter(c => c.id !== nodeId); }
+            get_children() { return this.children; }
+            
+            getTotalSize() {
+                return this.children.reduce((acc, child) => acc + child.getTotalSize(), 0);
+            }
+
+            find_by_extension(ext) {
+                let found = [];
+                this.children.forEach(child => {
+                    if (child instanceof File && child.name.toLowerCase().endsWith(ext.toLowerCase())) {
+                        found.push(child);
+                    }
+                    if (child instanceof Folder) {
+                        found = found.concat(child.find_by_extension(ext));
+                    }
+                });
+                return found;
+            }
+
+            display(depth = 0) {
+                const indent = "  ".repeat(depth);
+                let output = `${indent}📁 ${this.name}\n`;
+                this.children.forEach(c => output += c.display(depth + 1));
+                return output;
+            }
+
+            toXML(depth = 0) {
+                const indent = "  ".repeat(depth);
+                let xml = `${indent}<${this.name} type="目錄">\n`;
+                this.children.forEach(c => xml += c.toXML(depth + 1));
+                xml += `${indent}</${this.name}>\n`;
+                return xml;
+            }
+        }
+
+        class File extends Node {
+            constructor(name, size_bytes) {
+                super(name);
+                this.size_bytes = size_bytes;
+            }
+            getTotalSize() { return this.size_bytes; }
+            get_size_display() {
+                if (this.size_bytes < 1024) return `${this.size_bytes} B`;
+                return `${(this.size_bytes / 1024).toFixed(1)} KB`;
+            }
+        }
+
+        class WordDocument extends File {
+            constructor(name, size_bytes, pages) {
+                super(name, size_bytes);
+                this.pages = pages;
+            }
+            display(depth = 0) {
+                return `${"  ".repeat(depth)}📄 ${this.name} (Word, ${this.pages}p, ${this.get_size_display()})\n`;
+            }
+            toXML(depth = 0) {
+                return `${"  ".repeat(depth)}<${this.name} type="Word 檔案"></${this.name}>\n`;
+            }
+        }
+
+        class ImageFile extends File {
+            constructor(name, size_bytes, width, height) {
+                super(name, size_bytes);
+                this.width = width; this.height = height;
+            }
+            display(depth = 0) {
+                return `${"  ".repeat(depth)}🖼️ ${this.name} (Img, ${this.width}x${this.height}, ${this.get_size_display()})\n`;
+            }
+            toXML(depth = 0) {
+                return `${"  ".repeat(depth)}<${this.name} type="圖片"></${this.name}>\n`;
+            }
+        }
+
+        class TextFile extends File {
+            constructor(name, size_bytes, encoding) {
+                super(name, size_bytes);
+                this.encoding = encoding;
+            }
+            display(depth = 0) {
+                return `${"  ".repeat(depth)}📄 ${this.name} (Txt, ${this.encoding}, ${this.get_size_display()})\n`;
+            }
+            toXML(depth = 0) {
+                return `${"  ".repeat(depth)}<${this.name} type="純文字檔"></${this.name}>\n`;
+            }
+        }
+
+        // --- 全域狀態與功能實作 ---
+        let systemRoot = new Folder("根目錄(Root)");
+        let folderMap = new Map();
+
+        function showTotalSize() {
+            const total = systemRoot.getTotalSize();
+            const formatted = total >= 1048576 ? (total/1048576).toFixed(2) + " MB" : (total/1024).toFixed(1) + " KB";
+            document.getElementById('terminal-title').innerText = "進階分析：計算總大小";
+            document.getElementById('terminal-output').innerText = `系統內所有檔案之總大小為：\n------------------------\n${total} Bytes\n約等同於 ${formatted}`;
+        }
+
+        function findDocxFiles() {
+            const files = systemRoot.find_by_extension(".docx");
+            document.getElementById('terminal-title').innerText = "進階分析：搜尋 .docx 檔案";
+            if (files.length === 0) {
+                document.getElementById('terminal-output').innerText = "系統內目前沒有副檔名為 .docx 的檔案。";
+            } else {
+                let res = `共尋獲 ${files.length} 個符合條件的檔案：\n------------------------\n`;
+                files.forEach(f => res += `- ${f.name} (${f.get_size_display()})\n`);
+                document.getElementById('terminal-output').innerText = res;
+            }
+        }
+
+        function exportToXML() {
+            document.getElementById('terminal-title').innerText = "進階分析：XML 格式匯出";
+            document.getElementById('terminal-output').innerText = systemRoot.toXML();
+        }
+
+        // --- UI 控制 ---
+        function openTab(evt, tabName) {
+            document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            const activeTab = document.getElementById(tabName);
+            activeTab.classList.add("active");
+            evt.currentTarget.classList.add("active");
+
+            if (tabName === 'domain' || tabName === 'er') {
+                const diagrams = activeTab.querySelectorAll('.mermaid');
+                diagrams.forEach(d => {
+                    const code = d.getAttribute('data-original-code');
+                    if (code) { d.innerHTML = code; d.removeAttribute('data-processed'); }
+                });
+                setTimeout(() => mermaid.run({ nodes: diagrams }), 50);
+            }
+        }
+
+        function toggleFields() {
+            const type = document.getElementById('type-select').value;
+            const extra = document.getElementById('extra-fields');
+            document.querySelectorAll("#extra-fields > div").forEach(d => d.classList.add('hidden'));
+
+            if (type === 'FOLDER') { extra.classList.add('hidden'); } 
+            else {
+                extra.classList.remove('hidden');
+                document.getElementById('node-size').parentElement.classList.remove('hidden');
+                if (type === 'WORD') document.getElementById('field-pages').classList.remove('hidden');
+                if (type === 'IMAGE') { document.getElementById('field-width').classList.remove('hidden'); document.getElementById('field-height').classList.remove('hidden'); }
+                if (type === 'TEXT') document.getElementById('field-encoding').classList.remove('hidden');
+            }
+        }
+
+        function handleAddNode() {
+            const pId = document.getElementById('parent-select').value;
+            const type = document.getElementById('type-select').value;
+            const name = document.getElementById('node-name').value || "未命名";
+            const parent = folderMap.get(pId);
+            if (!parent) return;
+
+            let node;
+            const size = parseInt(document.getElementById('node-size').value);
+            if (type === 'FOLDER') node = new Folder(name);
+            else if (type === 'WORD') node = new WordDocument(name, size, parseInt(document.getElementById('node-pages').value));
+            else if (type === 'IMAGE') node = new ImageFile(name, size, parseInt(document.getElementById('node-width').value), parseInt(document.getElementById('node-height').value));
+            else if (type === 'TEXT') node = new TextFile(name, size, document.getElementById('node-encoding').value);
+
+            parent.add_child(node);
+            refreshUI();
+            document.getElementById('node-name').value = "";
+        }
+
+        function handleDeleteNode(id) {
+            if (id === systemRoot.id) return;
+            function search(curr) {
+                const startLen = curr.children.length;
+                curr.remove_child(id);
+                if (curr.children.length < startLen) return true;
+                for (let c of curr.children) if (c instanceof Folder && search(c)) return true;
+                return false;
+            }
+            search(systemRoot);
+            refreshUI();
+        }
+
+        function refreshUI() {
+            document.getElementById('terminal-title').innerText = "終端機輸出 (結構檢視)";
+            document.getElementById('terminal-output').innerText = systemRoot.display();
+            const tree = document.getElementById('tree-visual');
+            tree.innerHTML = "";
+            renderVisual(systemRoot, tree);
+            updateSelect();
+        }
+
+        function renderVisual(node, container) {
+            const row = document.createElement('div');
+            row.className = "tree-item-row flex items-center group py-1";
+            const content = document.createElement('div');
+            content.className = "flex-grow flex items-center";
+            let html = "";
+            if (node instanceof Folder) html = `<span class="folder-icon font-bold mr-1">📁 ${node.name}</span>`;
+            else if (node instanceof WordDocument) html = `<span class="file-icon mr-1">📄 ${node.name}</span> <span class="text-xs text-gray-400">(${node.pages}p)</span>`;
+            else if (node instanceof ImageFile) html = `<span class="file-icon mr-1">🖼️ ${node.name}</span> <span class="text-xs text-gray-400">(${node.width}x${node.height})</span>`;
+            else if (node instanceof TextFile) html = `<span class="file-icon mr-1">📄 ${node.name}</span> <span class="text-xs text-gray-400">(${node.encoding})</span>`;
+            
+            content.innerHTML = html;
+            row.appendChild(content);
+            if (node.id !== systemRoot.id) {
+                const btn = document.createElement('button');
+                btn.className = "delete-btn text-red-500 text-xs ml-2 font-bold px-1";
+                btn.innerHTML = "🗑️";
+                btn.onclick = (e) => { e.stopPropagation(); handleDeleteNode(node.id); };
+                row.appendChild(btn);
+            }
+            const wrap = document.createElement('div');
+            wrap.className = "tree-node";
+            wrap.appendChild(row);
+            container.appendChild(wrap);
+            if (node instanceof Folder) node.get_children().forEach(c => renderVisual(c, wrap));
+        }
+
+        function updateSelect() {
+            const select = document.getElementById('parent-select');
+            const curr = select.value;
+            select.innerHTML = "";
+            folderMap.clear();
+            function walk(n, path = "") {
+                if (n instanceof Folder) {
+                    const p = path + "/" + n.name;
+                    folderMap.set(n.id, n);
+                    const o = document.createElement('option');
+                    o.value = n.id; o.innerText = p;
+                    select.appendChild(o);
+                    n.children.forEach(c => walk(c, p));
+                }
+            }
+            walk(systemRoot);
+            if (folderMap.has(curr)) select.value = curr;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.mermaid').forEach(d => d.setAttribute('data-original-code', d.innerText.trim()));
+            
+            // 初始化結構
+            const project = new Folder("專案文件 (Project_Docs)");
+            project.add_child(new WordDocument("需求規格書.docx", 500 * 1024, 15));
+            project.add_child(new ImageFile("系統架構圖.png", 2 * 1024 * 1024, 1920, 1080));
+
+            const personal = new Folder("個人筆記 (Personal_Notes)");
+            personal.add_child(new TextFile("待辦清單.txt", 1 * 1024, "UTF-8"));
+            
+            const archive = new Folder("2025備份 (Archive_2025)");
+            archive.add_child(new WordDocument("舊會議記錄.docx", 200 * 1024, 5));
+            personal.add_child(archive);
+            
+            systemRoot.add_child(project);
+            systemRoot.add_child(personal);
+            systemRoot.add_child(new TextFile("README.txt", 500, "ASCII"));
+
+            refreshUI();
+            toggleFields();
+        });
+    </script>
+</body>
+</html>
