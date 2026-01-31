@@ -175,13 +175,22 @@ public class DirComposite : Entry {
                         <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-white/50">功能外掛化</span>
                     </div>
                     <pre class="flex-1 bg-slate-900 text-slate-300 p-4 font-mono text-[11px] overflow-x-auto border-x border-b border-slate-800 rounded-b-xl leading-normal">
-// 結構固定：只定義 Accept
+// 結構固定：只定義入口 Accept
 public abstract class Entry {
     public string Name;
     public abstract void Accept(IVisitor v);
 }
 
-// 專業訪問者：XML 匯出
+// 專業訪問者 1：計算總大小
+public class SizeVisitor : IVisitor {
+    public int TotalSize { get; private set; }
+    public void Visit(FileLeaf f) => TotalSize += f.Size;
+    public void Visit(DirComposite d) {
+        foreach (var c in d.Children) c.Accept(this);
+    }
+}
+
+// 專業訪問者 2：XML 匯出
 public class XmlExporter : IVisitor {
     public StringBuilder Output = new StringBuilder();
     private int _depth = 0;
@@ -198,7 +207,7 @@ public class XmlExporter : IVisitor {
     }
 }
 
-// 專業訪問者：搜尋 .docx
+// 專業訪問者 3：搜尋 .docx
 public class DocxFinder : IVisitor {
     public List&lt;string&gt; FoundFiles = new List&lt;string&gt;();
     public void Visit(FileLeaf f) {
