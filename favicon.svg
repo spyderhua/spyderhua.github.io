@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Background -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main circle background -->
+  <circle cx="128" cy="128" r="128" fill="url(#bgGradient)"/>
+  
+  <!-- Inner circle for depth -->
+  <circle cx="128" cy="128" r="115" fill="#3b82f6" opacity="0.9"/>
+  
+  <!-- PHH Text -->
+  <text x="128" y="145" font-family="Inter, Arial, sans-serif" font-size="72" font-weight="700" fill="white" text-anchor="middle" letter-spacing="2">
+    PHH
+  </text>
+  
+  <!-- Decorative dots -->
+  <circle cx="195" cy="145" r="6" fill="white" opacity="0.8"/>
+  
+  <!-- Accent line at bottom -->
+  <line x1="70" y1="165" x2="186" y2="165" stroke="white" stroke-width="3" opacity="0.6"/>
+</svg>
