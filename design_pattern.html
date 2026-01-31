@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>設計模式教學：從混亂到優雅</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .code-snippet { font-family: 'Fira Code', 'Cascadia Code', monospace; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen p-4 md:p-8">
+
+    <!-- Header -->
+    <header class="max-w-6xl mx-auto text-center mb-10">
+        <h1 class="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">設計模式：從混亂到優雅</h1>
+        <p class="text-lg text-slate-600 max-w-2xl mx-auto italic">「結構決定形狀，訪問者賦予靈魂。」</p>
+    </header>
+
+    <!-- Tabs Navigation -->
+    <div class="max-w-6xl mx-auto mb-8">
+        <div class="flex flex-wrap justify-center p-1 bg-slate-200 rounded-xl w-fit mx-auto gap-1">
+            <button onclick="switchTab('composite')" id="btn-composite" class="tab-btn px-4 py-2 rounded-lg font-medium transition-all bg-white text-blue-600 shadow-sm">
+                <i data-lucide="layers" class="inline-block mr-2 w-4 h-4"></i>1. 組合模式 (結構)
+            </button>
+            <button onclick="switchTab('visitor')" id="btn-visitor" class="tab-btn px-4 py-2 rounded-lg font-medium transition-all text-slate-600 hover:text-slate-800">
+                <i data-lucide="zap" class="inline-block mr-2 w-4 h-4"></i>2. 訪問者模式 (行為)
+            </button>
+            <button onclick="switchTab('comparison')" id="btn-comparison" class="tab-btn px-4 py-2 rounded-lg font-medium transition-all text-slate-600 hover:text-slate-800">
+                <i data-lucide="arrow-right-left" class="inline-block mr-2 w-4 h-4"></i>3. 三大功能：實作對決
+            </button>
+            <button onclick="switchTab('analysis')" id="btn-analysis" class="tab-btn px-4 py-2 rounded-lg font-medium transition-all text-slate-600 hover:text-slate-800">
+                <i data-lucide="trending-up" class="inline-block mr-2 w-4 h-4"></i>4. 優缺點與 AI 實務
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto">
+        
+        <!-- Tab 1: Composite -->
+        <div id="composite" class="tab-content active space-y-8 animate-in fade-in duration-500">
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl shadow-sm border-t-4 border-blue-500 p-6 h-full transition-all hover:shadow-md">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="p-2 rounded-lg bg-blue-100">
+                            <i data-lucide="layers" class="text-blue-500"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800">核心：把「部分」當成「整體」</h3>
+                    </div>
+                    <p class="text-slate-600 mb-4 font-medium">關鍵：讓「單一檔案」與「資料夾」擁有相同的介面。</p>
+                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-sm text-blue-800 leading-relaxed mb-4">
+                        學生可以想像這是在定義一個「物件的家族樹」。不管是樹葉還是樹枝，它們都是「植物」。
+                    </div>
+                    <ul class="space-y-2 text-sm text-slate-700 italic">
+                        <li>• 「我不需要知道我是檔案還是資料夾，我只知道我是系統項目。」</li>
+                    </ul>
+                </div>
+
+                <div class="bg-slate-800 rounded-2xl p-6 text-white overflow-hidden relative shadow-lg">
+                    <div class="flex items-center gap-2 mb-4 text-blue-400">
+                        <i data-lucide="folder-tree"></i>
+                        <span class="font-mono text-sm uppercase tracking-wider">結構視覺化 (XML 案例)</span>
+                    </div>
+                    <div class="space-y-2 font-mono text-sm">
+                        <div class="flex items-center gap-2 text-yellow-400"><i data-lucide="chevron-down" class="w-4 h-4"></i>📁 根目錄 (Root)</div>
+                        <div class="pl-6 flex items-center gap-2 text-yellow-400"><i data-lucide="chevron-down" class="w-4 h-4"></i>📁 專案文件 (Project_Docs)</div>
+                        <div class="pl-12 flex items-center gap-2 text-blue-300"><i data-lucide="file-text" class="w-4 h-4"></i>📄 需求規格書.docx</div>
+                        <div class="pl-12 flex items-center gap-2 text-blue-300"><i data-lucide="file-text" class="w-4 h-4"></i>📄 系統架構圖.png</div>
+                        <div class="pl-6 flex items-center gap-2 text-yellow-400"><i data-lucide="chevron-down" class="w-4 h-4"></i>📁 個人筆記 (Personal_Notes)</div>
+                        <div class="pl-12 flex items-center gap-2 text-blue-300"><i data-lucide="file-text" class="w-4 h-4"></i>📄 README.txt</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Visitor -->
+        <div id="visitor" class="tab-content space-y-8 animate-in fade-in duration-500">
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl shadow-sm border-t-4 border-purple-500 p-6 h-full transition-all hover:shadow-md">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="p-2 rounded-lg bg-purple-100">
+                            <i data-lucide="zap" class="text-purple-500"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800">核心：將「動作」抽離出來</h3>
+                    </div>
+                    <p class="text-slate-600 mb-4 font-medium">關鍵：將「做什麼」從「是什麼」裡面抽離出來。</p>
+                    <div class="bg-purple-50 p-4 rounded-xl border border-purple-100 text-sm text-purple-800 leading-relaxed mb-4">
+                        老師教學點：針對上述 XML 結構，我們想要「算大小」、「找 docx」、「轉 XML」。不要在資料夾類別裡寫死這些邏輯！
+                    </div>
+                    <p class="text-sm text-slate-500 italic">這讓原本的類別保持乾淨，符合開閉原則 (OCP)。</p>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-center text-center">
+                    <h4 class="font-bold text-slate-700 mb-6 flex items-center gap-2 justify-center">
+                        <i data-lucide="user-check" class="text-purple-600"></i> 專業訪問者角色
+                    </h4>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="p-3 bg-purple-50 rounded-xl">
+                            <i data-lucide="calculator" class="mx-auto text-purple-600 mb-1"></i>
+                            <span class="text-[10px] font-bold">大小計算</span>
+                        </div>
+                        <div class="p-3 bg-blue-50 rounded-xl">
+                            <i data-lucide="search" class="mx-auto text-blue-600 mb-1"></i>
+                            <span class="text-[10px] font-bold">搜尋 .docx</span>
+                        </div>
+                        <div class="p-3 bg-orange-50 rounded-xl">
+                            <i data-lucide="file-code" class="mx-auto text-orange-600 mb-1"></i>
+                            <span class="text-[10px] font-bold">XML 導出</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Comparison -->
+        <div id="comparison" class="tab-content space-y-6 animate-in fade-in duration-500">
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Bad Practice -->
+                <div class="flex flex-col h-full">
+                    <div class="flex items-center justify-between p-3 rounded-t-xl bg-red-50 text-red-700 border-x border-t border-red-100">
+                        <div class="flex items-center gap-2 font-bold text-sm">
+                            <i data-lucide="alert-triangle" class="w-4 h-4"></i> ❌ 不使用 Visitor (違反單一職責)
+                        </div>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-white/50">邏輯硬編碼</span>
+                    </div>
+                    <pre class="flex-1 bg-slate-900 text-slate-300 p-4 font-mono text-[11px] overflow-x-auto border-x border-b border-slate-800 rounded-b-xl leading-normal">
+public abstract class Entry {
+    public string Name;
+    public abstract int GetTotalSize();
+    public abstract void FindDocx(List&lt;string&gt; results);
+    public abstract string ToXml(int indent);
+}
+
+public class FileLeaf : Entry {
+    public int Size;
+    public override int GetTotalSize() => Size;
+    public override void FindDocx(List&lt;string&gt; results) {
+        if (Name.EndsWith(".docx")) results.Add(Name);
+    }
+    public override string ToXml(int indent) => 
+        new string(' ', indent) + $"&lt;{Name}&gt;&lt;/{Name}&gt;";
+}
+
+public class DirComposite : Entry {
+    public List&lt;Entry&gt; Children = new List&lt;Entry&gt;();
+    public override int GetTotalSize() => Children.Sum(c => c.GetTotalSize());
+    public override void FindDocx(List&lt;string&gt; res) {
+        foreach(var child in Children) child.FindDocx(res);
+    }
+    public override string ToXml(int indent) {
+        var sb = new StringBuilder();
+        sb.AppendLine(new string(' ', indent) + $"&lt;{Name}&gt;");
+        foreach(var child in Children) sb.AppendLine(child.ToXml(indent + 2));
+        sb.AppendLine(new string(' ', indent) + $"&lt;/{Name}&gt;");
+        return sb.ToString();
+    }
+}
+                    </pre>
+                </div>
+                <!-- Good Practice -->
+                <div class="flex flex-col h-full">
+                    <div class="flex items-center justify-between p-3 rounded-t-xl bg-green-50 text-green-700 border-x border-t border-green-100">
+                        <div class="flex items-center gap-2 font-bold text-sm">
+                            <i data-lucide="check-circle-2" class="w-4 h-4"></i> ✅ 使用 Visitor (行為與結構分離)
+                        </div>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-white/50">功能外掛化</span>
+                    </div>
+                    <pre class="flex-1 bg-slate-900 text-slate-300 p-4 font-mono text-[11px] overflow-x-auto border-x border-b border-slate-800 rounded-b-xl leading-normal">
+// 結構固定：只定義 Accept
+public abstract class Entry {
+    public string Name;
+    public abstract void Accept(IVisitor v);
+}
+
+// 專業訪問者：XML 匯出
+public class XmlExporter : IVisitor {
+    public StringBuilder Output = new StringBuilder();
+    private int _depth = 0;
+
+    public void Visit(FileLeaf f) {
+        Output.AppendLine(new string(' ', _depth * 2) + $"&lt;{f.Name}&gt;&lt;/{f.Name}&gt;");
+    }
+    public void Visit(DirComposite d) {
+        Output.AppendLine(new string(' ', _depth * 2) + $"&lt;{d.Name}&gt;");
+        _depth++;
+        foreach (var c in d.Children) c.Accept(this);
+        _depth--;
+        Output.AppendLine(new string(' ', _depth * 2) + $"&lt;/{d.Name}&gt;");
+    }
+}
+
+// 專業訪問者：搜尋 .docx
+public class DocxFinder : IVisitor {
+    public List&lt;string&gt; FoundFiles = new List&lt;string&gt;();
+    public void Visit(FileLeaf f) {
+        if (f.Name.EndsWith(".docx")) FoundFiles.Add(f.Name);
+    }
+    public void Visit(DirComposite d) {
+        foreach (var c in d.Children) c.Accept(this);
+    }
+}
+                    </pre>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 rounded-2xl p-6 shadow-2xl border border-slate-700">
+                <div class="flex items-center gap-2 mb-4">
+                    <i data-lucide="terminal" class="text-green-400"></i>
+                    <h4 class="text-green-400 font-bold font-mono">實作分析結論 (給學生的筆記)</h4>
+                </div>
+                <div class="grid md:grid-cols-2 gap-8 text-sm leading-relaxed text-slate-300">
+                    <div>
+                        <p class="mb-2 font-bold text-red-400 underline">❌ 不使用 Visitor 的代價：</p>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li><strong>代碼重複</strong>：每個功能都要寫一遍 foreach 遍歷邏輯。</li>
+                            <li><strong>脆弱性</strong>：改一個方法名要動到所有檔案類型。</li>
+                            <li><strong>難以維護</strong>：類別變得包山包海，違反 SRP 原則。</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p class="mb-2 font-bold text-emerald-400 underline">✅ 使用 Visitor 的優點：</p>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li><strong>單一職責</strong>：Exporter 只管 XML，Finder 只管搜尋。</li>
+                            <li><strong>狀態管理</strong>：Visitor 可以獨立持有縮排層級或搜尋結果。</li>
+                            <li><strong>擴充即新增</strong>：要加 JSON 輸出？新增一個檔案就好，核心結構完全不動。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Analysis -->
+        <div id="analysis" class="tab-content space-y-8 animate-in fade-in duration-500">
+            <!-- AI Section -->
+            <div class="bg-blue-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10">
+                    <i data-lucide="cpu" style="width: 120px; height: 120px;"></i>
+                </div>
+                <div class="relative z-10">
+                    <h3 class="text-2xl font-bold italic mb-4 flex items-center gap-3">
+                        <i data-lucide="messages-square"></i> AI 時代：模式真的有差嗎？
+                    </h3>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div class="bg-white/10 p-5 rounded-xl border border-white/20">
+                            <h4 class="font-bold text-blue-300 mb-3 flex items-center gap-2">情境：AI 修改「一般寫法」</h4>
+                            <p class="text-xs text-blue-100">AI 修改多個現有檔案時，極易在複雜上下文中意外破壞舊邏輯。你必須手動整合各個檔案，風險極高。</p>
+                        </div>
+                        <div class="bg-white/10 p-5 rounded-xl border border-white/20">
+                            <h4 class="font-bold text-emerald-300 mb-3 flex items-center gap-2">情境：AI 撰寫「Visitor 模式」</h4>
+                            <p class="text-xs text-blue-100">AI 只需產出一個「全新且隔離」的類別檔案。你只需複製貼上到新檔案，這能將 AI 的錯誤限制在單一功能內，不影響核心系統。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pros/Cons Cards -->
+            <div class="grid md:grid-cols-2 gap-6 text-sm">
+                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-lg text-orange-600 mb-4 flex items-center gap-2">
+                        <i data-lucide="shield-alert"></i> 方案一：不使用訪問者 (一般寫法)
+                    </h3>
+                    <p class="text-slate-600 mb-4 italic">「雖然 AI 寫得快，但系統會變得很重。」</p>
+                    <div class="p-3 bg-red-50 rounded-lg border border-red-100 mb-3">
+                        <span class="font-bold text-red-700">功能耦合：</span>
+                        <p class="text-xs text-red-600 mt-1">資料夾類別同時負責存儲、搜尋、XML。AI 同時讀取這三種邏輯，容易在上下文混亂時出錯。</p>
+                    </div>
+                    <div class="p-3 bg-green-50 rounded-lg border border-green-100">
+                        <span class="font-bold text-green-700">優點：</span>
+                        <p class="text-xs text-green-600 mt-1">開發初期速度快，不需要規劃介面，適合極小型、不再變動的工具。</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-lg text-emerald-600 mb-4 flex items-center gap-2">
+                        <i data-lucide="thumbs-up"></i> 方案二：使用訪問者模式
+                    </h3>
+                    <p class="text-slate-600 mb-4 italic">「將變動限制在一個隔離的抽屜裡。」</p>
+                    <div class="p-3 bg-emerald-50 rounded-lg border border-emerald-100 mb-3">
+                        <span class="font-bold text-emerald-700">模組化 AI 協作：</span>
+                        <p class="text-xs text-emerald-600 mt-1">新增功能只需針對 Visitor 介面進行提示。AI 的精準度提高 200%，因為它只需專注於演算法，不必理會複雜結構。</p>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                        <span class="font-bold text-slate-700">缺點：</span>
+                        <p class="text-xs text-slate-600 mt-1">需要前期規劃。程式碼會碎片化成多個 Visitor 類別，對初學者來說較繞口。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teacher Note -->
+        <div class="mt-8 bg-amber-50 border border-amber-200 rounded-2xl p-6">
+            <div class="flex gap-3">
+                <i data-lucide="info" class="text-amber-500 shrink-0"></i>
+                <div>
+                    <h4 class="font-bold text-amber-800 mb-1">教學心得筆記</h4>
+                    <p class="text-amber-700 text-sm leading-relaxed">
+                        老師，您可以對學生強調：<strong>「我們學習 Visitor 模式，不是為了省力，而是為了控制風險。在 AI 時代，讓代碼容易被 AI 維護也是一種重要的工程能力。使用模式後的代碼更具預測性，這能讓 AI 工具成為真正的助力，而非製造難以維護的垃圾。」</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="max-w-6xl mx-auto mt-12 text-center text-slate-400 text-sm pb-8">
+        <p>© 2024 設計模式教育版 - AI 協作時代的架構思維</p>
+    </footer>
+
+    <!-- Scripts for Tab Switching -->
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Show selected tab content
+            document.getElementById(tabId).classList.add('active');
+
+            // Reset all buttons style
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-blue-600', 'text-purple-600', 'text-orange-600', 'text-emerald-600', 'shadow-sm');
+                btn.classList.add('text-slate-600');
+            });
+
+            // Set active button style based on tab
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.remove('text-slate-600');
+            activeBtn.classList.add('bg-white', 'shadow-sm');
+            
+            if(tabId === 'composite') activeBtn.classList.add('text-blue-600');
+            if(tabId === 'visitor') activeBtn.classList.add('text-purple-600');
+            if(tabId === 'comparison') activeBtn.classList.add('text-orange-600');
+            if(tabId === 'analysis') activeBtn.classList.add('text-emerald-600');
+        }
+    </script>
+</body>
+</html>
