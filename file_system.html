@@ -69,8 +69,12 @@
         <div id="domain" class="tab-content">
             <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                 <h2 class="text-2xl font-bold border-b-2 border-blue-500 pb-2 mb-6">2. 領域模型 (Domain Model)</h2>
-                <div class="overflow-x-auto py-4">
-                    <pre class="mermaid">
+                
+                <!-- 原始設計 -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-blue-700 mb-3">📋 設計方式 1: 基本樹狀結構 (Composite Pattern)</h3>
+                    <div class="overflow-x-auto py-4">
+                        <pre class="mermaid">
 classDiagram
     class Node {
         &lt;&lt;abstract&gt;&gt;
@@ -105,7 +109,130 @@ classDiagram
     File <|-- ImageFile
     File <|-- TextFile
     Folder "1" o-- "*" Node : contains
-                    </pre>
+                        </pre>
+                    </div>
+                </div>
+
+                <!-- Visitor Pattern 設計 -->
+                <div>
+                    <h3 class="text-lg font-semibold text-blue-700 mb-3">✨ 設計方式 2: Visitor Pattern (訪問者模式)</h3>
+                    <p class="text-gray-600 text-sm mb-4">
+                        使用 Visitor Pattern 可以將不同的操作（如大小計算、搜尋、匯出等）與資料結構分離，
+                        使得新增操作時無需修改現有的節點類別。每個訪問者負責特定操作的邏輯。
+                    </p>
+                    <div class="overflow-x-auto py-4">
+                        <pre class="mermaid">
+classDiagram
+    class SystemEntryComponent {
+        &lt;&lt;abstract&gt;&gt;
+        +String name
+        +DateTime created
+        +int size
+        +String attributes
+        +abstract String type
+        +abstract void accept(IVisitor visitor)
+    }
+
+    class FileLeaf {
+        &lt;&lt;abstract&gt;&gt;
+        +void accept(IVisitor visitor)
+    }
+
+    class DirectoryComposite {
+        +List~SystemEntryComponent~ children
+        +void add(SystemEntryComponent child)
+        +void remove(SystemEntryComponent child)
+        +SystemEntryComponent[] children
+        +String type
+        +void accept(IVisitor visitor)
+    }
+
+    class WordDocumentLeaf { }
+    class ImageFileLeaf { }
+    class TextFileLeaf { }
+
+    class IVisitor {
+        &lt;&lt;interface&gt;&gt;
+        +void visit(FileLeaf leaf)
+        +void visit(DirectoryComposite composite)
+    }
+
+    class SizeCalculatorVisitor {
+        -long totalSize
+        +void visit(FileLeaf leaf)
+        +void visit(DirectoryComposite composite)
+        +long getTotalSize()
+    }
+
+    class FileSearchVisitor {
+        -String extension
+        -List~FileLeaf~ results
+        +void visit(FileLeaf leaf)
+        +void visit(DirectoryComposite composite)
+        +List~FileLeaf~ getResults()
+    }
+
+    class XMLExportVisitor {
+        -String xmlOutput
+        +void visit(FileLeaf leaf)
+        +void visit(DirectoryComposite composite)
+        +String getXMLOutput()
+    }
+
+    SystemEntryComponent <|-- FileLeaf
+    SystemEntryComponent <|-- DirectoryComposite
+    FileLeaf <|-- WordDocumentLeaf
+    FileLeaf <|-- ImageFileLeaf
+    FileLeaf <|-- TextFileLeaf
+    DirectoryComposite "1" o-- "*" SystemEntryComponent : contains
+    IVisitor <|-- SizeCalculatorVisitor
+    IVisitor <|-- FileSearchVisitor
+    IVisitor <|-- XMLExportVisitor
+    SystemEntryComponent --> IVisitor : accept
+                        </pre>
+                    </div>
+                    
+                    <div class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <h4 class="font-bold text-blue-700 mb-2">💡 Visitor Pattern 的優勢：</h4>
+                        <ul class="text-sm text-gray-700 list-disc list-inside space-y-1">
+                            <li><strong>開放封閉原則</strong>：新增操作時無需修改節點類別，只需新增 Visitor 實作</li>
+                            <li><strong>職責分離</strong>：資料結構與操作邏輯完全分離，代碼更易維護</li>
+                            <li><strong>擴展性強</strong>：支援統計、搜尋、驗證、備份等多種操作，每個都是獨立的 Visitor</li>
+                            <li><strong>雙重分派</strong>：根據訪問者和節點的具體類型決定執行的方法</li>
+                            <li><strong>簡潔設計</strong>：Visitor 接口只需兩個 Visit 方法（葉子、複合節點）</li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
+                        <h4 class="font-bold text-amber-700 mb-2">📝 實作關鍵：</h4>
+                        <pre class="text-xs bg-white p-2 rounded border border-amber-100 overflow-x-auto"><code>// 基礎元件定義 accept 方法
+abstract class SystemEntryComponent {
+    abstract void accept(IVisitor visitor)
+}
+
+// 葉子節點實作
+abstract class FileLeaf extends SystemEntryComponent {
+    void accept(IVisitor visitor) {
+        visitor.visit(this)
+    }
+}
+
+// 複合節點實作
+class DirectoryComposite extends SystemEntryComponent {
+    List children = []
+    
+    void accept(IVisitor visitor) {
+        visitor.visit(this)  // 訪問自身
+        children.forEach(child => child.accept(visitor))  // 遞迴訪問子節點
+    }
+}
+
+// 訪問者接口 - 簡潔設計
+interface IVisitor {
+    void visit(FileLeaf leaf)        // 處理所有檔案類型
+    void visit(DirectoryComposite composite)  // 處理目錄
+}</code></pre>
+                    </div>
                 </div>
             </section>
         </div>
