@@ -40,6 +40,7 @@
             <button onclick="openTab(event, 'domain')" class="tab-btn px-6 py-3 text-gray-500 hover:text-blue-600 transition-all focus:outline-none">領域模型 (UML)</button>
             <button onclick="openTab(event, 'er')" class="tab-btn px-6 py-3 text-gray-500 hover:text-blue-600 transition-all focus:outline-none">資料庫設計 (ERD)</button>
             <button onclick="openTab(event, 'demo')" class="tab-btn px-6 py-3 text-gray-500 hover:text-blue-600 transition-all focus:outline-none">系統 Demo</button>
+            <button onclick="openTab(event, 'java')" class="tab-btn px-6 py-3 text-gray-500 hover:text-blue-600 transition-all focus:outline-none">Java 實作</button>
         </div>
 
         <!-- 1. 系統架構說明 -->
@@ -125,12 +126,13 @@ classDiagram
 classDiagram
     class SystemEntryComponent {
         &lt;&lt;abstract&gt;&gt;
-        +String name
-        +DateTime created
-        +int size
-        +String attributes
-        +abstract String type
+        #String name
+        #DateTime created
+        #int size
+        #String attributes
+        +abstract String getType()
         +abstract void accept(IVisitor visitor)
+        +String getSizeDisplay()
     }
 
     class FileLeaf {
@@ -143,19 +145,23 @@ classDiagram
         +void add(SystemEntryComponent child)
         +void remove(SystemEntryComponent child)
         +SystemEntryComponent[] getChildren()
-        +String type
+        +String getType()
         +void accept(IVisitor visitor)
     }
 
     class WordDocumentLeaf {
-        +int pages
+        -int pages
+        +int getPages()
     }
     class ImageFileLeaf {
-        +int width
-        +int height
+        -int width
+        -int height
+        +int getWidth()
+        +int getHeight()
     }
     class TextFileLeaf {
-        +String encoding
+        -String encoding
+        +String getEncoding()
     }
 
     class IVisitor {
@@ -164,25 +170,47 @@ classDiagram
         +void visit(DirectoryComposite composite)
     }
 
+    class DepthManagedVisitor {
+        &lt;&lt;interface&gt;&gt;
+        +void increaseDepth()
+        +void decreaseDepth()
+    }
+
     class SizeCalculatorVisitor {
         -long totalSize
-        +void visit(FileLeaf leaf)
-        +void visit(DirectoryComposite composite)
+        +void visit(FileLeaf leaf)*
+        +void visit(DirectoryComposite composite)*
         +long getTotalSize()
     }
 
     class FileSearchVisitor {
         -String extension
         -List~FileLeaf~ results
-        +void visit(FileLeaf leaf)
-        +void visit(DirectoryComposite composite)
+        +void visit(FileLeaf leaf)*
+        +void visit(DirectoryComposite composite)*
         +List~FileLeaf~ getResults()
     }
 
+    class DisplayVisitor {
+        -int depth
+        -StringBuilder output
+        -boolean isRoot
+        +void visit(FileLeaf leaf)*
+        +void visit(DirectoryComposite composite)*
+        +void increaseDepth()
+        +void decreaseDepth()
+        +String getOutput()
+    }
+
     class XMLExportVisitor {
-        -String xmlOutput
-        +void visit(FileLeaf leaf)
-        +void visit(DirectoryComposite composite)
+        -int depth
+        -StringBuilder xmlOutput
+        -boolean isRoot
+        -Queue~String~ pendingCloseTags
+        +void visit(FileLeaf leaf)*
+        +void visit(DirectoryComposite composite)*
+        +void increaseDepth()
+        +void decreaseDepth()
         +String getXMLOutput()
     }
 
@@ -192,10 +220,13 @@ classDiagram
     FileLeaf <|-- ImageFileLeaf
     FileLeaf <|-- TextFileLeaf
     DirectoryComposite "1" o-- "*" SystemEntryComponent : contains
-    IVisitor <|-- SizeCalculatorVisitor
-    IVisitor <|-- FileSearchVisitor
-    IVisitor <|-- XMLExportVisitor
-    SystemEntryComponent --> IVisitor : accept
+    IVisitor <|.. SizeCalculatorVisitor
+    IVisitor <|.. FileSearchVisitor
+    IVisitor <|.. DisplayVisitor
+    IVisitor <|.. XMLExportVisitor
+    DepthManagedVisitor <|.. DisplayVisitor
+    DepthManagedVisitor <|.. XMLExportVisitor
+    SystemEntryComponent --> IVisitor : depend
                         </pre>
                     </div>
                     
@@ -240,7 +271,104 @@ class DirectoryComposite extends SystemEntryComponent {
 interface IVisitor {
     void visit(FileLeaf leaf)
     void visit(DirectoryComposite composite)
+    void increaseDepth()      // 進入子目錄時增加深度
+    void decreaseDepth()      // 離開子目錄時減少深度
 }</code></pre>
+                    </div>
+
+                    <div class="mt-4 p-4 bg-red-50 rounded-lg border border-red-200">
+                        <h4 class="font-bold text-red-700 mb-2">❓ 為什麼需要 increaseDepth 和 decreaseDepth？</h4>
+                        <p class="text-sm text-gray-700 mb-3">
+                            這兩個方法用來<strong>管理樹遍歷時的深度</strong>，確保訪問者知道當前在樹的哪一層，進而輸出正確的缩进。
+                        </p>
+                        <div class="bg-white p-3 rounded border border-red-100 text-xs">
+                            <strong>具體例子：</strong>
+                            <pre class="mt-2 overflow-x-auto"><code>結構：
+📁 根目錄 (depth=0)
+  📁 資料夾1 (depth=1)
+    📄 檔案1 (depth=2)
+  📄 檔案2 (depth=1)
+
+訪問順序：
+1. visit(根目錄)         // 輸出"📁 根目錄"
+2. increaseDepth()       // depth=0→1
+3. visit(資料夾1)        // 輸出"  📁 資料夾1"
+4. increaseDepth()       // depth=1→2
+5. visit(檔案1)          // 輸出"    📄 檔案1"
+6. decreaseDepth()       // depth=2→1
+7. visit(檔案2)          // 輸出"  📄 檔案2"
+8. decreaseDepth()       // depth=1→0
+
+缩进 = "  ".repeat(depth)，所以：
+- depth=0: 無缩进
+- depth=1: "  " (2個空格)
+- depth=2: "    " (4個空格)</code></pre>
+                        </div>
+                        <p class="text-sm text-gray-700 mt-3">
+                            <strong>關鍵設計：</strong>由 DirectoryComposite 的 accept() 方法負責管理深度增減，
+                            Visitor 的 visit() 方法只使用 depth 值，不修改它。這樣可以讓訪問者的邏輯保持簡潔。
+                        </p>
+                    </div>
+
+                    <div class="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <h4 class="font-bold text-yellow-700 mb-2">⚖️ 採用「接口隔離原則」的設計</h4>
+                        <p class="text-sm text-gray-700 mb-3">
+                            <strong>設計改進：</strong>創建兩個接口，只有需要深度管理的 Visitor 才實現 DepthManagedVisitor。
+                        </p>
+                        <pre class="text-xs bg-white p-2 rounded border border-yellow-100 overflow-x-auto"><code>// 基礎訪問者接口
+interface IVisitor {
+    void visit(FileLeaf leaf)
+    void visit(DirectoryComposite composite)
+}
+
+// 需要深度管理的訪問者接口
+interface DepthManagedVisitor extends IVisitor {
+    void increaseDepth()
+    void decreaseDepth()
+}
+
+// DirectoryComposite 的 accept 方法
+void accept(IVisitor visitor) {
+    visitor.visit(this);
+    if (visitor instanceof DepthManagedVisitor) {
+        DepthManagedVisitor dmv = (DepthManagedVisitor) visitor;
+        dmv.increaseDepth();
+        this.children.forEach(child => child.accept(visitor));
+        dmv.decreaseDepth();
+    } else {
+        // 不需要深度管理的訪問者
+        this.children.forEach(child => child.accept(visitor));
+    }
+}
+
+// 實現範例
+class SizeCalculatorVisitor implements IVisitor {
+    // 只實現必要的方法，無需空方法
+}
+
+class DisplayVisitor implements DepthManagedVisitor {
+    private int depth = 0;
+    
+    @Override
+    public void increaseDepth() { depth++; }
+    
+    @Override
+    public void decreaseDepth() { if (depth > 0) depth--; }
+}</code></pre>
+                        <p class="text-sm text-gray-700 mt-3">
+                            <strong>優勢：</strong>
+                        </p>
+                        <ul class="text-sm text-gray-700 list-disc list-inside space-y-1">
+                            <li>✅ <strong>接口隔離</strong>：只強制實現必要的方法</li>
+                            <li>✅ <strong>代碼清晰</strong>：一目了然誰需要深度管理</li>
+                            <li>✅ <strong>靈活擴展</strong>：新增 Visitor 時無需決定是否實現空方法</li>
+                            <li>✅ <strong>符合 SOLID 原則</strong>：客戶端只依賴需要的接口</li>
+
+                        </ul>
+                        <p class="text-sm text-yellow-700 mt-3 font-bold">
+                            💡 本實作中採用了「實現空方法」的方式，這對於小型項目是可接受的折衷方案。
+                            但對於大型項目，應優先考慮「接口隔離」的方案。
+                        </p>
                     </div>
 
                     <div class="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
@@ -486,6 +614,496 @@ erDiagram
                 </div>
             </section>
         </div>
+
+        <!-- 5. Java 實作 -->
+        <div id="java" class="tab-content">
+            <section class="space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h2 class="text-2xl font-bold border-b-2 border-blue-500 pb-2 mb-6">5. Java 完整實作</h2>
+                    
+                    <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <h3 class="font-bold text-blue-700 mb-3">📦 項目結構</h3>
+                        <pre class="text-xs bg-white p-2 rounded border border-blue-100 overflow-x-auto">FileSystemDemo/
+├── src/
+│   ├── SystemEntryComponent.java
+│   ├── FileLeaf.java
+│   ├── DirectoryComposite.java
+│   ├── WordDocument.java
+│   ├── ImageFile.java
+│   ├── TextFile.java
+│   ├── IVisitor.java
+│   ├── DepthManagedVisitor.java
+│   ├── SizeCalculatorVisitor.java
+│   ├── FileSearchVisitor.java
+│   ├── DisplayVisitor.java
+│   ├── XMLExportVisitor.java
+│   └── FileSystemDemo.java
+└── README.md</pre>
+                    </div>
+
+                    <div class="mb-6">
+                        <button onclick="downloadJavaProject()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-colors flex items-center gap-2">
+                            <span>📥</span> 一鍵下載完整 Java 專案
+                        </button>
+                    </div>
+
+                    <!-- Java 代碼展示 -->
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-blue-700 mb-2">📄 核心類別</h3>
+                            
+                            <!-- SystemEntryComponent -->
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
+                                <h4 class="font-bold text-gray-700 mb-2">SystemEntryComponent.java</h4>
+                                <pre class="text-xs bg-white p-2 rounded border border-gray-100 overflow-x-auto"><code>public abstract class SystemEntryComponent {
+    protected String name;
+    protected java.time.LocalDateTime created;
+    protected long size;
+    protected String attributes;
+    
+    public SystemEntryComponent(String name) {
+        this.name = name;
+        this.created = java.time.LocalDateTime.now();
+        this.size = 0;
+    }
+    
+    public abstract String getType();
+    public abstract void accept(IVisitor visitor);
+    
+    public String getSizeDisplay() {
+        if (size < 1024) return size + " B";
+        return String.format("%.1f KB", size / 1024.0);
+    }
+    
+    public String getName() { return name; }
+    public long getSize() { return size; }
+}</code></pre>
+                            </div>
+
+                            <!-- FileLeaf -->
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
+                                <h4 class="font-bold text-gray-700 mb-2">FileLeaf.java</h4>
+                                <pre class="text-xs bg-white p-2 rounded border border-gray-100 overflow-x-auto"><code>public abstract class FileLeaf extends SystemEntryComponent {
+    public FileLeaf(String name, long sizeBytes) {
+        super(name);
+        this.size = sizeBytes;
+    }
+    
+    @Override
+    public void accept(IVisitor visitor) {
+        visitor.visit(this);
+    }
+}</code></pre>
+                            </div>
+
+                            <!-- DirectoryComposite -->
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
+                                <h4 class="font-bold text-gray-700 mb-2">DirectoryComposite.java</h4>
+                                <pre class="text-xs bg-white p-2 rounded border border-gray-100 overflow-x-auto"><code>import java.util.*;
+
+public class DirectoryComposite extends SystemEntryComponent {
+    private List&lt;SystemEntryComponent&gt; children = new ArrayList&lt;&gt;();
+    
+    public DirectoryComposite(String name) {
+        super(name);
+    }
+    
+    public void add(SystemEntryComponent child) {
+        children.add(child);
+    }
+    
+    public void remove(SystemEntryComponent child) {
+        children.remove(child);
+    }
+    
+    public List&lt;SystemEntryComponent&gt; getChildren() {
+        return new ArrayList&lt;&gt;(children);
+    }
+    
+    @Override
+    public String getType() { return "目錄"; }
+    
+    @Override
+    public void accept(IVisitor visitor) {
+        visitor.visit(this);
+        // 使用 instanceof 檢查是否需要深度管理
+        if (visitor instanceof DepthManagedVisitor) {
+            DepthManagedVisitor depthVisitor = 
+                (DepthManagedVisitor) visitor;
+            depthVisitor.increaseDepth();
+            for (SystemEntryComponent child : children) {
+                child.accept(visitor);
+            }
+            depthVisitor.decreaseDepth();
+        } else {
+            for (SystemEntryComponent child : children) {
+                child.accept(visitor);
+            }
+        }
+    }
+}</code></pre>
+                            </div>
+
+                            <!-- 具體文件類型 -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                    <h4 class="font-bold text-gray-700 mb-2">WordDocument.java</h4>
+                                    <pre class="text-xs bg-white p-2 rounded border border-gray-100 overflow-x-auto"><code>public class WordDocument 
+    extends FileLeaf {
+    private int pages;
+    
+    public WordDocument(String name, 
+        long size, int pages) {
+        super(name, size);
+        this.pages = pages;
+    }
+    
+    @Override
+    public String getType() { 
+        return "Word 檔案"; 
+    }
+    
+    public int getPages() { 
+        return pages; 
+    }
+}</code></pre>
+                                </div>
+
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                    <h4 class="font-bold text-gray-700 mb-2">ImageFile.java</h4>
+                                    <pre class="text-xs bg-white p-2 rounded border border-gray-100 overflow-x-auto"><code>public class ImageFile extends FileLeaf {
+    private int width;
+    private int height;
+    
+    public ImageFile(String name, 
+        long size, int w, int h) {
+        super(name, size);
+        this.width = w;
+        this.height = h;
+    }
+    
+    @Override
+    public String getType() { 
+        return "圖片"; 
+    }
+    
+    public int getWidth() { 
+        return width; 
+    }
+    public int getHeight() { 
+        return height; 
+    }
+}</code></pre>
+                                </div>
+
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                    <h4 class="font-bold text-gray-700 mb-2">TextFile.java</h4>
+                                    <pre class="text-xs bg-white p-2 rounded border border-gray-100 overflow-x-auto"><code>public class TextFile extends FileLeaf {
+    private String encoding;
+    
+    public TextFile(String name, 
+        long size, String enc) {
+        super(name, size);
+        this.encoding = enc;
+    }
+    
+    @Override
+    public String getType() { 
+        return "純文字檔"; 
+    }
+    
+    public String getEncoding() { 
+        return encoding; 
+    }
+}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Visitor 接口與實現 -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-blue-700 mb-2">🔍 Visitor 模式 - 接口隔離設計</h3>
+
+                            <div class="mb-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
+                                <h4 class="font-bold text-amber-700 mb-2">💡 設計原則：Interface Segregation Principle</h4>
+                                <p class="text-sm text-gray-700">不同訪問者有不同需求。簡單訪問者（計算大小、搜尋）不需深度管理，複雜訪問者（顯示、XML 導出）需要。因此分離為兩個接口：</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                    <h4 class="font-bold text-gray-700 mb-2">IVisitor.java</h4>
+                                    <pre class="text-xs bg-white p-2 rounded border border-gray-100 overflow-x-auto"><code>public interface IVisitor {
+    void visit(FileLeaf leaf);
+    void visit(DirectoryComposite composite);
+}</code></pre>
+                                </div>
+
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                    <h4 class="font-bold text-gray-700 mb-2">DepthManagedVisitor.java</h4>
+                                    <pre class="text-xs bg-white p-2 rounded border border-gray-100 overflow-x-auto"><code>public interface DepthManagedVisitor 
+    extends IVisitor {
+    void increaseDepth();
+    void decreaseDepth();
+}</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                    <h4 class="font-bold text-gray-700 mb-2">SizeCalculatorVisitor.java</h4>
+                                    <pre class="text-xs bg-white p-2 rounded border border-gray-100 overflow-x-auto"><code>public class SizeCalculatorVisitor 
+    implements IVisitor {
+    private long totalSize = 0;
+    
+    @Override
+    public void visit(FileLeaf leaf) {
+        totalSize += leaf.getSize();
+    }
+    
+    @Override
+    public void visit(
+        DirectoryComposite comp) {
+        // 遞迴由 DirectoryComposite
+        // 的 accept 方法處理
+    }
+    
+    public long getTotalSize() { 
+        return totalSize; 
+    }
+}</code></pre>
+                                </div>
+
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                    <h4 class="font-bold text-gray-700 mb-2">FileSearchVisitor.java</h4>
+                                    <pre class="text-xs bg-white p-2 rounded border border-gray-100 overflow-x-auto"><code>import java.util.*;
+
+public class FileSearchVisitor 
+    implements IVisitor {
+    private String extension;
+    private List&lt;FileLeaf&gt; results 
+        = new ArrayList&lt;&gt;();
+    
+    public FileSearchVisitor(String ext) {
+        this.extension = ext.toLowerCase();
+    }
+    
+    @Override
+    public void visit(FileLeaf leaf) {
+        if (leaf.getName()
+            .toLowerCase()
+            .endsWith(extension)) {
+            results.add(leaf);
+        }
+    }
+    
+    @Override
+    public void visit(
+        DirectoryComposite comp) {}
+    
+    public List&lt;FileLeaf&gt; 
+        getResults() { 
+        return results; 
+    }
+}</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                    <h4 class="font-bold text-gray-700 mb-2">DisplayVisitor.java</h4>
+                                    <pre class="text-xs bg-white p-2 rounded border border-gray-100 overflow-x-auto"><code>public class DisplayVisitor 
+    implements DepthManagedVisitor {
+    private StringBuilder output = 
+        new StringBuilder();
+    private int depth = 0;
+    private boolean isRoot = true;
+    
+    @Override
+    public void visit(FileLeaf leaf) {
+        String indent = "  ".repeat(depth);
+        output.append(indent).append("📄 ")
+              .append(leaf.getName())
+              .append("\\n");
+    }
+    
+    @Override
+    public void visit(
+        DirectoryComposite comp) {
+        if (!isRoot) {
+            String indent = 
+                "  ".repeat(depth);
+            output.append(indent)
+                  .append("📁 ")
+                  .append(comp.getName())
+                  .append("\\n");
+        }
+        isRoot = false;
+    }
+    
+    @Override
+    public void increaseDepth() { 
+        depth++; 
+    }
+    
+    @Override
+    public void decreaseDepth() { 
+        if (depth > 0) depth--; 
+    }
+    
+    public String getOutput() { 
+        return output.toString(); 
+    }
+}</code></pre>
+                                </div>
+
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                    <h4 class="font-bold text-gray-700 mb-2">XMLExportVisitor.java</h4>
+                                    <pre class="text-xs bg-white p-2 rounded border border-gray-100 overflow-x-auto"><code>import java.util.*;
+
+public class XMLExportVisitor 
+    implements DepthManagedVisitor {
+    private StringBuilder xmlOutput = 
+        new StringBuilder();
+    private int depth = 0;
+    private Stack&lt;String&gt; 
+        pendingCloseTags = new Stack&lt;&gt;();
+    
+    @Override
+    public void visit(FileLeaf leaf) {
+        String indent = "  ".repeat(depth);
+        xmlOutput.append(indent)
+                 .append("&lt;").append(leaf
+                 .getName()).append("&gt;")
+                 .append("&lt;/").append(leaf
+                 .getName()).append("&gt;\\n");
+    }
+    
+    @Override
+    public void visit(
+        DirectoryComposite comp) {
+        String indent = "  ".repeat(depth);
+        xmlOutput.append(indent)
+                 .append("&lt;").append(comp
+                 .getName()).append("&gt;\\n");
+        pendingCloseTags.push(comp
+            .getName());
+    }
+    
+    @Override
+    public void increaseDepth() { 
+        depth++; 
+    }
+    
+    @Override
+    public void decreaseDepth() {
+        if (depth > 0) {
+            depth--;
+            if (!pendingCloseTags
+                .isEmpty()) {
+                String tagName = 
+                    pendingCloseTags.pop();
+                String indent = 
+                    "  ".repeat(depth);
+                xmlOutput.append(indent)
+                    .append("&lt;/")
+                    .append(tagName)
+                    .append("&gt;\\n");
+            }
+        }
+    }
+    
+    public String getXMLOutput() { 
+        return xmlOutput.toString(); 
+    }
+}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main Demo -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-blue-700 mb-2">▶️ 使用範例</h3>
+                            
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                <h4 class="font-bold text-gray-700 mb-2">FileSystemDemo.java</h4>
+                                <pre class="text-xs bg-white p-2 rounded border border-gray-100 overflow-x-auto"><code>public class FileSystemDemo {
+    public static void main(String[] args) {
+        // 建立根目錄
+        DirectoryComposite root = 
+            new DirectoryComposite("根目錄");
+        
+        // 建立子目錄
+        DirectoryComposite project = 
+            new DirectoryComposite("專案文件");
+        project.add(new WordDocument(
+            "需求規格書.docx", 500*1024, 15));
+        project.add(new ImageFile(
+            "架構圖.png", 2*1024*1024, 1920, 1080));
+        
+        DirectoryComposite personal = 
+            new DirectoryComposite("個人筆記");
+        personal.add(new TextFile(
+            "待辦清單.txt", 1024, "UTF-8"));
+        
+        // 組合
+        root.add(project);
+        root.add(personal);
+        root.add(new TextFile(
+            "README.txt", 500, "ASCII"));
+        
+        // 測試 Visitor
+        System.out.println("=== 計算總大小 ===");
+        SizeCalculatorVisitor sizeVisitor = 
+            new SizeCalculatorVisitor();
+        root.accept(sizeVisitor);
+        System.out.println("總大小: " + 
+            sizeVisitor.getTotalSize() + " Bytes");
+        
+        System.out.println("\n=== 搜尋 .docx 檔案 ===");
+        FileSearchVisitor searchVisitor = 
+            new FileSearchVisitor(".docx");
+        root.accept(searchVisitor);
+        for (FileLeaf file : 
+            searchVisitor.getResults()) {
+            System.out.println("找到: " + 
+                file.getName());
+        }
+    }
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 編譯和運行說明 -->
+                    <div class="mt-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                        <h3 class="font-bold text-purple-700 mb-3">🚀 編譯與運行</h3>
+                        <pre class="text-xs bg-white p-2 rounded border border-purple-100 overflow-x-auto"><code>// 編譯所有 Java 檔案
+javac src/*.java
+
+// 運行程式
+java -cp src FileSystemDemo
+
+// 預期輸出
+=== 計算總大小 ===
+總大小: 2503524 Bytes
+
+=== 搜尋 .docx 檔案 ===
+找到: 需求規格書.docx</code></pre>
+                    </div>
+
+                    <!-- 學習重點 -->
+                    <div class="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <h3 class="font-bold text-yellow-700 mb-3">💡 Visitor Pattern 學習重點</h3>
+                        <ul class="text-sm text-gray-700 list-disc list-inside space-y-2">
+                            <li><strong>雙重分派</strong>：visitor.visit(this) 根據 this 的具體類型決定調用的方法</li>
+                            <li><strong>開放封閉原則</strong>：新增操作不需修改現有類別，只需新增 Visitor</li>
+                            <li><strong>分離關注點</strong>：資料結構與算法邏輯完全分離，各司其職</li>
+                            <li><strong>易於擴展</strong>：要新增檔案統計、備份、驗證等功能，只需新增相應的 Visitor</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
     </div>
 
     <script>
@@ -561,6 +1179,7 @@ erDiagram
 
             accept(visitor) {
                 visitor.visit(this);
+                // 檢查是否實現 DepthManagedVisitor
                 if (visitor instanceof DisplayVisitor || visitor instanceof XMLExportVisitor) {
                     visitor.increaseDepth();
                     this.children.forEach(child => child.accept(visitor));
@@ -576,7 +1195,13 @@ erDiagram
             visit(element) { throw new Error("Method not implemented."); }
         }
 
-        // 計算總大小訪問者
+        // DepthManagedVisitor 接口
+        class DepthManagedVisitor extends IVisitor {
+            increaseDepth() { throw new Error("Method not implemented."); }
+            decreaseDepth() { throw new Error("Method not implemented."); }
+        }
+
+        // 計算總大小訪問者（只實現 IVisitor）
         class SizeCalculatorVisitor extends IVisitor {
             constructor() {
                 super();
@@ -640,12 +1265,14 @@ erDiagram
                 this.xmlOutput = "";
                 this.depth = 0;
                 this.isRoot = true;
+                this.pendingCloseTags = [];  // 用於追蹤待關閉的標籤
             }
             visit(element) {
                 const indent = "  ".repeat(this.depth);
                 if (element instanceof DirectoryComposite) {
                     if (!this.isRoot) {
                         this.xmlOutput += `${indent}<${element.name} type="目錄">\n`;
+                        this.pendingCloseTags.push({ name: element.name, depth: this.depth });
                     }
                     this.isRoot = false;
                 } else if (element instanceof FileLeaf) {
@@ -656,12 +1283,12 @@ erDiagram
             decreaseDepth() { 
                 if (this.depth > 0) {
                     this.depth--;
-                }
-            }
-            afterChildren(element) {
-                if (element instanceof DirectoryComposite && !this.isRoot) {
-                    const indent = "  ".repeat(this.depth);
-                    this.xmlOutput += `${indent}</${element.name}>\n`;
+                    // 在返回上一層時，輸出對應的閉合標籤
+                    if (this.pendingCloseTags.length > 0 && this.pendingCloseTags[this.pendingCloseTags.length - 1].depth === this.depth) {
+                        const tag = this.pendingCloseTags.pop();
+                        const indent = "  ".repeat(this.depth);
+                        this.xmlOutput += `${indent}</${tag.name}>\n`;
+                    }
                 }
             }
             getXMLOutput() { return this.xmlOutput; }
@@ -862,6 +1489,498 @@ erDiagram
             refreshUI();
             toggleFields();
         });
+
+        // ========== Java 項目下載功能 ==========
+        async function downloadJavaProject() {
+            // 引入 JSZip 庫
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+            script.onload = function() {
+                createAndDownloadZip();
+            };
+            document.head.appendChild(script);
+        }
+
+        function createAndDownloadZip() {
+            const JSZip = window.JSZip;
+            const zip = new JSZip();
+            
+            // 建立資料夾結構
+            const src = zip.folder('FileSystemDemo').folder('src');
+            
+            // 添加所有 Java 源文件
+            const files = {
+                'SystemEntryComponent.java': `public abstract class SystemEntryComponent {
+    protected String name;
+    protected java.time.LocalDateTime created;
+    protected long size;
+    protected String attributes;
+    
+    public SystemEntryComponent(String name) {
+        this.name = name;
+        this.created = java.time.LocalDateTime.now();
+        this.size = 0;
+    }
+    
+    public abstract String getType();
+    public abstract void accept(IVisitor visitor);
+    
+    public String getSizeDisplay() {
+        if (size < 1024) return size + " B";
+        return String.format("%.1f KB", size / 1024.0);
+    }
+    
+    public String getName() { return name; }
+    public long getSize() { return size; }
+}`,
+                'FileLeaf.java': `public abstract class FileLeaf extends SystemEntryComponent {
+    public FileLeaf(String name, long sizeBytes) {
+        super(name);
+        this.size = sizeBytes;
+    }
+    
+    @Override
+    public void accept(IVisitor visitor) {
+        visitor.visit(this);
+    }
+}`,
+                'DirectoryComposite.java': `import java.util.*;
+
+public class DirectoryComposite extends SystemEntryComponent {
+    private List<SystemEntryComponent> children = new ArrayList<>();
+    
+    public DirectoryComposite(String name) {
+        super(name);
+    }
+    
+    public void add(SystemEntryComponent child) {
+        children.add(child);
+    }
+    
+    public void remove(SystemEntryComponent child) {
+        children.remove(child);
+    }
+    
+    public List<SystemEntryComponent> getChildren() {
+        return new ArrayList<>(children);
+    }
+    
+    @Override
+    public String getType() { return "目錄"; }
+    
+    @Override
+    public void accept(IVisitor visitor) {
+        visitor.visit(this);
+        // 只有實現 DepthManagedVisitor 的訪問者需要深度管理
+        if (visitor instanceof DepthManagedVisitor) {
+            DepthManagedVisitor depthVisitor = (DepthManagedVisitor) visitor;
+            depthVisitor.increaseDepth();
+            for (SystemEntryComponent child : children) {
+                child.accept(visitor);
+            }
+            depthVisitor.decreaseDepth();
+        } else {
+            // 簡單訪問者不需要深度管理，只遞迴訪問子節點
+            for (SystemEntryComponent child : children) {
+                child.accept(visitor);
+            }
+        }
+    }
+}`,
+                'WordDocument.java': `public class WordDocument extends FileLeaf {
+    private int pages;
+    
+    public WordDocument(String name, long size, int pages) {
+        super(name, size);
+        this.pages = pages;
+    }
+    
+    @Override
+    public String getType() { return "Word 檔案"; }
+    
+    public int getPages() { return pages; }
+}`,
+                'ImageFile.java': `public class ImageFile extends FileLeaf {
+    private int width;
+    private int height;
+    
+    public ImageFile(String name, long size, int width, int height) {
+        super(name, size);
+        this.width = width;
+        this.height = height;
+    }
+    
+    @Override
+    public String getType() { return "圖片"; }
+    
+    public int getWidth() { return width; }
+    public int getHeight() { return height; }
+}`,
+                'TextFile.java': `public class TextFile extends FileLeaf {
+    private String encoding;
+    
+    public TextFile(String name, long size, String encoding) {
+        super(name, size);
+        this.encoding = encoding;
+    }
+    
+    @Override
+    public String getType() { return "純文字檔"; }
+    
+    public String getEncoding() { return encoding; }
+}`,
+                'IVisitor.java': `public interface IVisitor {
+    void visit(FileLeaf leaf);
+    void visit(DirectoryComposite composite);
+}`,
+                'DepthManagedVisitor.java': `public interface DepthManagedVisitor extends IVisitor {
+    void increaseDepth();
+    void decreaseDepth();
+}`,
+                'SizeCalculatorVisitor.java': `public class SizeCalculatorVisitor implements IVisitor {
+    private long totalSize = 0;
+    
+    @Override
+    public void visit(FileLeaf leaf) {
+        totalSize += leaf.getSize();
+    }
+    
+    @Override
+    public void visit(DirectoryComposite composite) {
+        // 遞迴由 DirectoryComposite.accept 方法處理
+    }
+    
+    public long getTotalSize() { return totalSize; }
+}`,
+                'FileSearchVisitor.java': `import java.util.*;
+
+public class FileSearchVisitor implements IVisitor {
+    private String extension;
+    private List<FileLeaf> results = new ArrayList<>();
+    
+    public FileSearchVisitor(String extension) {
+        this.extension = extension.toLowerCase();
+    }
+    
+    @Override
+    public void visit(FileLeaf leaf) {
+        if (leaf.getName().toLowerCase().endsWith(extension)) {
+            results.add(leaf);
+        }
+    }
+    
+    @Override
+    public void visit(DirectoryComposite composite) {
+        // 遞迴由 DirectoryComposite.accept 方法處理
+    }
+    
+    public List<FileLeaf> getResults() { return results; }
+}`,
+                'XMLExportVisitor.java': `import java.util.*;
+
+public class XMLExportVisitor implements DepthManagedVisitor {
+    private StringBuilder xmlOutput = new StringBuilder();
+    private int depth = 0;
+    private boolean isRoot = true;
+    private Stack<String> pendingCloseTags = new Stack<>();
+    
+    @Override
+    public void visit(FileLeaf leaf) {
+        String indent = "  ".repeat(depth);
+        xmlOutput.append(indent).append("<").append(leaf.getName())
+                .append(" type=\\"").append(leaf.getType()).append("\\">")
+                .append("</").append(leaf.getName()).append(">\\n");
+    }
+    
+    @Override
+    public void visit(DirectoryComposite composite) {
+        if (!isRoot) {
+            String indent = "  ".repeat(depth);
+            xmlOutput.append(indent).append("<").append(composite.getName())
+                    .append(" type=\\"目錄\\">\\n");
+            pendingCloseTags.push(composite.getName());
+        }
+        isRoot = false;
+    }
+    
+    @Override
+    public void increaseDepth() { depth++; }
+    
+    @Override
+    public void decreaseDepth() {
+        if (depth > 0) {
+            depth--;
+            if (!pendingCloseTags.isEmpty()) {
+                String tagName = pendingCloseTags.pop();
+                String indent = "  ".repeat(depth);
+                xmlOutput.append(indent).append("</").append(tagName).append(">\\n");
+            }
+        }
+    }
+    
+    public String getXMLOutput() { return xmlOutput.toString(); }
+}`,
+                'DisplayVisitor.java': `public class DisplayVisitor implements DepthManagedVisitor {
+    private StringBuilder output = new StringBuilder();
+    private int depth = 0;
+    private boolean isRoot = true;
+    
+    @Override
+    public void visit(FileLeaf leaf) {
+        String indent = "  ".repeat(depth);
+        output.append(indent).append("📄 ").append(leaf.getName());
+        if (leaf instanceof WordDocument) {
+            WordDocument doc = (WordDocument) leaf;
+            output.append(" (Word, ").append(doc.getPages()).append("p, ")
+                   .append(doc.getSizeDisplay()).append(")");
+        } else if (leaf instanceof ImageFile) {
+            ImageFile img = (ImageFile) leaf;
+            output.append(" (Img, ").append(img.getWidth()).append("x")
+                   .append(img.getHeight()).append(", ")
+                   .append(img.getSizeDisplay()).append(")");
+        } else if (leaf instanceof TextFile) {
+            TextFile txt = (TextFile) leaf;
+            output.append(" (Txt, ").append(txt.getEncoding()).append(", ")
+                   .append(txt.getSizeDisplay()).append(")");
+        }
+        output.append("\\n");
+    }
+    
+    @Override
+    public void visit(DirectoryComposite composite) {
+        if (!isRoot) {
+            String indent = "  ".repeat(depth);
+            output.append(indent).append("📁 ").append(composite.getName()).append("\\n");
+        }
+        isRoot = false;
+    }
+    
+    @Override
+    public void increaseDepth() { depth++; }
+    
+    @Override
+    public void decreaseDepth() { if (depth > 0) depth--; }
+    
+    public String getOutput() { return output.toString(); }
+}`,
+                'FileSystemDemo.java': `public class FileSystemDemo {
+    public static void main(String[] args) {
+        // 建立根目錄
+        DirectoryComposite root = new DirectoryComposite("根目錄(Root)");
+        
+        // 建立專案文件目錄
+        DirectoryComposite project = new DirectoryComposite("專案文件 (Project_Docs)");
+        project.add(new WordDocument("需求規格書.docx", 500 * 1024, 15));
+        project.add(new ImageFile("系統架構圖.png", 2 * 1024 * 1024, 1920, 1080));
+        
+        // 建立個人筆記目錄
+        DirectoryComposite personal = new DirectoryComposite("個人筆記 (Personal_Notes)");
+        personal.add(new TextFile("待辦清單.txt", 1 * 1024, "UTF-8"));
+        
+        // 建立備份目錄
+        DirectoryComposite archive = new DirectoryComposite("2025備份 (Archive_2025)");
+        archive.add(new WordDocument("舊會議記錄.docx", 200 * 1024, 5));
+        personal.add(archive);
+        
+        // 組合結構
+        root.add(project);
+        root.add(personal);
+        root.add(new TextFile("README.txt", 500, "ASCII"));
+        
+        // 測試 1: 計算總大小
+        System.out.println("=== 計算總大小 ===");
+        SizeCalculatorVisitor sizeVisitor = new SizeCalculatorVisitor();
+        root.accept(sizeVisitor);
+        long total = sizeVisitor.getTotalSize();
+        String formatted = total >= 1048576 ? 
+            String.format("%.2f MB", total / 1048576.0) : 
+            String.format("%.1f KB", total / 1024.0);
+        System.out.println("總大小: " + total + " Bytes (" + formatted + ")\\n");
+        
+        // 測試 2: 搜尋 .docx 檔案
+        System.out.println("=== 搜尋 .docx 檔案 ===");
+        FileSearchVisitor searchVisitor = new FileSearchVisitor(".docx");
+        root.accept(searchVisitor);
+        java.util.List<FileLeaf> results = searchVisitor.getResults();
+        System.out.println("共找到 " + results.size() + " 個檔案:");
+        for (FileLeaf file : results) {
+            System.out.println("  - " + file.getName() + " (" + file.getSizeDisplay() + ")");
+        }
+        System.out.println();
+        
+        // 測試 3: 顯示結構
+        System.out.println("=== 檔案結構 ===");
+        DisplayVisitor displayVisitor = new DisplayVisitor();
+        root.accept(displayVisitor);
+        System.out.println(displayVisitor.getOutput());
+        
+        // 測試 4: XML 匯出
+        System.out.println("=== XML 格式匯出 ===");
+        XMLExportVisitor xmlVisitor = new XMLExportVisitor();
+        root.accept(xmlVisitor);
+        System.out.println(xmlVisitor.getXMLOutput());
+    }
+}`
+            };
+            
+            // 添加所有 Java 文件
+            Object.entries(files).forEach(([filename, content]) => {
+                src.file(filename, content);
+            });
+            
+            // 添加 README
+            zip.file('FileSystemDemo/README.md', `# 雲端檔案管理系統 - Java 實作
+
+## 項目概述
+使用 Visitor Pattern（訪問者模式）實作的檔案系統管理系統，展示設計模式在實際應用中的威力。
+
+## 項目結構
+\`\`\`
+FileSystemDemo/
+├── src/
+│   ├── SystemEntryComponent.java        // 基礎元件抽象類
+│   ├── FileLeaf.java                    // 文件葉子節點抽象類
+│   ├── DirectoryComposite.java          // 目錄複合節點
+│   ├── WordDocument.java                // Word 文件
+│   ├── ImageFile.java                   // 圖片文件
+│   ├── TextFile.java                    // 純文字文件
+│   ├── IVisitor.java                    // 訪問者接口
+│   ├── SizeCalculatorVisitor.java       // 大小計算訪問者
+│   ├── FileSearchVisitor.java           // 文件搜尋訪問者
+│   ├── XMLExportVisitor.java            // XML 匯出訪問者
+│   ├── DisplayVisitor.java              // 文本顯示訪問者
+│   └── FileSystemDemo.java              // 主程式
+└── README.md                            // 本文件
+\`\`\`
+
+## 編譯步驟
+
+### Windows
+\`\`\`cmd
+cd FileSystemDemo
+javac -encoding UTF-8 src/*.java
+java -cp src FileSystemDemo
+\`\`\`
+
+### macOS / Linux
+\`\`\`bash
+cd FileSystemDemo
+javac src/*.java
+java -cp src FileSystemDemo
+\`\`\`
+
+## 運行結果預期
+\`\`\`
+=== 計算總大小 ===
+總大小: 2603524 Bytes (2.48 MB)
+
+=== 搜尋 .docx 檔案 ===
+共找到 2 個檔案:
+  - 需求規格書.docx (500.0 KB)
+  - 舊會議記錄.docx (200.0 KB)
+
+=== 檔案結構 ===
+📁 專案文件 (Project_Docs)
+  📄 需求規格書.docx (Word, 15p, 500.0 KB)
+  🖼️ 系統架構圖.png (Img, 1920x1080, 2.0 MB)
+📁 個人筆記 (Personal_Notes)
+  📄 待辦清單.txt (Txt, UTF-8, 1.0 KB)
+  📁 2025備份 (Archive_2025)
+    📄 舊會議記錄.docx (Word, 5p, 200.0 KB)
+📄 README.txt (Txt, ASCII, 500 B)
+
+=== XML 格式匯出 ===
+<專案文件 (Project_Docs) type="目錄">
+  <需求規格書.docx type="Word 檔案"></需求規格書.docx>
+  <系統架構圖.png type="圖片"></系統架構圖.png>
+</專案文件 (Project_Docs)>
+...
+\`\`\`
+
+## 關鍵概念
+
+### Visitor Pattern（訪問者模式）
+- **目的**：將算法與其所作用的對象分離
+- **優勢**：
+  - ✅ 開放封閉原則：新增操作無需修改現有類別
+  - ✅ 單一職責：每個訪問者只負責一種操作
+  - ✅ 易於維護：邏輯清晰，代碼組織合理
+
+### Interface Segregation Principle（接口隔離原則）
+- 不強制客戶端依賴它們不使用的接口
+- **設計分離**：
+  - \`IVisitor\`：核心訪問契約（visit 方法）
+  - \`DepthManagedVisitor\`：擴展接口，僅供需要深度管理的訪問者使用
+- **優勢**：
+  - 簡單訪問者無需實現無用方法
+  - 代碼更清晰，減少冗余
+
+### 設計模式應用
+1. **Composite Pattern**：樹狀結構（目錄/文件）
+2. **Visitor Pattern**：不同的訪問操作
+3. **Strategy Pattern**：不同訪問者的不同策略
+4. **Interface Segregation**：兩層接口架構
+
+## 課程學習重點
+
+1. **理解雙重分派**
+   - 訪問者模式通過 \`accept()\` 和 \`visit()\` 實現雙重分派
+   - 根據訪問者和元素的類型決定執行的方法
+   - \`instanceof\` 檢查用於動態識別訪問者類型
+
+2. **分離關注點**
+   - 數據結構（Component）與操作邏輯（Visitor）分離
+   - 易於新增功能而無需修改現有代碼
+   - DirectoryComposite 的 \`accept()\` 展示了智能分派
+
+3. **實現可擴展性**
+   - 要新增統計、備份、驗證等功能？只需新增 Visitor
+   - 符合開放封閉原則（Open/Closed Principle）
+   - 每個 Visitor 專注於自己的職責
+
+4. **接口設計最佳實踐**
+   - 最小化接口：IVisitor 只包含必須方法
+   - 分層設計：DepthManagedVisitor 擴展 IVisitor
+   - 避免接口污染：不強制實現無用方法
+
+## 擴展練習
+
+嘗試實現以下 Visitor：
+
+1. **FileCountVisitor** - 統計檔案數量（實現 IVisitor）
+2. **BackupVisitor** - 備份操作（實現 IVisitor，不需深度）
+3. **ValidateVisitor** - 驗證檔案完整性（實現 IVisitor）
+4. **TreePrintVisitor** - 美化樹形顯示（實現 DepthManagedVisitor，需深度）
+5. **PermissionVisitor** - 權限檢查（實現 IVisitor）
+
+## Java 編譯與運行
+
+\`\`\`bash
+# 編譯所有源文件
+javac src/*.java
+
+# 運行主程序
+java -cp src FileSystemDemo
+
+# 輸出範例展示四種訪問器的效果
+\`\`\`
+
+祝你學習愉快！ 🎓
+`);
+            
+            // 生成並下載 zip
+            zip.generateAsync({type: 'blob'}).then(function(content) {
+                const url = URL.createObjectURL(content);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'FileSystemDemo.zip';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                alert('✅ 檔案已下載！解壓後即可使用。');
+            });
+        }
     </script>
 </body>
 </html>
