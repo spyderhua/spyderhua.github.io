@@ -139,17 +139,24 @@ classDiagram
     }
 
     class DirectoryComposite {
-        +List~SystemEntryComponent~ children
+        -List~SystemEntryComponent~ children
         +void add(SystemEntryComponent child)
         +void remove(SystemEntryComponent child)
-        +SystemEntryComponent[] children
+        +SystemEntryComponent[] getChildren()
         +String type
         +void accept(IVisitor visitor)
     }
 
-    class WordDocumentLeaf { }
-    class ImageFileLeaf { }
-    class TextFileLeaf { }
+    class WordDocumentLeaf {
+        +int pages
+    }
+    class ImageFileLeaf {
+        +int width
+        +int height
+    }
+    class TextFileLeaf {
+        +String encoding
+    }
 
     class IVisitor {
         &lt;&lt;interface&gt;&gt;
@@ -406,141 +413,218 @@ erDiagram
         // 初始化 Mermaid
         mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
 
-        // --- 核心類別定義 ---
-        class Node {
+        // ========== Visitor Pattern 設計 ==========
+        // 基礎元件抽象類
+        class SystemEntryComponent {
             constructor(name) {
                 this.id = crypto.randomUUID();
                 this.name = name;
-                this.created_at = new Date();
+                this.created = new Date();
+                this.size = 0;
+                this.attributes = "";
             }
-            get_display_name() { return this.name; }
-            display() { throw new Error("Method not implemented."); }
-            toXML() { throw new Error("Method not implemented."); }
-            getTotalSize() { return 0; }
-        }
-
-        class Folder extends Node {
-            constructor(name) {
-                super(name);
-                this.children = [];
-            }
-            add_child(node) { this.children.push(node); }
-            remove_child(nodeId) { this.children = this.children.filter(c => c.id !== nodeId); }
-            get_children() { return this.children; }
-            
-            getTotalSize() {
-                return this.children.reduce((acc, child) => acc + child.getTotalSize(), 0);
-            }
-
-            find_by_extension(ext) {
-                let found = [];
-                this.children.forEach(child => {
-                    if (child instanceof File && child.name.toLowerCase().endsWith(ext.toLowerCase())) {
-                        found.push(child);
-                    }
-                    if (child instanceof Folder) {
-                        found = found.concat(child.find_by_extension(ext));
-                    }
-                });
-                return found;
-            }
-
-            display(depth = 0) {
-                const indent = "  ".repeat(depth);
-                let output = `${indent}📁 ${this.name}\n`;
-                this.children.forEach(c => output += c.display(depth + 1));
-                return output;
-            }
-
-            toXML(depth = 0) {
-                const indent = "  ".repeat(depth);
-                let xml = `${indent}<${this.name} type="目錄">\n`;
-                this.children.forEach(c => xml += c.toXML(depth + 1));
-                xml += `${indent}</${this.name}>\n`;
-                return xml;
+            get type() { throw new Error("Method not implemented."); }
+            accept(visitor) { throw new Error("Method not implemented."); }
+            getSizeDisplay() {
+                if (this.size < 1024) return `${this.size} B`;
+                return `${(this.size / 1024).toFixed(1)} KB`;
             }
         }
 
-        class File extends Node {
+        // 文件葉子節點抽象類
+        class FileLeaf extends SystemEntryComponent {
             constructor(name, size_bytes) {
                 super(name);
-                this.size_bytes = size_bytes;
+                this.size = size_bytes;
             }
-            getTotalSize() { return this.size_bytes; }
-            get_size_display() {
-                if (this.size_bytes < 1024) return `${this.size_bytes} B`;
-                return `${(this.size_bytes / 1024).toFixed(1)} KB`;
+            accept(visitor) {
+                visitor.visit(this);
             }
         }
 
-        class WordDocument extends File {
+        // 具體文件類型
+        class WordDocumentLeaf extends FileLeaf {
             constructor(name, size_bytes, pages) {
                 super(name, size_bytes);
                 this.pages = pages;
             }
-            display(depth = 0) {
-                return `${"  ".repeat(depth)}📄 ${this.name} (Word, ${this.pages}p, ${this.get_size_display()})\n`;
-            }
-            toXML(depth = 0) {
-                return `${"  ".repeat(depth)}<${this.name} type="Word 檔案"></${this.name}>\n`;
-            }
+            get type() { return "Word 檔案"; }
         }
 
-        class ImageFile extends File {
+        class ImageFileLeaf extends FileLeaf {
             constructor(name, size_bytes, width, height) {
                 super(name, size_bytes);
-                this.width = width; this.height = height;
+                this.width = width;
+                this.height = height;
             }
-            display(depth = 0) {
-                return `${"  ".repeat(depth)}🖼️ ${this.name} (Img, ${this.width}x${this.height}, ${this.get_size_display()})\n`;
-            }
-            toXML(depth = 0) {
-                return `${"  ".repeat(depth)}<${this.name} type="圖片"></${this.name}>\n`;
-            }
+            get type() { return "圖片"; }
         }
 
-        class TextFile extends File {
+        class TextFileLeaf extends FileLeaf {
             constructor(name, size_bytes, encoding) {
                 super(name, size_bytes);
                 this.encoding = encoding;
             }
-            display(depth = 0) {
-                return `${"  ".repeat(depth)}📄 ${this.name} (Txt, ${this.encoding}, ${this.get_size_display()})\n`;
+            get type() { return "純文字檔"; }
+        }
+
+        // 目錄複合節點
+        class DirectoryComposite extends SystemEntryComponent {
+            constructor(name) {
+                super(name);
+                this.children = [];
             }
-            toXML(depth = 0) {
-                return `${"  ".repeat(depth)}<${this.name} type="純文字檔"></${this.name}>\n`;
+            get type() { return "目錄"; }
+            
+            add(child) { this.children.push(child); }
+            remove(childId) { this.children = this.children.filter(c => c.id !== childId); }
+            getChildren() { return this.children; }
+
+            accept(visitor) {
+                visitor.visit(this);
+                if (visitor instanceof DisplayVisitor || visitor instanceof XMLExportVisitor) {
+                    visitor.increaseDepth();
+                    this.children.forEach(child => child.accept(visitor));
+                    visitor.decreaseDepth();
+                } else {
+                    this.children.forEach(child => child.accept(visitor));
+                }
             }
         }
 
-        // --- 全域狀態與功能實作 ---
-        let systemRoot = new Folder("根目錄(Root)");
+        // ========== 訪問者接口與實現 ==========
+        class IVisitor {
+            visit(element) { throw new Error("Method not implemented."); }
+        }
+
+        // 計算總大小訪問者
+        class SizeCalculatorVisitor extends IVisitor {
+            constructor() {
+                super();
+                this.totalSize = 0;
+            }
+            visit(element) {
+                if (element instanceof FileLeaf) {
+                    this.totalSize += element.size;
+                }
+            }
+            getTotalSize() { return this.totalSize; }
+        }
+
+        // 文件搜尋訪問者
+        class FileSearchVisitor extends IVisitor {
+            constructor(extension) {
+                super();
+                this.extension = extension.toLowerCase();
+                this.results = [];
+            }
+            visit(element) {
+                if (element instanceof FileLeaf && element.name.toLowerCase().endsWith(this.extension)) {
+                    this.results.push(element);
+                }
+            }
+            getResults() { return this.results; }
+        }
+
+        // 文本顯示訪問者（用於終端輸出）
+        class DisplayVisitor extends IVisitor {
+            constructor() {
+                super();
+                this.output = "";
+                this.depth = 0;
+                this.isRoot = true;
+            }
+            visit(element) {
+                const indent = "  ".repeat(this.depth);
+                if (element instanceof DirectoryComposite) {
+                    if (!this.isRoot) {
+                        this.output += `${indent}📁 ${element.name}\n`;
+                    }
+                    this.isRoot = false;
+                } else if (element instanceof WordDocumentLeaf) {
+                    this.output += `${indent}📄 ${element.name} (Word, ${element.pages}p, ${element.getSizeDisplay()})\n`;
+                } else if (element instanceof ImageFileLeaf) {
+                    this.output += `${indent}🖼️ ${element.name} (Img, ${element.width}x${element.height}, ${element.getSizeDisplay()})\n`;
+                } else if (element instanceof TextFileLeaf) {
+                    this.output += `${indent}📄 ${element.name} (Txt, ${element.encoding}, ${element.getSizeDisplay()})\n`;
+                }
+            }
+            increaseDepth() { this.depth++; }
+            decreaseDepth() { if (this.depth > 0) this.depth--; }
+            getOutput() { return this.output; }
+        }
+
+        // XML 匯出訪問者
+        class XMLExportVisitor extends IVisitor {
+            constructor() {
+                super();
+                this.xmlOutput = "";
+                this.depth = 0;
+                this.isRoot = true;
+            }
+            visit(element) {
+                const indent = "  ".repeat(this.depth);
+                if (element instanceof DirectoryComposite) {
+                    if (!this.isRoot) {
+                        this.xmlOutput += `${indent}<${element.name} type="目錄">\n`;
+                    }
+                    this.isRoot = false;
+                } else if (element instanceof FileLeaf) {
+                    this.xmlOutput += `${indent}<${element.name} type="${element.type}"></${element.name}>\n`;
+                }
+            }
+            increaseDepth() { this.depth++; }
+            decreaseDepth() { 
+                if (this.depth > 0) {
+                    this.depth--;
+                }
+            }
+            afterChildren(element) {
+                if (element instanceof DirectoryComposite && !this.isRoot) {
+                    const indent = "  ".repeat(this.depth);
+                    this.xmlOutput += `${indent}</${element.name}>\n`;
+                }
+            }
+            getXMLOutput() { return this.xmlOutput; }
+        }
+
+        // ========== 全域狀態與功能實作 ==========
+        let systemRoot = new DirectoryComposite("根目錄(Root)");
         let folderMap = new Map();
 
         function showTotalSize() {
-            const total = systemRoot.getTotalSize();
+            const visitor = new SizeCalculatorVisitor();
+            systemRoot.accept(visitor);
+            const total = visitor.getTotalSize();
             const formatted = total >= 1048576 ? (total/1048576).toFixed(2) + " MB" : (total/1024).toFixed(1) + " KB";
             document.getElementById('terminal-title').innerText = "進階分析：計算總大小";
             document.getElementById('terminal-output').innerText = `系統內所有檔案之總大小為：\n------------------------\n${total} Bytes\n約等同於 ${formatted}`;
         }
 
         function findDocxFiles() {
-            const files = systemRoot.find_by_extension(".docx");
+            const visitor = new FileSearchVisitor(".docx");
+            systemRoot.accept(visitor);
+            const files = visitor.getResults();
             document.getElementById('terminal-title').innerText = "進階分析：搜尋 .docx 檔案";
             if (files.length === 0) {
                 document.getElementById('terminal-output').innerText = "系統內目前沒有副檔名為 .docx 的檔案。";
             } else {
                 let res = `共尋獲 ${files.length} 個符合條件的檔案：\n------------------------\n`;
-                files.forEach(f => res += `- ${f.name} (${f.get_size_display()})\n`);
+                files.forEach(f => res += `- ${f.name} (${f.getSizeDisplay()})\n`);
                 document.getElementById('terminal-output').innerText = res;
             }
         }
 
         function exportToXML() {
+            const visitor = new XMLExportVisitor();
+            systemRoot.accept(visitor);
+            // 補上根目錄的closing tag
+            const output = visitor.getXMLOutput();
             document.getElementById('terminal-title').innerText = "進階分析：XML 格式匯出";
-            document.getElementById('terminal-output').innerText = systemRoot.toXML();
+            document.getElementById('terminal-output').innerText = output;
         }
 
-        // --- UI 控制 ---
+        // ========== UI 控制 ==========
         function openTab(evt, tabName) {
             document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
             document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
@@ -582,12 +666,17 @@ erDiagram
 
             let node;
             const size = parseInt(document.getElementById('node-size').value);
-            if (type === 'FOLDER') node = new Folder(name);
-            else if (type === 'WORD') node = new WordDocument(name, size, parseInt(document.getElementById('node-pages').value));
-            else if (type === 'IMAGE') node = new ImageFile(name, size, parseInt(document.getElementById('node-width').value), parseInt(document.getElementById('node-height').value));
-            else if (type === 'TEXT') node = new TextFile(name, size, document.getElementById('node-encoding').value);
+            if (type === 'FOLDER') {
+                node = new DirectoryComposite(name);
+            } else if (type === 'WORD') {
+                node = new WordDocumentLeaf(name, size, parseInt(document.getElementById('node-pages').value));
+            } else if (type === 'IMAGE') {
+                node = new ImageFileLeaf(name, size, parseInt(document.getElementById('node-width').value), parseInt(document.getElementById('node-height').value));
+            } else if (type === 'TEXT') {
+                node = new TextFileLeaf(name, size, document.getElementById('node-encoding').value);
+            }
 
-            parent.add_child(node);
+            parent.add(node);
             refreshUI();
             document.getElementById('node-name').value = "";
         }
@@ -595,10 +684,12 @@ erDiagram
         function handleDeleteNode(id) {
             if (id === systemRoot.id) return;
             function search(curr) {
-                const startLen = curr.children.length;
-                curr.remove_child(id);
-                if (curr.children.length < startLen) return true;
-                for (let c of curr.children) if (c instanceof Folder && search(c)) return true;
+                const startLen = curr.getChildren().length;
+                curr.remove(id);
+                if (curr.getChildren().length < startLen) return true;
+                for (let c of curr.getChildren()) {
+                    if (c instanceof DirectoryComposite && search(c)) return true;
+                }
                 return false;
             }
             search(systemRoot);
@@ -606,8 +697,10 @@ erDiagram
         }
 
         function refreshUI() {
+            const displayVisitor = new DisplayVisitor();
+            systemRoot.accept(displayVisitor);
             document.getElementById('terminal-title').innerText = "終端機輸出 (結構檢視)";
-            document.getElementById('terminal-output').innerText = systemRoot.display();
+            document.getElementById('terminal-output').innerText = displayVisitor.getOutput();
             const tree = document.getElementById('tree-visual');
             tree.innerHTML = "";
             renderVisual(systemRoot, tree);
@@ -620,10 +713,16 @@ erDiagram
             const content = document.createElement('div');
             content.className = "flex-grow flex items-center";
             let html = "";
-            if (node instanceof Folder) html = `<span class="folder-icon font-bold mr-1">📁 ${node.name}</span>`;
-            else if (node instanceof WordDocument) html = `<span class="file-icon mr-1">📄 ${node.name}</span> <span class="text-xs text-gray-400">(${node.pages}p)</span>`;
-            else if (node instanceof ImageFile) html = `<span class="file-icon mr-1">🖼️ ${node.name}</span> <span class="text-xs text-gray-400">(${node.width}x${node.height})</span>`;
-            else if (node instanceof TextFile) html = `<span class="file-icon mr-1">📄 ${node.name}</span> <span class="text-xs text-gray-400">(${node.encoding})</span>`;
+            
+            if (node instanceof DirectoryComposite) {
+                html = `<span class="folder-icon font-bold mr-1">📁 ${node.name}</span>`;
+            } else if (node instanceof WordDocumentLeaf) {
+                html = `<span class="file-icon mr-1">📄 ${node.name}</span> <span class="text-xs text-gray-400">(Word, ${node.pages}p, ${node.getSizeDisplay()})</span>`;
+            } else if (node instanceof ImageFileLeaf) {
+                html = `<span class="file-icon mr-1">🖼️ ${node.name}</span> <span class="text-xs text-gray-400">(Img, ${node.width}x${node.height}, ${node.getSizeDisplay()})</span>`;
+            } else if (node instanceof TextFileLeaf) {
+                html = `<span class="file-icon mr-1">📄 ${node.name}</span> <span class="text-xs text-gray-400">(Txt, ${node.encoding}, ${node.getSizeDisplay()})</span>`;
+            }
             
             content.innerHTML = html;
             row.appendChild(content);
@@ -638,7 +737,9 @@ erDiagram
             wrap.className = "tree-node";
             wrap.appendChild(row);
             container.appendChild(wrap);
-            if (node instanceof Folder) node.get_children().forEach(c => renderVisual(c, wrap));
+            if (node instanceof DirectoryComposite) {
+                node.getChildren().forEach(c => renderVisual(c, wrap));
+            }
         }
 
         function updateSelect() {
@@ -647,13 +748,13 @@ erDiagram
             select.innerHTML = "";
             folderMap.clear();
             function walk(n, path = "") {
-                if (n instanceof Folder) {
+                if (n instanceof DirectoryComposite) {
                     const p = path + "/" + n.name;
                     folderMap.set(n.id, n);
                     const o = document.createElement('option');
                     o.value = n.id; o.innerText = p;
                     select.appendChild(o);
-                    n.children.forEach(c => walk(c, p));
+                    n.getChildren().forEach(c => walk(c, p));
                 }
             }
             walk(systemRoot);
@@ -664,20 +765,20 @@ erDiagram
             document.querySelectorAll('.mermaid').forEach(d => d.setAttribute('data-original-code', d.innerText.trim()));
             
             // 初始化結構
-            const project = new Folder("專案文件 (Project_Docs)");
-            project.add_child(new WordDocument("需求規格書.docx", 500 * 1024, 15));
-            project.add_child(new ImageFile("系統架構圖.png", 2 * 1024 * 1024, 1920, 1080));
+            const project = new DirectoryComposite("專案文件 (Project_Docs)");
+            project.add(new WordDocumentLeaf("需求規格書.docx", 500 * 1024, 15));
+            project.add(new ImageFileLeaf("系統架構圖.png", 2 * 1024 * 1024, 1920, 1080));
 
-            const personal = new Folder("個人筆記 (Personal_Notes)");
-            personal.add_child(new TextFile("待辦清單.txt", 1 * 1024, "UTF-8"));
+            const personal = new DirectoryComposite("個人筆記 (Personal_Notes)");
+            personal.add(new TextFileLeaf("待辦清單.txt", 1 * 1024, "UTF-8"));
             
-            const archive = new Folder("2025備份 (Archive_2025)");
-            archive.add_child(new WordDocument("舊會議記錄.docx", 200 * 1024, 5));
-            personal.add_child(archive);
+            const archive = new DirectoryComposite("2025備份 (Archive_2025)");
+            archive.add(new WordDocumentLeaf("舊會議記錄.docx", 200 * 1024, 5));
+            personal.add(archive);
             
-            systemRoot.add_child(project);
-            systemRoot.add_child(personal);
-            systemRoot.add_child(new TextFile("README.txt", 500, "ASCII"));
+            systemRoot.add(project);
+            systemRoot.add(personal);
+            systemRoot.add(new TextFileLeaf("README.txt", 500, "ASCII"));
 
             refreshUI();
             toggleFields();
