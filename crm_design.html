@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration Reference Metadata Design</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .mermaid { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        
+        /* Tab Navigation Styles */
+        .main-tab-content { display: none; }
+        .main-tab-content.active { display: block; }
+        .main-tab-btn.active { background-color: white; color: #1e293b; border-bottom: 3px solid #3b82f6; }
+
+        .sub-tab-content { display: none; }
+        .sub-tab-content.active { display: block; }
+        .sub-tab-btn.active { border-bottom: 2px solid #2563eb; color: #2563eb; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.7rem; }
+        th { background: #f8fafc; color: #475569; font-weight: 600; text-align: left; padding: 8px; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
+        td { padding: 8px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+        tr:hover { background: #f1f5f9; }
+        .sticky-header th { position: sticky; top: 0; background: #f8fafc; z-index: 10; }
+        .info-card { border-left: 4px solid #3b82f6; background: #f0f9ff; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 leading-relaxed">
+
+    <!-- Header -->
+    <header class="bg-slate-800 text-white pt-12 pb-6 px-4 shadow-lg">
+        <div class="max-w-6xl mx-auto">
+            <h1 class="text-4xl font-bold mb-4 tracking-tight">Configuration Reference Metadata</h1>
+            <p class="text-slate-300 text-lg mb-8">全量數據視圖：結構化管理與異動追蹤架構</p>
+            
+            <!-- Main Navigation Tabs -->
+            <nav class="flex space-x-1">
+                <button onclick="switchMainTab('intro')" class="main-tab-btn active px-6 py-3 text-sm font-bold rounded-t-lg transition-colors text-slate-400 hover:text-white" id="mbtn-intro">
+                    <i class="fas fa-info-circle mr-2"></i>概念簡介
+                </button>
+                <button onclick="switchMainTab('data')" class="main-tab-btn px-6 py-3 text-sm font-bold rounded-t-lg transition-colors text-slate-400 hover:text-white" id="mbtn-data">
+                    <i class="fas fa-table mr-2"></i>範例資料展示
+                </button>
+                <button onclick="switchMainTab('schema')" class="main-tab-btn px-6 py-3 text-sm font-bold rounded-t-lg transition-colors text-slate-400 hover:text-white" id="mbtn-schema">
+                    <i class="fas fa-database mr-2"></i>資料庫架構 (ERD)
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto py-8 px-4 min-h-screen">
+        
+        <!-- Section 1: Concept Introduction -->
+        <div id="section-intro" class="main-tab-content active space-y-8 animate-in fade-in duration-500">
+            <section>
+                <div class="flex items-center mb-6">
+                    <i class="fas fa-lightbulb text-blue-600 text-2xl mr-3"></i>
+                    <h2 class="text-2xl font-bold">架構核心理念</h2>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+                    <p class="mb-4 text-gray-700">
+                        本架構採用 <strong>Metadata-Driven (元數據驅動)</strong> 的設計模式。透過將「結構定義」與「數據存放」分離，系統可以支援多樣化的配置需求，而無需針對每一種業務邏輯建立實體資料表。
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-6">
+                        <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                            <span class="bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-bold mr-2">橫向擴充性</span>
+                            <p class="mt-2 text-slate-700 font-medium">新增配置類型只需定義 Metadata，無需變更資料庫結構 (Zero DB Change)。</p>
+                        </div>
+                        <div class="p-4 bg-green-50 rounded-lg border border-green-100">
+                            <span class="bg-green-600 text-white px-2 py-0.5 rounded text-xs font-bold mr-2">統一審計</span>
+                            <p class="mt-2 text-slate-700 font-medium">所有業務異動皆集中於單一 HIST 表，便於實作全域的版本控管與回滾機制。</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Table Descriptions Section -->
+            <section>
+                <div class="flex items-center mb-6">
+                    <i class="fas fa-book text-blue-600 text-2xl mr-3"></i>
+                    <h2 class="text-2xl font-bold">表格詳細介紹</h2>
+                </div>
+                
+                <div class="space-y-6">
+                    <!-- CONFIG_GROUPS Intro -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h3 class="text-lg font-bold text-slate-800 mb-3 flex items-center">
+                            <span class="w-2 h-6 bg-blue-500 rounded mr-2"></span> CONFIG_GROUPS (配置群組)
+                        </h3>
+                        <p class="text-sm text-gray-600 mb-4">此表為配置的核心主表，定義了邏輯上的資料集合（例如：人員資料、餐點選項）。</p>
+                        <table class="text-xs">
+                            <thead>
+                                <tr><th>欄位名稱</th><th>描述</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>GROUP_ID (PK)</td><td>配置組唯一識別碼。</td></tr>
+                                <tr><td>GROUP_NAME</td><td>配置組名稱（如：USER_BASIC_INFO）。</td></tr>
+                                <tr><td>DESCRIPTION</td><td>該配置組的用途描述。</td></tr>
+                                <tr><td>IS_ACTIVE</td><td>啟用狀態（1:啟用, 0:停用）。</td></tr>
+                                <tr><td>CREATE_DT / CREATE_USER</td><td>建立日期與建立人員。</td></tr>
+                                <tr><td>UPDATE_TIME</td><td>最後更新日期。</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- CONFIG_METADATA Intro -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h3 class="text-lg font-bold text-slate-800 mb-3 flex items-center">
+                            <span class="w-2 h-6 bg-green-500 rounded mr-2"></span> CONFIG_METADATA (配置元數據)
+                        </h3>
+                        <p class="text-sm text-gray-600 mb-4">定義該配置組具備哪些「欄位」及其資料格式（虛擬 Schema）。</p>
+                        <table class="text-xs">
+                            <thead>
+                                <tr><th>欄位名稱</th><th>描述</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>METADATA_ID (PK)</td><td>元數據唯一識別碼。</td></tr>
+                                <tr><td>GROUP_ID (FK)</td><td>關聯之配置組 ID。</td></tr>
+                                <tr><td>ATTR_NAME</td><td>屬性名稱（即虛擬欄位名，如：NAME, PRICE）。</td></tr>
+                                <tr><td>DISPLAY_ORDER</td><td>在介面上的顯示順序。</td></tr>
+                                <tr><td>DATATYPE</td><td>資料類型（STRING, NUMBER, DATE 等）。</td></tr>
+                                <tr><td>ATTR_TYPE / ATTR_NUMBER</td><td>內部屬性類別編號，用於程式邏輯映射。</td></tr>
+                                <tr><td>UPDATE_TIME / UPDATE_USER</td><td>元數據定義的維護紀錄。</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- CONFIG_ATTRIBUTE Intro -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h3 class="text-lg font-bold text-slate-800 mb-3 flex items-center">
+                            <span class="w-2 h-6 bg-purple-500 rounded mr-2"></span> CONFIG_ATTRIBUTE (配置屬性值)
+                        </h3>
+                        <p class="text-sm text-gray-600 mb-4">採用 EAV 模式儲存具體的配置數據值。</p>
+                        <table class="text-xs">
+                            <thead>
+                                <tr><th>欄位名稱</th><th>描述</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>ATTRIBUTE_ID (PK)</td><td>屬性值流水號。</td></tr>
+                                <tr><td>GROUP_ID (FK)</td><td>關聯之配置組 ID。</td></tr>
+                                <tr><td>ENTRY_ID</td><td>邏輯紀錄 ID。同一個 ENTRY_ID 代表橫向的一筆資料。</td></tr>
+                                <tr><td>ATTR_NAME</td><td>屬性鍵名。</td></tr>
+                                <tr><td>ATTR_DATA</td><td>屬性值（以字串格式儲存，由程式依 DATATYPE 解析）。</td></tr>
+                                <tr><td>UPDATE_TIME / UPDATE_USER</td><td>該筆數據的最後異動紀錄。</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- CONFIG_HIST Intro -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h3 class="text-lg font-bold text-slate-800 mb-3 flex items-center">
+                            <span class="w-2 h-6 bg-amber-500 rounded mr-2"></span> CONFIG_HIST (配置異動紀錄)
+                        </h3>
+                        <p class="text-sm text-gray-600 mb-4">追蹤並紀錄所有配置組內數據的變更歷史。</p>
+                        <table class="text-xs">
+                            <thead>
+                                <tr><th>欄位名稱</th><th>描述</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>HIST_ID (PK)</td><td>紀錄流水號。</td></tr>
+                                <tr><td>GROUP_ID (FK)</td><td>發生變更的配置組。</td></tr>
+                                <tr><td>ACTION</td><td>操作類型（INSERT, UPDATE, DELETE, META_ADD 等）。</td></tr>
+                                <tr><td>OLD_ATTR_NAME / DATA</td><td>變更前的屬性名與舊數值。</td></tr>
+                                <tr><td>NEW_ATTR_NAME / DATA</td><td>變更後的屬性名與新數值。</td></tr>
+                                <tr><td>UPDATE_USER / TIME</td><td>異動執行人與執行時間。</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Section 2: Example Data Display -->
+        <div id="section-data" class="main-tab-content space-y-8">
+            <section>
+                <div class="flex items-center mb-6">
+                    <i class="fas fa-list-alt text-blue-600 text-2xl mr-3"></i>
+                    <h2 class="text-2xl font-bold">範例資料展示 (完整視圖)</h2>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <!-- Sub Tabs -->
+                    <div class="flex border-b border-gray-100 bg-gray-50 overflow-x-auto">
+                        <button onclick="switchSubTab('groups')" class="sub-tab-btn px-6 py-4 text-sm font-semibold transition-all hover:bg-white whitespace-nowrap" id="sbtn-groups">CONFIG_GROUPS</button>
+                        <button onclick="switchSubTab('metadata')" class="sub-tab-btn px-6 py-4 text-sm font-semibold transition-all hover:bg-white whitespace-nowrap" id="sbtn-metadata">CONFIG_METADATA</button>
+                        <button onclick="switchSubTab('attribute')" class="sub-tab-btn active px-6 py-4 text-sm font-semibold transition-all hover:bg-white whitespace-nowrap" id="sbtn-attribute">CONFIG_ATTRIBUTE</button>
+                        <button onclick="switchSubTab('hist')" class="sub-tab-btn px-6 py-4 text-sm font-semibold transition-all hover:bg-white whitespace-nowrap" id="sbtn-hist">CONFIG_HIST</button>
+                    </div>
+
+                    <div class="p-1 overflow-x-auto">
+                        <!-- Sub Content: Groups -->
+                        <div id="sub-groups" class="sub-tab-content p-4">
+                            <table>
+                                <thead>
+                                    <tr><th>GROUP_ID</th><th>GROUP_NAME</th><th>DESCRIPTION</th><th>IS_ACTIVE</th><th>CREATE_DT</th><th>CREATE_USER</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>1001</td><td>USER_BASIC_INFO</td><td>人員基本資料</td><td>1</td><td>2026/01/01</td><td>ADMIN</td></tr>
+                                    <tr><td>1002</td><td>DEPT_BASIC_INFO</td><td>部門基本資料</td><td>1</td><td>2026/02/13</td><td>ADMIN</td></tr>
+                                    <tr><td>1003</td><td>BENTO_OPTIONS</td><td>午餐便當選項</td><td>1</td><td>2026/02/13</td><td>FOOD_ADMIN</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Sub Content: Metadata -->
+                        <div id="sub-metadata" class="sub-tab-content p-4">
+                            <div class="mb-4 flex space-x-2 text-[10px] font-bold">
+                                <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded">1001: 人員</span>
+                                <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded">1002: 部門</span>
+                                <span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded">1003: 便當</span>
+                            </div>
+                            <table class="sticky-header">
+                                <thead>
+                                    <tr><th>METADATA_ID</th><th>GROUP_ID</th><th>ATTR_NAME</th><th>ORDER</th><th>DESCRIPTION</th><th>DATATYPE</th><th>NUMBER</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="bg-blue-50/30"><td>501</td><td>1001</td><td class="font-bold text-blue-700">NAME</td><td>1</td><td>姓名</td><td>STRING</td><td>1</td></tr>
+                                    <tr class="bg-blue-50/30"><td>502</td><td>1001</td><td class="font-bold text-blue-700">GENDER</td><td>2</td><td>性別</td><td>STRING</td><td>2</td></tr>
+                                    <tr class="bg-blue-50/30"><td>503</td><td>1001</td><td class="font-bold text-blue-700">HEIGHT</td><td>3</td><td>身高(cm)</td><td>NUMBER</td><td>3</td></tr>
+                                    <tr class="bg-blue-50/30"><td>504</td><td>1001</td><td class="font-bold text-blue-700">WEIGHT</td><td>4</td><td>體重(kg)</td><td>NUMBER</td><td>4</td></tr>
+                                    <tr class="bg-blue-50/30"><td>505</td><td>1001</td><td class="font-bold text-blue-700">CITY</td><td>5</td><td>居住城市</td><td>STRING</td><td>5</td></tr>
+                                    <tr class="bg-blue-100/50"><td>506</td><td>1001</td><td class="font-bold text-blue-900">DEPT</td><td>6</td><td>所屬部門</td><td>STRING</td><td>6</td></tr>
+                                    <tr class="bg-amber-50/30"><td>601</td><td>1002</td><td class="font-bold text-amber-700">DEPT_NAME</td><td>1</td><td>部門名稱</td><td>STRING</td><td>1</td></tr>
+                                    <tr class="bg-amber-50/30"><td>602</td><td>1002</td><td class="font-bold text-amber-700">DEPT_MGR</td><td>2</td><td>部門主管</td><td>STRING</td><td>2</td></tr>
+                                    <tr class="bg-amber-50/30"><td>603</td><td>1002</td><td class="font-bold text-amber-700">LOCATION</td><td>3</td><td>辦公地點</td><td>STRING</td><td>3</td></tr>
+                                    <tr class="bg-emerald-50/30"><td>701</td><td>1003</td><td class="font-bold text-emerald-700">BENTO_NAME</td><td>1</td><td>便當名稱</td><td>STRING</td><td>1</td></tr>
+                                    <tr class="bg-emerald-50/30"><td>702</td><td>1003</td><td class="font-bold text-emerald-700">PRICE</td><td>2</td><td>價格</td><td>NUMBER</td><td>2</td></tr>
+                                    <tr class="bg-emerald-50/30"><td>703</td><td>1003</td><td class="font-bold text-emerald-700">MAIN_DISH</td><td>3</td><td>主菜</td><td>STRING</td><td>3</td></tr>
+                                    <tr class="bg-emerald-50/30"><td>704</td><td>1003</td><td class="font-bold text-emerald-700">CALORIES</td><td>4</td><td>卡路里</td><td>NUMBER</td><td>4</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Sub Content: Attribute -->
+                        <div id="sub-attribute" class="sub-tab-content active p-4">
+                            <div class="max-h-[600px] overflow-y-auto">
+                                <table class="sticky-header">
+                                    <thead>
+                                        <tr><th>ATTR_ID</th><th>GROUP</th><th>ENTRY_ID</th><th>ATTR_NAME</th><th>ATTR_DATA</th><th>UPDATE_TIME</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- 王小明 (9001) -->
+                                        <tr class="border-l-4 border-blue-500"><td>20001</td><td>1001</td><td>9001</td><td>NAME</td><td>王小明</td><td>2026/01/10</td></tr>
+                                        <tr class="border-l-4 border-blue-500"><td>20002</td><td>1001</td><td>9001</td><td>GENDER</td><td>男</td><td>2026/01/10</td></tr>
+                                        <tr class="border-l-4 border-blue-500"><td>20003</td><td>1001</td><td>9001</td><td>HEIGHT</td><td>175</td><td>2026/01/10</td></tr>
+                                        <tr class="border-l-4 border-blue-500"><td>20004</td><td>1001</td><td>9001</td><td>WEIGHT</td><td>70</td><td>2026/01/10</td></tr>
+                                        <tr class="border-l-4 border-blue-500"><td>20005</td><td>1001</td><td>9001</td><td>CITY</td><td>台北市</td><td>2026/01/10</td></tr>
+                                        <tr class="border-l-4 border-blue-500 bg-blue-50"><td>20011</td><td>1001</td><td>9001</td><td>DEPT</td><td>研發部</td><td>2026/02/13</td></tr>
+                                        <!-- 李小華 (9002) -->
+                                        <tr class="border-l-4 border-blue-300"><td>20006</td><td>1001</td><td>9002</td><td>NAME</td><td>李小華</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-blue-300"><td>20007</td><td>1001</td><td>9002</td><td>GENDER</td><td>女</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-blue-300"><td>20008</td><td>1001</td><td>9002</td><td>HEIGHT</td><td>160</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-blue-300"><td>20009</td><td>1001</td><td>9002</td><td>WEIGHT</td><td>48</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-blue-300"><td>20010</td><td>1001</td><td>9002</td><td>CITY</td><td>台中市</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-blue-300 bg-blue-50"><td>20012</td><td>1001</td><td>9002</td><td>DEPT</td><td>銷售部</td><td>2026/02/13</td></tr>
+                                        <!-- 部門 -->
+                                        <tr class="border-l-4 border-amber-500"><td>30001</td><td>1002</td><td>8001</td><td>DEPT_NAME</td><td>研發部</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-amber-500"><td>30002</td><td>1002</td><td>8001</td><td>DEPT_MGR</td><td>張大千</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-amber-500"><td>30003</td><td>1002</td><td>8001</td><td>LOCATION</td><td>台北總部 12F</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-amber-300"><td>30004</td><td>1002</td><td>8002</td><td>DEPT_NAME</td><td>銷售部</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-amber-300"><td>30005</td><td>1002</td><td>8002</td><td>DEPT_MGR</td><td>林美惠</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-amber-300"><td>30006</td><td>1002</td><td>8002</td><td>LOCATION</td><td>台中辦事處 5F</td><td>2026/02/13</td></tr>
+                                        <!-- 便當 -->
+                                        <tr class="border-l-4 border-emerald-500"><td>40001</td><td>1003</td><td>7001</td><td>BENTO_NAME</td><td>炸雞腿便當</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-emerald-500"><td>40002</td><td>1003</td><td>7001</td><td>PRICE</td><td>120</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-emerald-500"><td>40003</td><td>1003</td><td>7001</td><td>MAIN_DISH</td><td>炸雞腿</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-emerald-500"><td>40004</td><td>1003</td><td>7001</td><td>CALORIES</td><td>850</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-emerald-300"><td>40005</td><td>1003</td><td>7002</td><td>BENTO_NAME</td><td>滷排骨便當</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-emerald-300"><td>40006</td><td>1003</td><td>7002</td><td>PRICE</td><td>110</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-emerald-300"><td>40007</td><td>1003</td><td>7002</td><td>MAIN_DISH</td><td>滷排骨</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-emerald-300"><td>40008</td><td>1003</td><td>7002</td><td>CALORIES</td><td>780</td><td>2026/02/13</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Sub Content: Hist -->
+                        <div id="sub-hist" class="sub-tab-content p-4">
+                            <div class="max-h-[600px] overflow-y-auto">
+                                <table>
+                                    <thead>
+                                        <tr><th>HIST_ID</th><th>GRP</th><th>ACTION</th><th>OLD_VAL</th><th>NEW_VAL</th><th>USER</th><th>TIME</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="bg-emerald-50"><td>218</td><td>1003</td><td>INSERT</td><td>-</td><td>滷排骨便當系列</td><td>food_admin</td><td>21:15</td></tr>
+                                        <tr class="bg-emerald-50"><td>217</td><td>1003</td><td>INSERT</td><td>-</td><td>炸雞腿便當系列</td><td>food_admin</td><td>21:15</td></tr>
+                                        <tr class="bg-blue-50"><td>216</td><td>1001</td><td>INSERT</td><td>-</td><td>李小華 - 所屬部門</td><td>system</td><td>21:05</td></tr>
+                                        <tr class="bg-blue-50"><td>215</td><td>1001</td><td>INSERT</td><td>-</td><td>王小明 - 所屬部門</td><td>system</td><td>21:05</td></tr>
+                                        <tr class="bg-amber-50"><td>214</td><td>1002</td><td>INSERT</td><td>-</td><td>銷售部成立</td><td>system</td><td>15:00</td></tr>
+                                        <tr class="bg-amber-50"><td>213</td><td>1002</td><td>INSERT</td><td>-</td><td>研發部成立</td><td>system</td><td>14:00</td></tr>
+                                        <tr class="bg-blue-50"><td>212</td><td>1001</td><td>INSERT</td><td>-</td><td>李小華基本資料</td><td>system</td><td>13:00</td></tr>
+                                        <tr><td>211</td><td>1001</td><td>UPDATE</td><td>75kg</td><td>70kg</td><td>admin</td><td>10:00</td></tr>
+                                        <tr class="bg-blue-50"><td>210</td><td>1001</td><td>INSERT</td><td>-</td><td>王小明基本資料</td><td>system</td><td>09:00</td></tr>
+                                        <tr class="bg-slate-50"><td>209-204</td><td>1001</td><td>META_ADD</td><td>-</td><td>Metadata Definitions</td><td>admin</td><td>08:15-08:45</td></tr>
+                                        <tr class="bg-slate-100 font-bold"><td>203-201</td><td>All</td><td>GRP_CREATE</td><td>-</td><td>Group Init</td><td>admin</td><td>08:00</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Section 3: Schema & Diagrams -->
+        <div id="section-schema" class="main-tab-content space-y-12">
+            <section>
+                <div class="flex items-center mb-6">
+                    <i class="fas fa-sitemap text-blue-600 text-2xl mr-3"></i>
+                    <h2 class="text-2xl font-bold">Table ER Diagram (Full Schema)</h2>
+                </div>
+                <div class="mermaid">
+                    erDiagram
+                        CONFIG_GROUPS ||--o{ CONFIG_METADATA : "defines metadata"
+                        CONFIG_GROUPS ||--o{ CONFIG_ATTRIBUTE : "owns attributes"
+                        CONFIG_GROUPS ||--o{ CONFIG_HIST : "tracks history"
+
+                        CONFIG_GROUPS {
+                            int GROUP_ID PK
+                            string GROUP_NAME
+                            string DESCRIPTION
+                            int IS_ACTIVE
+                            datetime CREATE_DT
+                            string CREATE_USER
+                            datetime UPDATE_TIME
+                        }
+                        CONFIG_METADATA {
+                            int METADATA_ID PK
+                            int GROUP_ID FK
+                            string ATTR_NAME
+                            int DISPLAY_ORDER
+                            string DESCRIPTION
+                            string DATATYPE
+                            int ATTR_TYPE
+                            int ATTR_NUMBER
+                            datetime UPDATE_TIME
+                            string UPDATE_USER
+                        }
+                        CONFIG_ATTRIBUTE {
+                            int ATTRIBUTE_ID PK
+                            int GROUP_ID FK
+                            int ENTRY_ID
+                            string ATTR_NAME
+                            string ATTR_DATA
+                            datetime UPDATE_TIME
+                            string UPDATE_USER
+                        }
+                        CONFIG_HIST {
+                            int HIST_ID PK
+                            int GROUP_ID FK
+                            string ACTION
+                            string OLD_ATTR_NAME
+                            string OLD_ATTR_DATA
+                            string NEW_ATTR_NAME
+                            string NEW_ATTR_DATA
+                            string UPDATE_USER
+                            datetime UPDATE_TIME
+                        }
+                </div>
+            </section>
+
+            <section>
+                <div class="flex items-center mb-6">
+                    <i class="fas fa-project-diagram text-blue-600 text-2xl mr-3"></i>
+                    <h2 class="text-2xl font-bold">Domain Model (UML)</h2>
+                </div>
+                <div class="mermaid">
+                    classDiagram
+                        class ConfigGroup {
+                            +int groupID
+                            +string groupName
+                            +string description
+                            +boolean isActive
+                            +createEntry()
+                            +updateSchema()
+                        }
+                        class MetadataDefinition {
+                            +string attrName
+                            +string dataType
+                            +int displayOrder
+                        }
+                        class ConfigEntry {
+                            +int entryID
+                            +getAttributes()
+                        }
+                        class AttributeValue {
+                            +string attrName
+                            +string attrData
+                        }
+                        class AuditLog {
+                            +string action
+                            +datetime timestamp
+                        }
+                        ConfigGroup "1" -- "*" MetadataDefinition : defines
+                        ConfigGroup "1" -- "*" ConfigEntry : contains
+                        ConfigEntry "1" -- "*" AttributeValue : consists of
+                        ConfigGroup "1" -- "*" AuditLog : generates
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <footer class="bg-slate-100 border-t border-gray-200 py-8 text-center text-gray-500 text-sm">
+        <p>&copy; 2026 Configuration Metadata Design Framework.</p>
+    </footer>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'neutral', 
+            securityLevel: 'loose',
+            er: { useMaxWidth: true },
+            flowchart: { useMaxWidth: true }
+        });
+
+        // Main Tab Switcher
+        function switchMainTab(tabId) {
+            document.querySelectorAll('.main-tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('section-' + tabId).classList.add('active');
+            
+            document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('mbtn-' + tabId).classList.add('active');
+
+            // Force Mermaid to re-render when switching to the schema tab to avoid scaling issues
+            if (tabId === 'schema') {
+                setTimeout(() => {
+                    mermaid.init(undefined, document.querySelectorAll('#section-schema .mermaid'));
+                }, 50);
+            }
+        }
+
+        // Sub Tab Switcher (Example Data section)
+        function switchSubTab(subTabId) {
+            document.querySelectorAll('.sub-tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('sub-' + subTabId).classList.add('active');
+            
+            document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('sbtn-' + subTabId).classList.add('active');
+        }
+    </script>
+</body>
+</html>
