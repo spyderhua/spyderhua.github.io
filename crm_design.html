@@ -42,11 +42,11 @@
                 <button onclick="switchMainTab('intro')" class="main-tab-btn active px-6 py-3 text-sm font-bold rounded-t-lg transition-colors text-slate-400 hover:text-white" id="mbtn-intro">
                     <i class="fas fa-info-circle mr-2"></i>概念簡介
                 </button>
-                <button onclick="switchMainTab('data')" class="main-tab-btn px-6 py-3 text-sm font-bold rounded-t-lg transition-colors text-slate-400 hover:text-white" id="mbtn-data">
-                    <i class="fas fa-table mr-2"></i>範例資料展示
-                </button>
                 <button onclick="switchMainTab('schema')" class="main-tab-btn px-6 py-3 text-sm font-bold rounded-t-lg transition-colors text-slate-400 hover:text-white" id="mbtn-schema">
                     <i class="fas fa-database mr-2"></i>資料庫架構 (ERD)
+                </button>
+                <button onclick="switchMainTab('data')" class="main-tab-btn px-6 py-3 text-sm font-bold rounded-t-lg transition-colors text-slate-400 hover:text-white" id="mbtn-data">
+                    <i class="fas fa-table mr-2"></i>範例資料展示
                 </button>
             </nav>
         </div>
@@ -126,7 +126,7 @@
                                 <tr><td>DATATYPE</td><td>資料類型（STRING, NUMBER, DATE 等）。</td></tr>
                                 <tr><td>ATTR_TYPE</td><td>內部屬性類別。</td></tr>
                                 <tr><td>ATTR_NUMBER</td><td>屬性編號，用於程式邏輯映射。</td></tr>
-                                <tr><td><strong>IS_MULTI_VALUE</strong></td><td>布爾值(0/1)，指示該屬性是否允許多個值。若為 1，同一 ENTRY_ID 可擁有多筆該屬性記錄。</td></tr>
+                                <tr><td>IS_MULTI_VALUE</td><td>布林值(0/1)，指示該屬性是否允許多個值。若為 1，同一 ENTRY_ID 可擁有多筆該屬性記錄。</td></tr>
                                 <tr><td>UPDATE_TIME</td><td>元數據定義的最後更新日期。</td></tr>
                                 <tr><td>UPDATE_USER</td><td>元數據定義的最後更新人員。</td></tr>
                             </tbody>
