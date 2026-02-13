@@ -101,7 +101,8 @@
                                 <tr><td>GROUP_NAME</td><td>配置組名稱（如：USER_BASIC_INFO）。</td></tr>
                                 <tr><td>DESCRIPTION</td><td>該配置組的用途描述。</td></tr>
                                 <tr><td>IS_ACTIVE</td><td>啟用狀態（1:啟用, 0:停用）。</td></tr>
-                                <tr><td>CREATE_DT / CREATE_USER</td><td>建立日期與建立人員。</td></tr>
+                                <tr><td>CREATE_DT</td><td>建立日期。</td></tr>
+                                <tr><td>CREATE_USER</td><td>建立人員。</td></tr>
                                 <tr><td>UPDATE_TIME</td><td>最後更新日期。</td></tr>
                             </tbody>
                         </table>
@@ -123,9 +124,11 @@
                                 <tr><td>ATTR_NAME</td><td>屬性名稱（即虛擬欄位名，如：NAME, PRICE）。</td></tr>
                                 <tr><td>DISPLAY_ORDER</td><td>在介面上的顯示順序。</td></tr>
                                 <tr><td>DATATYPE</td><td>資料類型（STRING, NUMBER, DATE 等）。</td></tr>
-                                <tr><td>ATTR_TYPE / ATTR_NUMBER</td><td>內部屬性類別編號，用於程式邏輯映射。</td></tr>
+                                <tr><td>ATTR_TYPE</td><td>內部屬性類別。</td></tr>
+                                <tr><td>ATTR_NUMBER</td><td>屬性編號，用於程式邏輯映射。</td></tr>
                                 <tr><td style="background: #FEE2E2;"><strong>IS_MULTI_VALUE</strong></td><td style="background: #FEE2E2;">布尔值(0/1)，指示該屬性是否允许多個值。若為 1，同一 ENTRY_ID 可擁有多筆該屬性記錄。</td></tr>
-                                <tr><td>UPDATE_TIME / UPDATE_USER</td><td>元數據定義的維護紀錄。</td></tr>
+                                <tr><td>UPDATE_TIME</td><td>元數據定義的最後更新日期。</td></tr>
+                                <tr><td>UPDATE_USER</td><td>元數據定義的最後更新人員。</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -146,7 +149,8 @@
                                 <tr><td>ENTRY_ID</td><td>邏輯紀錄 ID。同一個 ENTRY_ID 代表橫向的一筆資料。</td></tr>
                                 <tr><td>ATTR_NAME</td><td>屬性鍵名。</td></tr>
                                 <tr><td>ATTR_DATA</td><td>屬性值（以字串格式儲存，由程式依 DATATYPE 解析）。</td></tr>
-                                <tr><td>UPDATE_TIME / UPDATE_USER</td><td>該筆數據的最後異動紀錄。</td></tr>
+                                <tr><td>UPDATE_TIME</td><td>該筆數據的最後異動日期。</td></tr>
+                                <tr><td>UPDATE_USER</td><td>該筆數據的最後異動人員。</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -165,9 +169,12 @@
                                 <tr><td>HIST_ID (PK)</td><td>紀錄流水號。</td></tr>
                                 <tr><td>GROUP_ID (FK)</td><td>發生變更的配置組。</td></tr>
                                 <tr><td>ACTION</td><td>操作類型（INSERT, UPDATE, DELETE, META_ADD 等）。</td></tr>
-                                <tr><td>OLD_ATTR_NAME / DATA</td><td>變更前的屬性名與舊數值。</td></tr>
-                                <tr><td>NEW_ATTR_NAME / DATA</td><td>變更後的屬性名與新數值。</td></tr>
-                                <tr><td>UPDATE_USER / TIME</td><td>異動執行人與執行時間。</td></tr>
+                                <tr><td>OLD_ATTR_NAME</td><td>變更前的屬性名。</td></tr>
+                                <tr><td>OLD_ATTR_DATA</td><td>變更前的屬性值。</td></tr>
+                                <tr><td>NEW_ATTR_NAME</td><td>變更後的屬性名。</td></tr>
+                                <tr><td>NEW_ATTR_DATA</td><td>變更後的屬性值。</td></tr>
+                                <tr><td>UPDATE_USER</td><td>異動執行人。</td></tr>
+                                <tr><td>UPDATE_TIME</td><td>異動執行時間。</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -275,12 +282,12 @@
                         <div id="sub-groups" class="sub-tab-content p-4">
                             <table>
                                 <thead>
-                                    <tr><th>GROUP_ID</th><th>GROUP_NAME</th><th>DESCRIPTION</th><th>IS_ACTIVE</th><th>CREATE_DT</th><th>CREATE_USER</th></tr>
+                                    <tr><th>GROUP_ID</th><th>GROUP_NAME</th><th>DESCRIPTION</th><th>IS_ACTIVE</th><th>CREATE_DT</th><th>CREATE_USER</th><th>UPDATE_TIME</th></tr>
                                 </thead>
                                 <tbody>
-                                    <tr><td>1001</td><td>USER_BASIC_INFO</td><td>人員基本資料</td><td>1</td><td>2026/01/01</td><td>ADMIN</td></tr>
-                                    <tr><td>1002</td><td>DEPT_BASIC_INFO</td><td>部門基本資料</td><td>1</td><td>2026/02/13</td><td>ADMIN</td></tr>
-                                    <tr><td>1003</td><td>BENTO_OPTIONS</td><td>午餐便當選項</td><td>1</td><td>2026/02/13</td><td>FOOD_ADMIN</td></tr>
+                                    <tr><td>1001</td><td>USER_BASIC_INFO</td><td>人員基本資料</td><td>1</td><td>2026/01/01</td><td>ADMIN</td><td>2026/02/13 21:20</td></tr>
+                                    <tr><td>1002</td><td>DEPT_BASIC_INFO</td><td>部門基本資料</td><td>1</td><td>2026/02/13</td><td>ADMIN</td><td>2026/02/13 14:00</td></tr>
+                                    <tr><td>1003</td><td>BENTO_OPTIONS</td><td>午餐便當選項</td><td>1</td><td>2026/02/13</td><td>FOOD_ADMIN</td><td>2026/02/13 21:15</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -294,23 +301,23 @@
                             </div>
                             <table class="sticky-header">
                                 <thead>
-                                    <tr><th>METADATA_ID</th><th>GROUP_ID</th><th>ATTR_NAME</th><th>ORDER</th><th>DESCRIPTION</th><th>DATATYPE</th><th>MULTI</th><th>NUMBER</th></tr>
+                                    <tr><th>METADATA_ID</th><th>GROUP_ID</th><th>ATTR_NAME</th><th>ORDER</th><th>DESCRIPTION</th><th>DATATYPE</th><th>ATTR_TYPE</th><th>ATTR_NUMBER</th><th>IS_MULTI_VALUE</th><th>UPDATE_TIME</th><th>UPDATE_USER</th></tr>
                                 </thead>
                                 <tbody>
-                                    <tr class="bg-blue-50/30"><td>501</td><td>1001</td><td class="font-bold text-blue-700">NAME</td><td>1</td><td>姓名</td><td>STRING</td><td>0</td><td>1</td></tr>
-                                    <tr class="bg-blue-50/30"><td>502</td><td>1001</td><td class="font-bold text-blue-700">GENDER</td><td>2</td><td>性別</td><td>STRING</td><td>0</td><td>2</td></tr>
-                                    <tr class="bg-blue-50/30"><td>503</td><td>1001</td><td class="font-bold text-blue-700">HEIGHT</td><td>3</td><td>身高(cm)</td><td>NUMBER</td><td>0</td><td>3</td></tr>
-                                    <tr class="bg-blue-50/30"><td>504</td><td>1001</td><td class="font-bold text-blue-700">WEIGHT</td><td>4</td><td>體重(kg)</td><td>NUMBER</td><td>0</td><td>4</td></tr>
-                                    <tr class="bg-blue-50/30"><td>505</td><td>1001</td><td class="font-bold text-blue-700">CITY</td><td>5</td><td>居住城市</td><td>STRING</td><td>0</td><td>5</td></tr>
-                                    <tr class="bg-blue-100/50"><td>506</td><td>1001</td><td class="font-bold text-blue-900">DEPT</td><td>6</td><td>所屬部門</td><td>STRING</td><td>0</td><td>6</td></tr>
-                                    <tr class="bg-blue-100/70"><td>507</td><td>1001</td><td class="font-bold text-red-700">HOBBIES</td><td>7</td><td>興趣</td><td>STRING</td><td class="text-red-600 font-bold">1</td><td>7</td></tr>
-                                    <tr class="bg-amber-50/30"><td>601</td><td>1002</td><td class="font-bold text-amber-700">DEPT_NAME</td><td>1</td><td>部門名稱</td><td>STRING</td><td>0</td><td>1</td></tr>
-                                    <tr class="bg-amber-50/30"><td>602</td><td>1002</td><td class="font-bold text-amber-700">DEPT_MGR</td><td>2</td><td>部門主管</td><td>STRING</td><td>0</td><td>2</td></tr>
-                                    <tr class="bg-amber-50/30"><td>603</td><td>1002</td><td class="font-bold text-amber-700">LOCATION</td><td>3</td><td>辦公地點</td><td>STRING</td><td>0</td><td>3</td></tr>
-                                    <tr class="bg-emerald-50/30"><td>701</td><td>1003</td><td class="font-bold text-emerald-700">BENTO_NAME</td><td>1</td><td>便當名稱</td><td>STRING</td><td>0</td><td>1</td></tr>
-                                    <tr class="bg-emerald-50/30"><td>702</td><td>1003</td><td class="font-bold text-emerald-700">PRICE</td><td>2</td><td>價格</td><td>NUMBER</td><td>0</td><td>2</td></tr>
-                                    <tr class="bg-emerald-50/30"><td>703</td><td>1003</td><td class="font-bold text-emerald-700">MAIN_DISH</td><td>3</td><td>主菜</td><td>STRING</td><td>0</td><td>3</td></tr>
-                                    <tr class="bg-emerald-50/30"><td>704</td><td>1003</td><td class="font-bold text-emerald-700">CALORIES</td><td>4</td><td>卡路里</td><td>NUMBER</td><td>0</td><td>4</td></tr>
+                                    <tr class="bg-blue-50/30"><td>501</td><td>1001</td><td class="font-bold text-blue-700">NAME</td><td>1</td><td>姓名</td><td>STRING</td><td>USR</td><td>1</td><td>0</td><td>2026/01/01 08:15</td><td>ADMIN</td></tr>
+                                    <tr class="bg-blue-50/30"><td>502</td><td>1001</td><td class="font-bold text-blue-700">GENDER</td><td>2</td><td>性別</td><td>STRING</td><td>USR</td><td>2</td><td>0</td><td>2026/01/01 08:15</td><td>ADMIN</td></tr>
+                                    <tr class="bg-blue-50/30"><td>503</td><td>1001</td><td class="font-bold text-blue-700">HEIGHT</td><td>3</td><td>身高(cm)</td><td>NUMBER</td><td>USR</td><td>3</td><td>0</td><td>2026/01/01 08:15</td><td>ADMIN</td></tr>
+                                    <tr class="bg-blue-50/30"><td>504</td><td>1001</td><td class="font-bold text-blue-700">WEIGHT</td><td>4</td><td>體重(kg)</td><td>NUMBER</td><td>USR</td><td>4</td><td>0</td><td>2026/01/01 08:15</td><td>ADMIN</td></tr>
+                                    <tr class="bg-blue-50/30"><td>505</td><td>1001</td><td class="font-bold text-blue-700">CITY</td><td>5</td><td>居住城市</td><td>STRING</td><td>USR</td><td>5</td><td>0</td><td>2026/01/01 08:15</td><td>ADMIN</td></tr>
+                                    <tr class="bg-blue-100/50"><td>506</td><td>1001</td><td class="font-bold text-blue-900">DEPT</td><td>6</td><td>所屬部門</td><td>STRING</td><td>USR</td><td>6</td><td>0</td><td>2026/01/01 08:15</td><td>ADMIN</td></tr>
+                                    <tr class="bg-blue-100/70"><td>507</td><td>1001</td><td class="font-bold text-red-700">HOBBIES</td><td>7</td><td>興趣</td><td>STRING</td><td>USR</td><td>7</td><td class="text-red-600 font-bold">1</td><td>2026/02/13 08:45</td><td>ADMIN</td></tr>
+                                    <tr class="bg-amber-50/30"><td>601</td><td>1002</td><td class="font-bold text-amber-700">DEPT_NAME</td><td>1</td><td>部門名稱</td><td>STRING</td><td>DEPT</td><td>1</td><td>0</td><td>2026/02/13 08:20</td><td>ADMIN</td></tr>
+                                    <tr class="bg-amber-50/30"><td>602</td><td>1002</td><td class="font-bold text-amber-700">DEPT_MGR</td><td>2</td><td>部門主管</td><td>STRING</td><td>DEPT</td><td>2</td><td>0</td><td>2026/02/13 08:20</td><td>ADMIN</td></tr>
+                                    <tr class="bg-amber-50/30"><td>603</td><td>1002</td><td class="font-bold text-amber-700">LOCATION</td><td>3</td><td>辦公地點</td><td>STRING</td><td>DEPT</td><td>3</td><td>0</td><td>2026/02/13 08:20</td><td>ADMIN</td></tr>
+                                    <tr class="bg-emerald-50/30"><td>701</td><td>1003</td><td class="font-bold text-emerald-700">BENTO_NAME</td><td>1</td><td>便當名稱</td><td>STRING</td><td>BENTO</td><td>1</td><td>0</td><td>2026/02/13 08:30</td><td>FOOD_ADMIN</td></tr>
+                                    <tr class="bg-emerald-50/30"><td>702</td><td>1003</td><td class="font-bold text-emerald-700">PRICE</td><td>2</td><td>價格</td><td>NUMBER</td><td>BENTO</td><td>2</td><td>0</td><td>2026/02/13 08:30</td><td>FOOD_ADMIN</td></tr>
+                                    <tr class="bg-emerald-50/30"><td>703</td><td>1003</td><td class="font-bold text-emerald-700">MAIN_DISH</td><td>3</td><td>主菜</td><td>STRING</td><td>BENTO</td><td>3</td><td>0</td><td>2026/02/13 08:30</td><td>FOOD_ADMIN</td></tr>
+                                    <tr class="bg-emerald-50/30"><td>704</td><td>1003</td><td class="font-bold text-emerald-700">CALORIES</td><td>4</td><td>卡路里</td><td>NUMBER</td><td>BENTO</td><td>4</td><td>0</td><td>2026/02/13 08:30</td><td>FOOD_ADMIN</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -320,44 +327,44 @@
                             <div class="max-h-[600px] overflow-y-auto">
                                 <table class="sticky-header">
                                     <thead>
-                                        <tr><th>ATTR_ID</th><th>GROUP</th><th>ENTRY_ID</th><th>ATTR_NAME</th><th>ATTR_DATA</th><th>UPDATE_TIME</th></tr>
+                                        <tr><th>ATTRIBUTE_ID</th><th>GROUP_ID</th><th>ENTRY_ID</th><th>ATTR_NAME</th><th>ATTR_DATA</th><th>UPDATE_TIME</th><th>UPDATE_USER</th></tr>
                                     </thead>
                                     <tbody>
                                         <!-- 王小明 (9001) -->
-                                        <tr class="border-l-4 border-blue-500"><td>20001</td><td>1001</td><td>9001</td><td>NAME</td><td>王小明</td><td>2026/01/10</td></tr>
-                                        <tr class="border-l-4 border-blue-500"><td>20002</td><td>1001</td><td>9001</td><td>GENDER</td><td>男</td><td>2026/01/10</td></tr>
-                                        <tr class="border-l-4 border-blue-500"><td>20003</td><td>1001</td><td>9001</td><td>HEIGHT</td><td>175</td><td>2026/01/10</td></tr>
-                                        <tr class="border-l-4 border-blue-500"><td>20004</td><td>1001</td><td>9001</td><td>WEIGHT</td><td>70</td><td>2026/01/10</td></tr>
-                                        <tr class="border-l-4 border-blue-500"><td>20005</td><td>1001</td><td>9001</td><td>CITY</td><td>台北市</td><td>2026/01/10</td></tr>
-                                        <tr class="border-l-4 border-blue-500 bg-blue-50"><td>20011</td><td>1001</td><td>9001</td><td>DEPT</td><td>研發部</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-red-400 bg-red-50"><td>20013</td><td>1001</td><td>9001</td><td>HOBBIES</td><td>爬山</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-red-400 bg-red-50"><td>20014</td><td>1001</td><td>9001</td><td>HOBBIES</td><td>騎腳踏車</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-red-400 bg-red-50"><td>20015</td><td>1001</td><td>9001</td><td>HOBBIES</td><td>拳擊</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-blue-500"><td>20001</td><td>1001</td><td>9001</td><td>NAME</td><td>王小明</td><td>2026/01/10 09:00</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-blue-500"><td>20002</td><td>1001</td><td>9001</td><td>GENDER</td><td>男</td><td>2026/01/10 09:00</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-blue-500"><td>20003</td><td>1001</td><td>9001</td><td>HEIGHT</td><td>175</td><td>2026/01/10 09:00</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-blue-500"><td>20004</td><td>1001</td><td>9001</td><td>WEIGHT</td><td>70</td><td>2026/01/10 09:00</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-blue-500"><td>20005</td><td>1001</td><td>9001</td><td>CITY</td><td>台北市</td><td>2026/01/10 09:00</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-blue-500 bg-blue-50"><td>20011</td><td>1001</td><td>9001</td><td>DEPT</td><td>研發部</td><td>2026/02/13 21:05</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-red-400 bg-red-50"><td>20013</td><td>1001</td><td>9001</td><td>HOBBIES</td><td>爬山</td><td>2026/02/13 21:14</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-red-400 bg-red-50"><td>20014</td><td>1001</td><td>9001</td><td>HOBBIES</td><td>騎腳踏車</td><td>2026/02/13 21:15</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-red-400 bg-red-50"><td>20015</td><td>1001</td><td>9001</td><td>HOBBIES</td><td>拳擊</td><td>2026/02/13 21:16</td><td>system</td></tr>
                                         <!-- 李小華 (9002) -->
-                                        <tr class="border-l-4 border-blue-300"><td>20006</td><td>1001</td><td>9002</td><td>NAME</td><td>李小華</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-blue-300"><td>20007</td><td>1001</td><td>9002</td><td>GENDER</td><td>女</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-blue-300"><td>20008</td><td>1001</td><td>9002</td><td>HEIGHT</td><td>160</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-blue-300"><td>20009</td><td>1001</td><td>9002</td><td>WEIGHT</td><td>48</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-blue-300"><td>20010</td><td>1001</td><td>9002</td><td>CITY</td><td>台中市</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-blue-300 bg-blue-50"><td>20012</td><td>1001</td><td>9002</td><td>DEPT</td><td>銷售部</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-red-400 bg-red-50"><td>20016</td><td>1001</td><td>9002</td><td>HOBBIES</td><td>閱讀</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-red-400 bg-red-50"><td>20017</td><td>1001</td><td>9002</td><td>HOBBIES</td><td>瑜伽</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-blue-300"><td>20006</td><td>1001</td><td>9002</td><td>NAME</td><td>李小華</td><td>2026/02/13 13:00</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-blue-300"><td>20007</td><td>1001</td><td>9002</td><td>GENDER</td><td>女</td><td>2026/02/13 13:00</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-blue-300"><td>20008</td><td>1001</td><td>9002</td><td>HEIGHT</td><td>160</td><td>2026/02/13 13:00</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-blue-300"><td>20009</td><td>1001</td><td>9002</td><td>WEIGHT</td><td>48</td><td>2026/02/13 13:00</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-blue-300"><td>20010</td><td>1001</td><td>9002</td><td>CITY</td><td>台中市</td><td>2026/02/13 13:00</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-blue-300 bg-blue-50"><td>20012</td><td>1001</td><td>9002</td><td>DEPT</td><td>銷售部</td><td>2026/02/13 21:05</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-red-400 bg-red-50"><td>20016</td><td>1001</td><td>9002</td><td>HOBBIES</td><td>閱讀</td><td>2026/02/13 21:18</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-red-400 bg-red-50"><td>20017</td><td>1001</td><td>9002</td><td>HOBBIES</td><td>瑜伽</td><td>2026/02/13 21:20</td><td>system</td></tr>
                                         <!-- 部門 -->
-                                        <tr class="border-l-4 border-amber-500"><td>30001</td><td>1002</td><td>8001</td><td>DEPT_NAME</td><td>研發部</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-amber-500"><td>30002</td><td>1002</td><td>8001</td><td>DEPT_MGR</td><td>張大千</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-amber-500"><td>30003</td><td>1002</td><td>8001</td><td>LOCATION</td><td>台北總部 12F</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-amber-300"><td>30004</td><td>1002</td><td>8002</td><td>DEPT_NAME</td><td>銷售部</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-amber-300"><td>30005</td><td>1002</td><td>8002</td><td>DEPT_MGR</td><td>林美惠</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-amber-300"><td>30006</td><td>1002</td><td>8002</td><td>LOCATION</td><td>台中辦事處 5F</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-amber-500"><td>30001</td><td>1002</td><td>8001</td><td>DEPT_NAME</td><td>研發部</td><td>2026/02/13 14:00</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-amber-500"><td>30002</td><td>1002</td><td>8001</td><td>DEPT_MGR</td><td>張大千</td><td>2026/02/13 14:00</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-amber-500"><td>30003</td><td>1002</td><td>8001</td><td>LOCATION</td><td>台北總部 12F</td><td>2026/02/13 14:00</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-amber-300"><td>30004</td><td>1002</td><td>8002</td><td>DEPT_NAME</td><td>銷售部</td><td>2026/02/13 15:00</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-amber-300"><td>30005</td><td>1002</td><td>8002</td><td>DEPT_MGR</td><td>林美惠</td><td>2026/02/13 15:00</td><td>system</td></tr>
+                                        <tr class="border-l-4 border-amber-300"><td>30006</td><td>1002</td><td>8002</td><td>LOCATION</td><td>台中辦事處 5F</td><td>2026/02/13 15:00</td><td>system</td></tr>
                                         <!-- 便當 -->
-                                        <tr class="border-l-4 border-emerald-500"><td>40001</td><td>1003</td><td>7001</td><td>BENTO_NAME</td><td>炸雞腿便當</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-emerald-500"><td>40002</td><td>1003</td><td>7001</td><td>PRICE</td><td>120</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-emerald-500"><td>40003</td><td>1003</td><td>7001</td><td>MAIN_DISH</td><td>炸雞腿</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-emerald-500"><td>40004</td><td>1003</td><td>7001</td><td>CALORIES</td><td>850</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-emerald-300"><td>40005</td><td>1003</td><td>7002</td><td>BENTO_NAME</td><td>滷排骨便當</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-emerald-300"><td>40006</td><td>1003</td><td>7002</td><td>PRICE</td><td>110</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-emerald-300"><td>40007</td><td>1003</td><td>7002</td><td>MAIN_DISH</td><td>滷排骨</td><td>2026/02/13</td></tr>
-                                        <tr class="border-l-4 border-emerald-300"><td>40008</td><td>1003</td><td>7002</td><td>CALORIES</td><td>780</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-emerald-500"><td>40001</td><td>1003</td><td>7001</td><td>BENTO_NAME</td><td>炸雞腿便當</td><td>2026/02/13 21:15</td><td>food_admin</td></tr>
+                                        <tr class="border-l-4 border-emerald-500"><td>40002</td><td>1003</td><td>7001</td><td>PRICE</td><td>120</td><td>2026/02/13 21:15</td><td>food_admin</td></tr>
+                                        <tr class="border-l-4 border-emerald-500"><td>40003</td><td>1003</td><td>7001</td><td>MAIN_DISH</td><td>炸雞腿</td><td>2026/02/13 21:15</td><td>food_admin</td></tr>
+                                        <tr class="border-l-4 border-emerald-500"><td>40004</td><td>1003</td><td>7001</td><td>CALORIES</td><td>850</td><td>2026/02/13 21:15</td><td>food_admin</td></tr>
+                                        <tr class="border-l-4 border-emerald-300"><td>40005</td><td>1003</td><td>7002</td><td>BENTO_NAME</td><td>滷排骨便當</td><td>2026/02/13 21:15</td><td>food_admin</td></tr>
+                                        <tr class="border-l-4 border-emerald-300"><td>40006</td><td>1003</td><td>7002</td><td>PRICE</td><td>110</td><td>2026/02/13 21:15</td><td>food_admin</td></tr>
+                                        <tr class="border-l-4 border-emerald-300"><td>40007</td><td>1003</td><td>7002</td><td>MAIN_DISH</td><td>滷排骨</td><td>2026/02/13 21:15</td><td>food_admin</td></tr>
+                                        <tr class="border-l-4 border-emerald-300"><td>40008</td><td>1003</td><td>7002</td><td>CALORIES</td><td>780</td><td>2026/02/13 21:15</td><td>food_admin</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -368,26 +375,26 @@
                             <div class="max-h-[600px] overflow-y-auto">
                                 <table>
                                     <thead>
-                                        <tr><th>HIST_ID</th><th>GRP</th><th>ACTION</th><th>OLD_VAL</th><th>NEW_VAL</th><th>USER</th><th>TIME</th></tr>
+                                        <tr><th>HIST_ID</th><th>GROUP_ID</th><th>ACTION</th><th>OLD_ATTR_NAME</th><th>OLD_ATTR_DATA</th><th>NEW_ATTR_NAME</th><th>NEW_ATTR_DATA</th><th>UPDATE_USER</th><th>UPDATE_TIME</th></tr>
                                     </thead>
                                     <tbody>
-                                        <tr class="bg-red-50"><td>220</td><td>1001</td><td>INSERT</td><td>-</td><td>李小華 - 興趣(瑜伽)</td><td>system</td><td>21:20</td></tr>
-                                        <tr class="bg-red-50"><td>219</td><td>1001</td><td>INSERT</td><td>-</td><td>李小華 - 興趣(閱讀)</td><td>system</td><td>21:18</td></tr>
-                                        <tr class="bg-red-50"><td>218</td><td>1001</td><td>INSERT</td><td>-</td><td>王小明 - 興趣(拳擊)</td><td>system</td><td>21:16</td></tr>
-                                        <tr class="bg-red-50"><td>217</td><td>1001</td><td>INSERT</td><td>-</td><td>王小明 - 興趣(騎腳踏車)</td><td>system</td><td>21:15</td></tr>
-                                        <tr class="bg-red-50"><td>216</td><td>1001</td><td>INSERT</td><td>-</td><td>王小明 - 興趣(爬山)</td><td>system</td><td>21:14</td></tr>
-                                        <tr class="bg-emerald-50"><td>215</td><td>1003</td><td>INSERT</td><td>-</td><td>滷排骨便當系列</td><td>food_admin</td><td>21:15</td></tr>
-                                        <tr class="bg-emerald-50"><td>214</td><td>1003</td><td>INSERT</td><td>-</td><td>炸雞腿便當系列</td><td>food_admin</td><td>21:15</td></tr>
-                                        <tr class="bg-blue-50"><td>213</td><td>1001</td><td>INSERT</td><td>-</td><td>李小華 - 所屬部門</td><td>system</td><td>21:05</td></tr>
-                                        <tr class="bg-blue-50"><td>212</td><td>1001</td><td>INSERT</td><td>-</td><td>王小明 - 所屬部門</td><td>system</td><td>21:05</td></tr>
-                                        <tr class="bg-amber-50"><td>211</td><td>1002</td><td>INSERT</td><td>-</td><td>銷售部成立</td><td>system</td><td>15:00</td></tr>
-                                        <tr class="bg-amber-50"><td>210</td><td>1002</td><td>INSERT</td><td>-</td><td>研發部成立</td><td>system</td><td>14:00</td></tr>
-                                        <tr class="bg-blue-50"><td>209</td><td>1001</td><td>INSERT</td><td>-</td><td>李小華基本資料</td><td>system</td><td>13:00</td></tr>
-                                        <tr><td>208</td><td>1001</td><td>UPDATE</td><td>75kg</td><td>70kg</td><td>admin</td><td>10:00</td></tr>
-                                        <tr class="bg-blue-50"><td>207</td><td>1001</td><td>INSERT</td><td>-</td><td>王小明基本資料</td><td>system</td><td>09:00</td></tr>
-                                        <tr class="bg-slate-50"><td>206</td><td>1001</td><td>META_ADD</td><td>-</td><td>新增 HOBBIES 多值欄位</td><td>admin</td><td>08:45</td></tr>
-                                        <tr class="bg-slate-50"><td>205-201</td><td>1001,1002</td><td>META_ADD</td><td>-</td><td>Metadata Definitions</td><td>admin</td><td>08:15-08:45</td></tr>
-                                        <tr class="bg-slate-100 font-bold"><td>200-198</td><td>All</td><td>GRP_CREATE</td><td>-</td><td>Group Init</td><td>admin</td><td>08:00</td></tr>
+                                        <tr class="bg-red-50"><td>220</td><td>1001</td><td>INSERT</td><td>-</td><td>-</td><td>HOBBIES</td><td>瑜伽</td><td>system</td><td>2026/02/13 21:20</td></tr>
+                                        <tr class="bg-red-50"><td>219</td><td>1001</td><td>INSERT</td><td>-</td><td>-</td><td>HOBBIES</td><td>閱讀</td><td>system</td><td>2026/02/13 21:18</td></tr>
+                                        <tr class="bg-red-50"><td>218</td><td>1001</td><td>INSERT</td><td>-</td><td>-</td><td>HOBBIES</td><td>拳擊</td><td>system</td><td>2026/02/13 21:16</td></tr>
+                                        <tr class="bg-red-50"><td>217</td><td>1001</td><td>INSERT</td><td>-</td><td>-</td><td>HOBBIES</td><td>騎腳踏車</td><td>system</td><td>2026/02/13 21:15</td></tr>
+                                        <tr class="bg-red-50"><td>216</td><td>1001</td><td>INSERT</td><td>-</td><td>-</td><td>HOBBIES</td><td>爬山</td><td>system</td><td>2026/02/13 21:14</td></tr>
+                                        <tr class="bg-emerald-50"><td>215</td><td>1003</td><td>INSERT</td><td>-</td><td>-</td><td>MAIN_DISH, CALORIES, PRICE, BENTO_NAME</td><td>滷排骨便當系列</td><td>food_admin</td><td>2026/02/13 21:15</td></tr>
+                                        <tr class="bg-emerald-50"><td>214</td><td>1003</td><td>INSERT</td><td>-</td><td>-</td><td>MAIN_DISH, CALORIES, PRICE, BENTO_NAME</td><td>炸雞腿便當系列</td><td>food_admin</td><td>2026/02/13 21:15</td></tr>
+                                        <tr class="bg-blue-50"><td>213</td><td>1001</td><td>INSERT</td><td>-</td><td>-</td><td>DEPT</td><td>銷售部</td><td>system</td><td>2026/02/13 21:05</td></tr>
+                                        <tr class="bg-blue-50"><td>212</td><td>1001</td><td>INSERT</td><td>-</td><td>-</td><td>DEPT</td><td>研發部</td><td>system</td><td>2026/02/13 21:05</td></tr>
+                                        <tr class="bg-amber-50"><td>211</td><td>1002</td><td>INSERT</td><td>-</td><td>-</td><td>LOCATION, DEPT_MGR, DEPT_NAME</td><td>銷售部成立</td><td>system</td><td>2026/02/13 15:00</td></tr>
+                                        <tr class="bg-amber-50"><td>210</td><td>1002</td><td>INSERT</td><td>-</td><td>-</td><td>LOCATION, DEPT_MGR, DEPT_NAME</td><td>研發部成立</td><td>system</td><td>2026/02/13 14:00</td></tr>
+                                        <tr class="bg-blue-50"><td>209</td><td>1001</td><td>INSERT</td><td>-</td><td>-</td><td>NAME, GENDER, HEIGHT, WEIGHT, CITY</td><td>李小華基本資料</td><td>system</td><td>2026/02/13 13:00</td></tr>
+                                        <tr><td>208</td><td>1001</td><td>UPDATE</td><td>WEIGHT</td><td>75</td><td>WEIGHT</td><td>70</td><td>admin</td><td>2026/02/13 10:00</td></tr>
+                                        <tr class="bg-blue-50"><td>207</td><td>1001</td><td>INSERT</td><td>-</td><td>-</td><td>NAME, GENDER, HEIGHT, WEIGHT, CITY</td><td>王小明基本資料</td><td>system</td><td>2026/02/13 09:00</td></tr>
+                                        <tr class="bg-slate-50"><td>206</td><td>1001</td><td>META_ADD</td><td>-</td><td>-</td><td>HOBBIES</td><td>新增多值欄位 (IS_MULTI_VALUE=1)</td><td>admin</td><td>2026/02/13 08:45</td></tr>
+                                        <tr class="bg-slate-50"><td>205</td><td>1002,1003</td><td>META_ADD</td><td>-</td><td>-</td><td>Multiple</td><td>Metadata Definitions</td><td>admin</td><td>2026/02/13 08:30</td></tr>
+                                        <tr class="bg-slate-100 font-bold"><td>204-200</td><td>All</td><td>GRP_CREATE</td><td>-</td><td>-</td><td>All Groups</td><td>初始化配置組</td><td>admin</td><td>2026/02/13 08:00</td></tr>
                                     </tbody>
                                 </table>
                             </div>
