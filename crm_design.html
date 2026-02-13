@@ -452,11 +452,22 @@
     <script>
         // Initialize Mermaid
         mermaid.initialize({ 
-            startOnLoad: true, 
+            startOnLoad: false, 
             theme: 'neutral', 
             securityLevel: 'loose',
-            er: { useMaxWidth: true },
-            flowchart: { useMaxWidth: true }
+            er: { useMaxWidth: false },
+            flowchart: { useMaxWidth: false }
+        });
+
+        // Flag to track if schema tab has been rendered
+        let schemaTabRendered = false;
+
+        // Render visible tabs on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Render diagrams in the intro tab (default visible)
+            mermaid.run({
+                nodes: document.querySelectorAll('#section-intro .mermaid')
+            });
         });
 
         // Main Tab Switcher
@@ -467,11 +478,14 @@
             document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('mbtn-' + tabId).classList.add('active');
 
-            // Force Mermaid to re-render when switching to the schema tab to avoid scaling issues
-            if (tabId === 'schema') {
+            // Force Mermaid to render when switching to the schema tab
+            if (tabId === 'schema' && !schemaTabRendered) {
+                schemaTabRendered = true;
                 setTimeout(() => {
-                    mermaid.init(undefined, document.querySelectorAll('#section-schema .mermaid'));
-                }, 50);
+                    mermaid.run({
+                        nodes: document.querySelectorAll('#section-schema .mermaid')
+                    });
+                }, 100);
             }
         }
 
