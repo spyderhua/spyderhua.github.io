@@ -124,6 +124,7 @@
                                 <tr><td>DISPLAY_ORDER</td><td>在介面上的顯示順序。</td></tr>
                                 <tr><td>DATATYPE</td><td>資料類型（STRING, NUMBER, DATE 等）。</td></tr>
                                 <tr><td>ATTR_TYPE / ATTR_NUMBER</td><td>內部屬性類別編號，用於程式邏輯映射。</td></tr>
+                                <tr><td style="background: #FEE2E2;"><strong>IS_MULTI_VALUE</strong></td><td style="background: #FEE2E2;">布尔值(0/1)，指示該屬性是否允许多個值。若為 1，同一 ENTRY_ID 可擁有多筆該屬性記錄。</td></tr>
                                 <tr><td>UPDATE_TIME / UPDATE_USER</td><td>元數據定義的維護紀錄。</td></tr>
                             </tbody>
                         </table>
@@ -171,6 +172,84 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- Multi-Value Attributes Design -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mt-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-3 flex items-center">
+                        <span class="w-2 h-6 bg-red-500 rounded mr-2"></span> 多值屬性設計 (Multi-Value Attributes)
+                    </h3>
+                    <p class="text-sm text-gray-600 mb-4">
+                        當一個 ATTR_NAME 需要對應多個 ATTR_DATA 時（如：人員興趣 = [爬山、騎腳踏車、拳擊]），本框架提供三種設計方案。
+                    </p>
+
+                    <!-- Problem Statement -->
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                        <p class="text-sm font-bold text-amber-900 mb-2">📌 問題情景</p>
+                        <p class="text-sm text-amber-800">在 USER_BASIC_INFO (GROUP_ID=1001) 中新增「興趣」欄位，某員工同時擁有多項興趣（爬山、騎腳踏車、拳擊）。如何在當前架構下設計儲存結構？</p>
+                    </div>
+
+                    <!-- Design Options -->
+                    <div class="space-y-4">
+                        <!-- Option 1 -->
+                        <div class="border-l-4 border-blue-500 bg-blue-50 p-4 rounded">
+                            <p class="font-bold text-blue-900 mb-2">✅ 方案 1：在 CONFIG_METADATA 新增 IS_MULTI_VALUE 欄位 (推薦)</p>
+                            <p class="text-sm text-blue-800 mb-3">最清晰的元數據層設計，符合 metadata-driven 的核心理念。</p>
+                            <div class="text-xs bg-white p-3 rounded border border-blue-200 font-mono mb-3">
+                                <p><span class="text-blue-700 font-bold">CONFIG_METADATA 新增欄位：</span></p>
+                                <p class="mt-2">METADATA_ID | GROUP_ID | ATTR_NAME  | DATATYPE | <span class="text-green-700 font-bold">IS_MULTI_VALUE</span> | DESCRIPTION</p>
+                                <p class="mt-2">507         | 1001     | HOBBIES   | STRING   | <span class="text-green-700 font-bold">1</span>              | 興趣(多值)</p>
+                            </div>
+                            <p class="text-sm text-blue-800 mb-3"><strong>儲存方式（CONFIG_ATTRIBUTE）：</strong></p>
+                            <table class="text-xs w-full bg-white border border-blue-200 rounded">
+                                <tr class="border-b"><td class="p-2 font-bold">ENTRY_ID</td><td class="p-2 font-bold">ATTR_NAME</td><td class="p-2 font-bold">ATTR_DATA</td></tr>
+                                <tr class="border-b"><td class="p-2">9001</td><td class="p-2">HOBBIES</td><td class="p-2">爬山</td></tr>
+                                <tr class="border-b"><td class="p-2">9001</td><td class="p-2">HOBBIES</td><td class="p-2">騎腳踏車</td></tr>
+                                <tr><td class="p-2">9001</td><td class="p-2">HOBBIES</td><td class="p-2">拳擊</td></tr>
+                            </table>
+                            <p class="text-xs text-blue-700 mt-3">✓ 優點：結構清晰 | 元數據控制 | 易於查詢&聚合 | 支援完整審計</p>
+                            <p class="text-xs text-orange-700 mt-1">✗ 缺點：CONFIG_METADATA 需擴展；程式侧需判斷 IS_MULTI_VALUE</p>
+                        </div>
+
+                        <!-- Option 2 -->
+                        <div class="border-l-4 border-green-500 bg-green-50 p-4 rounded">
+                            <p class="font-bold text-green-900 mb-2">🔄 方案 2：ATTR_DATA 中使用分隔符</p>
+                            <p class="text-sm text-green-800 mb-3">最簡單的實作方式，無需改動元數據表結構。</p>
+                            <div class="text-xs bg-white p-3 rounded border border-green-200 font-mono mb-3">
+                                <p><span class="text-green-700 font-bold">CONFIG_ATTRIBUTE 儲存方式：</span></p>
+                                <p class="mt-2">ENTRY_ID | ATTR_NAME | ATTR_DATA</p>
+                                <p class="mt-2">9001     | HOBBIES   | 爬山;騎腳踏車;拳擊</p>
+                                <p class="text-xs text-gray-600 mt-2">(分隔符可自訂：; 或 , 或 | )</p>
+                            </div>
+                            <p class="text-xs text-green-700 mt-2">✓ 優點：實作簡單 | 無需改表結構 | 儲存空間少</p>
+                            <p class="text-xs text-orange-700 mt-1">✗ 缺點：查詢複雜 | SQL IN 搜尋困難 | 分隔符衝突風險 | 審計粒度粗糙</p>
+                        </div>
+
+                        <!-- Option 3 -->
+                        <div class="border-l-4 border-purple-500 bg-purple-50 p-4 rounded">
+                            <p class="font-bold text-purple-900 mb-2">📊 方案 3：關聯表方案 (Normalized)</p>
+                            <p class="text-sm text-purple-800 mb-3">最規範的資料庫設計，適用於複雜聚合需求。</p>
+                            <div class="text-xs bg-white p-3 rounded border border-purple-200 font-mono mb-3">
+                                <p><span class="text-purple-700 font-bold">新建表：CONFIG_ATTRIBUTE_MULTI</span></p>
+                                <p class="mt-2">MULTI_ID | ENTRY_ID | ATTR_NAME | ATTR_DATA | SEQ_NO</p>
+                                <p class="mt-2">1        | 9001     | HOBBIES   | 爬山      | 1</p>
+                                <p class="mt-2">2        | 9001     | HOBBIES   | 騎腳踏車  | 2</p>
+                                <p class="mt-2">3        | 9001     | HOBBIES   | 拳擊      | 3</p>
+                            </div>
+                            <p class="text-xs text-purple-700 mt-2">✓ 優點：查詢靈活 | 正規化設計 | 易於維護順序</p>
+                            <p class="text-xs text-orange-700 mt-1">✗ 缺點：複雜度高 | 多表 JOIN | 不符 EAV 本意 | 維護成本高</p>
+                        </div>
+                    </div>
+
+                    <!-- Recommendation -->
+                    <div class="bg-blue-100 border-l-4 border-blue-600 p-4 rounded-lg mt-4">
+                        <p class="font-bold text-blue-900 mb-2">🎯 建議：採用方案 1</p>
+                        <p class="text-sm text-blue-800">
+                            在 <strong>CONFIG_METADATA</strong> 表中新增 <strong>IS_MULTI_VALUE</strong> 布林欄位 (預設值 0)。
+                            當 IS_MULTI_VALUE=1 時，應用層允許同一 ENTRY_ID 的該 ATTR_NAME 存在多筆 CONFIG_ATTRIBUTE 記錄。
+                            此設計保持元數據驅動的純淨性，同時提供查詢彈性與完整審計功能。
+                        </p>
+                    </div>
+                </div>
             </section>
         </div>
 
@@ -215,22 +294,23 @@
                             </div>
                             <table class="sticky-header">
                                 <thead>
-                                    <tr><th>METADATA_ID</th><th>GROUP_ID</th><th>ATTR_NAME</th><th>ORDER</th><th>DESCRIPTION</th><th>DATATYPE</th><th>NUMBER</th></tr>
+                                    <tr><th>METADATA_ID</th><th>GROUP_ID</th><th>ATTR_NAME</th><th>ORDER</th><th>DESCRIPTION</th><th>DATATYPE</th><th>MULTI</th><th>NUMBER</th></tr>
                                 </thead>
                                 <tbody>
-                                    <tr class="bg-blue-50/30"><td>501</td><td>1001</td><td class="font-bold text-blue-700">NAME</td><td>1</td><td>姓名</td><td>STRING</td><td>1</td></tr>
-                                    <tr class="bg-blue-50/30"><td>502</td><td>1001</td><td class="font-bold text-blue-700">GENDER</td><td>2</td><td>性別</td><td>STRING</td><td>2</td></tr>
-                                    <tr class="bg-blue-50/30"><td>503</td><td>1001</td><td class="font-bold text-blue-700">HEIGHT</td><td>3</td><td>身高(cm)</td><td>NUMBER</td><td>3</td></tr>
-                                    <tr class="bg-blue-50/30"><td>504</td><td>1001</td><td class="font-bold text-blue-700">WEIGHT</td><td>4</td><td>體重(kg)</td><td>NUMBER</td><td>4</td></tr>
-                                    <tr class="bg-blue-50/30"><td>505</td><td>1001</td><td class="font-bold text-blue-700">CITY</td><td>5</td><td>居住城市</td><td>STRING</td><td>5</td></tr>
-                                    <tr class="bg-blue-100/50"><td>506</td><td>1001</td><td class="font-bold text-blue-900">DEPT</td><td>6</td><td>所屬部門</td><td>STRING</td><td>6</td></tr>
-                                    <tr class="bg-amber-50/30"><td>601</td><td>1002</td><td class="font-bold text-amber-700">DEPT_NAME</td><td>1</td><td>部門名稱</td><td>STRING</td><td>1</td></tr>
-                                    <tr class="bg-amber-50/30"><td>602</td><td>1002</td><td class="font-bold text-amber-700">DEPT_MGR</td><td>2</td><td>部門主管</td><td>STRING</td><td>2</td></tr>
-                                    <tr class="bg-amber-50/30"><td>603</td><td>1002</td><td class="font-bold text-amber-700">LOCATION</td><td>3</td><td>辦公地點</td><td>STRING</td><td>3</td></tr>
-                                    <tr class="bg-emerald-50/30"><td>701</td><td>1003</td><td class="font-bold text-emerald-700">BENTO_NAME</td><td>1</td><td>便當名稱</td><td>STRING</td><td>1</td></tr>
-                                    <tr class="bg-emerald-50/30"><td>702</td><td>1003</td><td class="font-bold text-emerald-700">PRICE</td><td>2</td><td>價格</td><td>NUMBER</td><td>2</td></tr>
-                                    <tr class="bg-emerald-50/30"><td>703</td><td>1003</td><td class="font-bold text-emerald-700">MAIN_DISH</td><td>3</td><td>主菜</td><td>STRING</td><td>3</td></tr>
-                                    <tr class="bg-emerald-50/30"><td>704</td><td>1003</td><td class="font-bold text-emerald-700">CALORIES</td><td>4</td><td>卡路里</td><td>NUMBER</td><td>4</td></tr>
+                                    <tr class="bg-blue-50/30"><td>501</td><td>1001</td><td class="font-bold text-blue-700">NAME</td><td>1</td><td>姓名</td><td>STRING</td><td>0</td><td>1</td></tr>
+                                    <tr class="bg-blue-50/30"><td>502</td><td>1001</td><td class="font-bold text-blue-700">GENDER</td><td>2</td><td>性別</td><td>STRING</td><td>0</td><td>2</td></tr>
+                                    <tr class="bg-blue-50/30"><td>503</td><td>1001</td><td class="font-bold text-blue-700">HEIGHT</td><td>3</td><td>身高(cm)</td><td>NUMBER</td><td>0</td><td>3</td></tr>
+                                    <tr class="bg-blue-50/30"><td>504</td><td>1001</td><td class="font-bold text-blue-700">WEIGHT</td><td>4</td><td>體重(kg)</td><td>NUMBER</td><td>0</td><td>4</td></tr>
+                                    <tr class="bg-blue-50/30"><td>505</td><td>1001</td><td class="font-bold text-blue-700">CITY</td><td>5</td><td>居住城市</td><td>STRING</td><td>0</td><td>5</td></tr>
+                                    <tr class="bg-blue-100/50"><td>506</td><td>1001</td><td class="font-bold text-blue-900">DEPT</td><td>6</td><td>所屬部門</td><td>STRING</td><td>0</td><td>6</td></tr>
+                                    <tr class="bg-blue-100/70"><td>507</td><td>1001</td><td class="font-bold text-red-700">HOBBIES</td><td>7</td><td>興趣</td><td>STRING</td><td class="text-red-600 font-bold">1</td><td>7</td></tr>
+                                    <tr class="bg-amber-50/30"><td>601</td><td>1002</td><td class="font-bold text-amber-700">DEPT_NAME</td><td>1</td><td>部門名稱</td><td>STRING</td><td>0</td><td>1</td></tr>
+                                    <tr class="bg-amber-50/30"><td>602</td><td>1002</td><td class="font-bold text-amber-700">DEPT_MGR</td><td>2</td><td>部門主管</td><td>STRING</td><td>0</td><td>2</td></tr>
+                                    <tr class="bg-amber-50/30"><td>603</td><td>1002</td><td class="font-bold text-amber-700">LOCATION</td><td>3</td><td>辦公地點</td><td>STRING</td><td>0</td><td>3</td></tr>
+                                    <tr class="bg-emerald-50/30"><td>701</td><td>1003</td><td class="font-bold text-emerald-700">BENTO_NAME</td><td>1</td><td>便當名稱</td><td>STRING</td><td>0</td><td>1</td></tr>
+                                    <tr class="bg-emerald-50/30"><td>702</td><td>1003</td><td class="font-bold text-emerald-700">PRICE</td><td>2</td><td>價格</td><td>NUMBER</td><td>0</td><td>2</td></tr>
+                                    <tr class="bg-emerald-50/30"><td>703</td><td>1003</td><td class="font-bold text-emerald-700">MAIN_DISH</td><td>3</td><td>主菜</td><td>STRING</td><td>0</td><td>3</td></tr>
+                                    <tr class="bg-emerald-50/30"><td>704</td><td>1003</td><td class="font-bold text-emerald-700">CALORIES</td><td>4</td><td>卡路里</td><td>NUMBER</td><td>0</td><td>4</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -250,6 +330,9 @@
                                         <tr class="border-l-4 border-blue-500"><td>20004</td><td>1001</td><td>9001</td><td>WEIGHT</td><td>70</td><td>2026/01/10</td></tr>
                                         <tr class="border-l-4 border-blue-500"><td>20005</td><td>1001</td><td>9001</td><td>CITY</td><td>台北市</td><td>2026/01/10</td></tr>
                                         <tr class="border-l-4 border-blue-500 bg-blue-50"><td>20011</td><td>1001</td><td>9001</td><td>DEPT</td><td>研發部</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-red-400 bg-red-50"><td>20013</td><td>1001</td><td>9001</td><td>HOBBIES</td><td>爬山</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-red-400 bg-red-50"><td>20014</td><td>1001</td><td>9001</td><td>HOBBIES</td><td>騎腳踏車</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-red-400 bg-red-50"><td>20015</td><td>1001</td><td>9001</td><td>HOBBIES</td><td>拳擊</td><td>2026/02/13</td></tr>
                                         <!-- 李小華 (9002) -->
                                         <tr class="border-l-4 border-blue-300"><td>20006</td><td>1001</td><td>9002</td><td>NAME</td><td>李小華</td><td>2026/02/13</td></tr>
                                         <tr class="border-l-4 border-blue-300"><td>20007</td><td>1001</td><td>9002</td><td>GENDER</td><td>女</td><td>2026/02/13</td></tr>
@@ -257,6 +340,8 @@
                                         <tr class="border-l-4 border-blue-300"><td>20009</td><td>1001</td><td>9002</td><td>WEIGHT</td><td>48</td><td>2026/02/13</td></tr>
                                         <tr class="border-l-4 border-blue-300"><td>20010</td><td>1001</td><td>9002</td><td>CITY</td><td>台中市</td><td>2026/02/13</td></tr>
                                         <tr class="border-l-4 border-blue-300 bg-blue-50"><td>20012</td><td>1001</td><td>9002</td><td>DEPT</td><td>銷售部</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-red-400 bg-red-50"><td>20016</td><td>1001</td><td>9002</td><td>HOBBIES</td><td>閱讀</td><td>2026/02/13</td></tr>
+                                        <tr class="border-l-4 border-red-400 bg-red-50"><td>20017</td><td>1001</td><td>9002</td><td>HOBBIES</td><td>瑜伽</td><td>2026/02/13</td></tr>
                                         <!-- 部門 -->
                                         <tr class="border-l-4 border-amber-500"><td>30001</td><td>1002</td><td>8001</td><td>DEPT_NAME</td><td>研發部</td><td>2026/02/13</td></tr>
                                         <tr class="border-l-4 border-amber-500"><td>30002</td><td>1002</td><td>8001</td><td>DEPT_MGR</td><td>張大千</td><td>2026/02/13</td></tr>
@@ -286,17 +371,23 @@
                                         <tr><th>HIST_ID</th><th>GRP</th><th>ACTION</th><th>OLD_VAL</th><th>NEW_VAL</th><th>USER</th><th>TIME</th></tr>
                                     </thead>
                                     <tbody>
-                                        <tr class="bg-emerald-50"><td>218</td><td>1003</td><td>INSERT</td><td>-</td><td>滷排骨便當系列</td><td>food_admin</td><td>21:15</td></tr>
-                                        <tr class="bg-emerald-50"><td>217</td><td>1003</td><td>INSERT</td><td>-</td><td>炸雞腿便當系列</td><td>food_admin</td><td>21:15</td></tr>
-                                        <tr class="bg-blue-50"><td>216</td><td>1001</td><td>INSERT</td><td>-</td><td>李小華 - 所屬部門</td><td>system</td><td>21:05</td></tr>
-                                        <tr class="bg-blue-50"><td>215</td><td>1001</td><td>INSERT</td><td>-</td><td>王小明 - 所屬部門</td><td>system</td><td>21:05</td></tr>
-                                        <tr class="bg-amber-50"><td>214</td><td>1002</td><td>INSERT</td><td>-</td><td>銷售部成立</td><td>system</td><td>15:00</td></tr>
-                                        <tr class="bg-amber-50"><td>213</td><td>1002</td><td>INSERT</td><td>-</td><td>研發部成立</td><td>system</td><td>14:00</td></tr>
-                                        <tr class="bg-blue-50"><td>212</td><td>1001</td><td>INSERT</td><td>-</td><td>李小華基本資料</td><td>system</td><td>13:00</td></tr>
-                                        <tr><td>211</td><td>1001</td><td>UPDATE</td><td>75kg</td><td>70kg</td><td>admin</td><td>10:00</td></tr>
-                                        <tr class="bg-blue-50"><td>210</td><td>1001</td><td>INSERT</td><td>-</td><td>王小明基本資料</td><td>system</td><td>09:00</td></tr>
-                                        <tr class="bg-slate-50"><td>209-204</td><td>1001</td><td>META_ADD</td><td>-</td><td>Metadata Definitions</td><td>admin</td><td>08:15-08:45</td></tr>
-                                        <tr class="bg-slate-100 font-bold"><td>203-201</td><td>All</td><td>GRP_CREATE</td><td>-</td><td>Group Init</td><td>admin</td><td>08:00</td></tr>
+                                        <tr class="bg-red-50"><td>220</td><td>1001</td><td>INSERT</td><td>-</td><td>李小華 - 興趣(瑜伽)</td><td>system</td><td>21:20</td></tr>
+                                        <tr class="bg-red-50"><td>219</td><td>1001</td><td>INSERT</td><td>-</td><td>李小華 - 興趣(閱讀)</td><td>system</td><td>21:18</td></tr>
+                                        <tr class="bg-red-50"><td>218</td><td>1001</td><td>INSERT</td><td>-</td><td>王小明 - 興趣(拳擊)</td><td>system</td><td>21:16</td></tr>
+                                        <tr class="bg-red-50"><td>217</td><td>1001</td><td>INSERT</td><td>-</td><td>王小明 - 興趣(騎腳踏車)</td><td>system</td><td>21:15</td></tr>
+                                        <tr class="bg-red-50"><td>216</td><td>1001</td><td>INSERT</td><td>-</td><td>王小明 - 興趣(爬山)</td><td>system</td><td>21:14</td></tr>
+                                        <tr class="bg-emerald-50"><td>215</td><td>1003</td><td>INSERT</td><td>-</td><td>滷排骨便當系列</td><td>food_admin</td><td>21:15</td></tr>
+                                        <tr class="bg-emerald-50"><td>214</td><td>1003</td><td>INSERT</td><td>-</td><td>炸雞腿便當系列</td><td>food_admin</td><td>21:15</td></tr>
+                                        <tr class="bg-blue-50"><td>213</td><td>1001</td><td>INSERT</td><td>-</td><td>李小華 - 所屬部門</td><td>system</td><td>21:05</td></tr>
+                                        <tr class="bg-blue-50"><td>212</td><td>1001</td><td>INSERT</td><td>-</td><td>王小明 - 所屬部門</td><td>system</td><td>21:05</td></tr>
+                                        <tr class="bg-amber-50"><td>211</td><td>1002</td><td>INSERT</td><td>-</td><td>銷售部成立</td><td>system</td><td>15:00</td></tr>
+                                        <tr class="bg-amber-50"><td>210</td><td>1002</td><td>INSERT</td><td>-</td><td>研發部成立</td><td>system</td><td>14:00</td></tr>
+                                        <tr class="bg-blue-50"><td>209</td><td>1001</td><td>INSERT</td><td>-</td><td>李小華基本資料</td><td>system</td><td>13:00</td></tr>
+                                        <tr><td>208</td><td>1001</td><td>UPDATE</td><td>75kg</td><td>70kg</td><td>admin</td><td>10:00</td></tr>
+                                        <tr class="bg-blue-50"><td>207</td><td>1001</td><td>INSERT</td><td>-</td><td>王小明基本資料</td><td>system</td><td>09:00</td></tr>
+                                        <tr class="bg-slate-50"><td>206</td><td>1001</td><td>META_ADD</td><td>-</td><td>新增 HOBBIES 多值欄位</td><td>admin</td><td>08:45</td></tr>
+                                        <tr class="bg-slate-50"><td>205-201</td><td>1001,1002</td><td>META_ADD</td><td>-</td><td>Metadata Definitions</td><td>admin</td><td>08:15-08:45</td></tr>
+                                        <tr class="bg-slate-100 font-bold"><td>200-198</td><td>All</td><td>GRP_CREATE</td><td>-</td><td>Group Init</td><td>admin</td><td>08:00</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -337,6 +428,7 @@
                             string DATATYPE
                             int ATTR_TYPE
                             int ATTR_NUMBER
+                            boolean IS_MULTI_VALUE
                             datetime UPDATE_TIME
                             string UPDATE_USER
                         }
