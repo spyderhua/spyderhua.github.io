@@ -58,12 +58,169 @@
                             <li><strong>正規化實體</strong>：透過 `USERS` 與 `NODES` 的關聯實作權限基礎。</li>
                             <li><strong>高擴充性</strong>：採用 TPT 模式，未來若新增「影片」或「音樂」類型，只需增加元數據表，不影響核心表結構。</li>
                             <li><strong>階層優化</strong>：`NODES` 表的 `parent_id` 建立索引，優化遞迴讀取效能。</li>
+                            <li><strong>標籤系統</strong>：透過 `TAGS` 表實作多對多關聯，支援 Urgent、Work、Personal 三種預設標籤，可彈性擴充。</li>
+                            <li><strong>歷史追蹤</strong>：內建 Undo/Redo 機制，保留最近 50 次操作紀錄，支援操作回溯。</li>
                         </ul>
                     </div>
                     <div class="bg-blue-50 p-4 rounded-lg">
-                        <h3 class="text-xl font-semibold mb-3 text-blue-800">業務規則摘要</h3>
-                        <p class="text-sm">
-                            系統支援無限層級目錄。檔案總大小為其所在節點所有子項目的權重總和。XML 匯出支援標準標籤定義，便於跨平台整合。
+                        <h3 class="text-xl font-semibold mb-3 text-blue-800">新增功能摘要</h3>
+                        <ul class="text-sm space-y-2">
+                            <li><strong>🔀 多維度排序</strong>：支援按名稱、大小、副檔名進行升/降冪排序</li>
+                            <li><strong>🏷️ 標籤管理</strong>：每個節點可貼上多個標籤（緊急/工作/個人），便於分類</li>
+                            <li><strong>🗑️ 刪除功能</strong>：可安全移除檔案或資料夾（保護根目錄）</li>
+                            <li><strong>↶↷ Undo/Redo</strong>：完整的操作歷史管理，最多保留 50 筆紀錄</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 設計模式應用 -->
+            <section class="bg-white p-8 rounded-xl shadow-sm border border-gray-200 mt-6">
+                <h2 class="text-2xl font-bold border-b-2 border-green-500 pb-2 mb-6">2. 新增功能的設計模式應用</h2>
+                
+                <div class="space-y-6">
+                    <!-- 排序功能 - Strategy Pattern -->
+                    <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-6 rounded-lg border-l-4 border-indigo-500">
+                        <div class="flex items-start gap-4">
+                            <div class="text-4xl">🔀</div>
+                            <div class="flex-grow">
+                                <h3 class="text-xl font-bold text-indigo-700 mb-2">排序功能 - Strategy Pattern（策略模式）</h3>
+                                <p class="text-gray-700 mb-3">
+                                    排序功能採用 <strong>Strategy Pattern</strong>，將不同的排序算法（按名稱、大小、副檔名）封裝成獨立的策略物件，
+                                    在執行時動態選擇適當的排序策略，實現演算法的彈性替換。
+                                </p>
+                                <div class="bg-white p-4 rounded-lg border border-indigo-200 text-sm">
+                                    <h4 class="font-bold text-gray-700 mb-2">核心概念：</h4>
+                                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                        <li><strong>Context</strong>：<code class="bg-gray-100 px-1 rounded">DirectoryComposite</code> 持有排序策略</li>
+                                        <li><strong>Strategy Interface</strong>：排序標準（name, size, extension）作為參數傳入</li>
+                                        <li><strong>Concrete Strategy</strong>：使用 JavaScript/Java 內建的 Comparator 實作不同比較邏輯</li>
+                                        <li><strong>優勢</strong>：新增排序方式時無需修改現有代碼，符合 Open-Closed Principle</li>
+                                    </ul>
+                                    <pre class="mt-3 bg-gray-50 p-2 rounded text-xs overflow-x-auto"><code>// JavaScript 實作範例
+sortChildren(sortBy, order) {
+    let comparator;
+    if (sortBy === 'name') comparator = (a, b) => a.name.localeCompare(b.name);
+    else if (sortBy === 'size') comparator = (a, b) => a.size - b.size;
+    else if (sortBy === 'extension') comparator = (a, b) => a.getExtension().localeCompare(b.getExtension());
+    
+    this.children.sort(order === 'asc' ? comparator : (a, b) => -comparator(a, b));
+}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 標籤系統 - Decorator Pattern -->
+                    <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-lg border-l-4 border-purple-500">
+                        <div class="flex items-start gap-4">
+                            <div class="text-4xl">🏷️</div>
+                            <div class="flex-grow">
+                                <h3 class="text-xl font-bold text-purple-700 mb-2">標籤系統 - Composite Pattern 擴充（屬性聚合）</h3>
+                                <p class="text-gray-700 mb-3">
+                                    標籤系統通過在 <code class="bg-gray-100 px-1 rounded">SystemEntryComponent</code> 基礎類中添加 <code class="bg-gray-100 px-1 rounded">tags</code> 集合屬性，
+                                    實現對節點的多重標記功能。這種設計保持了原有 Composite Pattern 的完整性，同時擴充了元數據管理能力。
+                                </p>
+                                <div class="bg-white p-4 rounded-lg border border-purple-200 text-sm">
+                                    <h4 class="font-bold text-gray-700 mb-2">核心概念：</h4>
+                                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                        <li><strong>屬性聚合</strong>：每個節點持有一個標籤集合（<code class="bg-gray-100 px-1 rounded">List&lt;String&gt;</code>）</li>
+                                        <li><strong>多對多關聯</strong>：一個節點可以有多個標籤，一個標籤可以應用於多個節點</li>
+                                        <li><strong>標籤定義</strong>：預設三種標籤（Urgent/Work/Personal），每種有專屬顏色配置</li>
+                                        <li><strong>資料庫設計</strong>：透過 <code class="bg-gray-100 px-1 rounded">NODE_TAGS</code> 中介表實作多對多關聯</li>
+                                        <li><strong>優勢</strong>：標籤作為獨立屬性，不影響核心節點結構，易於擴充和查詢</li>
+                                    </ul>
+                                    <pre class="mt-3 bg-gray-50 p-2 rounded text-xs overflow-x-auto"><code>// 標籤管理方法
+addTag(tagName) { if (!this.tags.includes(tagName)) this.tags.push(tagName); }
+removeTag(tagName) { this.tags = this.tags.filter(t => t !== tagName); }
+hasTag(tagName) { return this.tags.includes(tagName); }
+
+// 標籤定義
+const TAG_DEFINITIONS = {
+    'Urgent': { color: 'red', bgColor: 'bg-red-100', textColor: 'text-red-700' },
+    'Work': { color: 'blue', bgColor: 'bg-blue-100', textColor: 'text-blue-700' },
+    'Personal': { color: 'green', bgColor: 'bg-green-100', textColor: 'text-green-700' }
+};</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Undo/Redo - Memento Pattern -->
+                    <div class="bg-gradient-to-r from-amber-50 to-orange-50 p-6 rounded-lg border-l-4 border-amber-500">
+                        <div class="flex items-start gap-4">
+                            <div class="text-4xl">↶↷</div>
+                            <div class="flex-grow">
+                                <h3 class="text-xl font-bold text-amber-700 mb-2">Undo/Redo 功能 - Memento Pattern（備忘錄模式）</h3>
+                                <p class="text-gray-700 mb-3">
+                                    Undo/Redo 功能採用 <strong>Memento Pattern</strong>，在每次操作前保存整個樹狀結構的快照（深度複製），
+                                    並維護兩個堆疊（undoStack 和 redoStack）來管理歷史狀態，實現完整的操作回溯功能。
+                                </p>
+                                <div class="bg-white p-4 rounded-lg border border-amber-200 text-sm">
+                                    <h4 class="font-bold text-gray-700 mb-2">核心概念：</h4>
+                                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                        <li><strong>Originator</strong>：<code class="bg-gray-100 px-1 rounded">systemRoot</code>（系統根節點，需要保存狀態的物件）</li>
+                                        <li><strong>Memento</strong>：整個樹狀結構的深度複製快照（包含所有節點和標籤）</li>
+                                        <li><strong>Caretaker</strong>：<code class="bg-gray-100 px-1 rounded">HistoryManager</code>（負責管理快照的存取）</li>
+                                        <li><strong>雙堆疊設計</strong>：undoStack 保存過去狀態，redoStack 保存被撤銷的狀態</li>
+                                        <li><strong>深度複製</strong>：遞迴複製所有節點，確保狀態獨立，避免引用污染</li>
+                                        <li><strong>容量限制</strong>：最多保留 50 筆歷史記錄，自動清理最舊的記錄</li>
+                                    </ul>
+                                    <pre class="mt-3 bg-gray-50 p-2 rounded text-xs overflow-x-auto"><code>// HistoryManager 核心實作
+class HistoryManager {
+    constructor() {
+        this.undoStack = [];  // 儲存過去狀態
+        this.redoStack = [];  // 儲存被撤銷的狀態
+        this.maxHistorySize = 50;
+    }
+    
+    saveState() {
+        this.undoStack.push(this.cloneNode(systemRoot));  // 深度複製
+        if (this.undoStack.length > this.maxHistorySize) this.undoStack.shift();
+        this.redoStack = [];  // 新操作會清空 redo stack
+    }
+    
+    undo() {
+        if (this.undoStack.length === 0) return false;
+        this.redoStack.push(this.cloneNode(systemRoot));
+        systemRoot = this.undoStack.pop();  // 恢復上一個狀態
+        return true;
+    }
+}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 設計模式總結 -->
+                    <div class="bg-gradient-to-r from-green-50 to-teal-50 p-6 rounded-lg border-l-4 border-green-500">
+                        <h3 class="text-xl font-bold text-green-700 mb-3">🎯 設計模式協同運作</h3>
+                        <div class="grid md:grid-cols-3 gap-4 text-sm">
+                            <div class="bg-white p-4 rounded-lg border border-green-200">
+                                <div class="font-bold text-green-700 mb-2">🏗️ 核心架構</div>
+                                <ul class="text-gray-600 space-y-1">
+                                    <li>• Composite Pattern（樹狀結構）</li>
+                                    <li>• Visitor Pattern（操作解耦）</li>
+                                </ul>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg border border-green-200">
+                                <div class="font-bold text-green-700 mb-2">🔧 功能擴充</div>
+                                <ul class="text-gray-600 space-y-1">
+                                    <li>• Strategy Pattern（排序策略）</li>
+                                    <li>• 屬性聚合（標籤管理）</li>
+                                </ul>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg border border-green-200">
+                                <div class="font-bold text-green-700 mb-2">💾 狀態管理</div>
+                                <ul class="text-gray-600 space-y-1">
+                                    <li>• Memento Pattern（歷史記錄）</li>
+                                    <li>• Deep Clone（狀態快照）</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <p class="mt-4 text-gray-700 text-sm">
+                            這些設計模式相互配合，形成一個靈活、可擴充的檔案管理系統架構。
+                            核心的 Composite 和 Visitor Pattern 提供穩定的基礎，而 Strategy 和 Memento Pattern 則為系統帶來強大的功能擴充能力。
                         </p>
                     </div>
                 </div>
@@ -134,10 +291,15 @@ classDiagram
         #DateTime created
         #int size
         #String attributes
+        #List~String~ tags
         +abstract String getType()
         +void accept(IVisitor visitor)
         #abstract void accept(IVisitor visitor, int depth)
         +String getSizeDisplay()
+        +void addTag(String tag)
+        +void removeTag(String tag)
+        +boolean hasTag(String tag)
+        +String getExtension()
     }
 
     class FileLeaf {
@@ -154,6 +316,7 @@ classDiagram
         +String getType()
         +void accept(IVisitor visitor)
         #void accept(IVisitor visitor, int depth)
+        +void sortChildren(String sortBy, String order)
     }
 
     class WordDocumentLeaf {
@@ -169,6 +332,26 @@ classDiagram
     class TextFileLeaf {
         -String encoding
         +String getEncoding()
+    }
+
+    class Tag {
+        +String name
+        +String color
+        +String bgColor
+        +String textColor
+        +String borderColor
+    }
+
+    class HistoryManager {
+        -Stack~SystemEntryComponent~ undoStack
+        -Stack~SystemEntryComponent~ redoStack
+        -int maxHistorySize
+        +void saveState()
+        +boolean undo()
+        +boolean redo()
+        +boolean canUndo()
+        +boolean canRedo()
+        -SystemEntryComponent cloneNode(node)
     }
 
     class IVisitor {
@@ -217,6 +400,8 @@ classDiagram
     FileLeaf <|-- ImageFileLeaf
     FileLeaf <|-- TextFileLeaf
     DirectoryComposite "1" o-- "*" SystemEntryComponent : contains
+    SystemEntryComponent "1" o-- "*" Tag : has
+    HistoryManager "1" --> "*" SystemEntryComponent : manages history
     IVisitor <|.. SizeCalculatorVisitor
     IVisitor <|.. FileSearchVisitor
     IVisitor <|.. TreeDisplayVisitor
@@ -460,6 +645,9 @@ erDiagram
     FILES ||--o| WORD_DOCS : "is_type"
     FILES ||--o| IMAGE_FILES : "is_type"
     FILES ||--o| TEXT_FILES : "is_type"
+    NODES ||--o{ NODE_TAGS : "has"
+    TAGS ||--o{ NODE_TAGS : "applied_to"
+    USERS ||--o{ OPERATION_HISTORY : "performs"
 
     USERS {
         uuid id PK
@@ -501,6 +689,29 @@ erDiagram
         string encoding "如 UTF-8"
         boolean has_bom "是否有 BOM"
     }
+
+    TAGS {
+        int id PK
+        string name "標籤名稱 (Urgent/Work/Personal)"
+        string color "顏色代碼"
+        string description "標籤描述"
+    }
+
+    NODE_TAGS {
+        uuid node_id PK, FK "節點 ID"
+        int tag_id PK, FK "標籤 ID"
+        datetime tagged_at "貼標籤時間"
+    }
+
+    OPERATION_HISTORY {
+        uuid id PK
+        uuid user_id FK "操作者 ID"
+        enum operation_type "CREATE, DELETE, UPDATE, TAG, SORT"
+        uuid target_node_id FK "目標節點"
+        text before_state "操作前狀態 (JSON)"
+        text after_state "操作後狀態 (JSON)"
+        datetime created_at "操作時間"
+    }
                     </pre>
                 </div>
                 <div class="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-100">
@@ -509,6 +720,8 @@ erDiagram
                         <li><strong>實體化使用者</strong>：檔案系統不再是孤立的，現在每個節點都有明確的 `owner_id`。</li>
                         <li><strong>解決空值問題</strong>：透過 `FILES` 中介表與各 `_METADATA` 表的 1:1 關聯，資料庫中不再有大量的 NULL 欄位。</li>
                         <li><strong>維護一致性</strong>：將 `updated_at` 獨立出來，方便追蹤資料夾內容的最後變動時間。</li>
+                        <li><strong>標籤系統</strong>：透過 `NODE_TAGS` 多對多關聯表實作彈性標籤功能，支援每個節點貼上多個標籤。</li>
+                        <li><strong>操作歷史</strong>：`OPERATION_HISTORY` 表紀錄所有操作，支援 Undo/Redo 功能，保留完整的操作軌跡。</li>
                     </ul>
                 </div>
             </section>
@@ -566,6 +779,39 @@ erDiagram
                         </div>
                     </div>
 
+                    <!-- 排序與歷史操作 -->
+                    <div class="border-t border-gray-200 pt-4 mt-4">
+                        <label class="block text-xs font-bold text-gray-400 mb-3 uppercase tracking-widest">排序與歷史操作</label>
+                        <div class="flex flex-wrap gap-3 items-end">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-1">排序依據</label>
+                                <select id="sort-by" class="p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 bg-white">
+                                    <option value="name">名稱</option>
+                                    <option value="size">大小</option>
+                                    <option value="extension">副檔名</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-1">排序方向</label>
+                                <select id="sort-order" class="p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 bg-white">
+                                    <option value="asc">升冪 ⬆</option>
+                                    <option value="desc">降冪 ⬇</option>
+                                </select>
+                            </div>
+                            <button onclick="handleSort()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-4 rounded shadow-sm transition-colors">
+                                🔀 執行排序
+                            </button>
+                            <div class="flex gap-2 ml-auto">
+                                <button id="undo-btn" onclick="handleUndo()" disabled class="bg-gray-600 hover:bg-gray-700 text-white text-xs font-bold py-2 px-4 rounded shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                    ↶ Undo
+                                </button>
+                                <button id="redo-btn" onclick="handleRedo()" disabled class="bg-gray-600 hover:bg-gray-700 text-white text-xs font-bold py-2 px-4 rounded shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                    ↷ Redo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- 特殊欄位 -->
                     <div id="extra-fields" class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 hidden p-3 bg-blue-50 rounded">
                         <div id="field-pages">
@@ -606,6 +852,41 @@ erDiagram
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                         <h3 class="text-sm font-bold mb-3 text-gray-400 uppercase tracking-widest">視覺化結構圖</h3>
                         <div id="tree-visual" class="space-y-1 bg-gray-50 p-4 rounded-lg border border-gray-100 h-96 overflow-y-auto shadow-inner text-sm"></div>
+                    </div>
+                </div>
+
+                <!-- 標籤管理模態框 -->
+                <div id="tag-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold text-gray-800">🏷️ 管理標籤</h3>
+                            <button onclick="closeTagModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+                        </div>
+                        <div class="mb-4">
+                            <p class="text-sm text-gray-600">檔案名稱: <span id="modal-node-name" class="font-bold text-gray-800"></span></p>
+                        </div>
+                        <div class="space-y-3 mb-6">
+                            <label class="flex items-center p-3 border-2 border-red-200 rounded-lg hover:bg-red-50 cursor-pointer transition-colors">
+                                <input type="checkbox" id="tag-Urgent" class="form-checkbox h-5 w-5 text-red-600 rounded">
+                                <span class="ml-3 text-sm font-semibold text-red-700">🔴 Urgent (緊急)</span>
+                            </label>
+                            <label class="flex items-center p-3 border-2 border-blue-200 rounded-lg hover:bg-blue-50 cursor-pointer transition-colors">
+                                <input type="checkbox" id="tag-Work" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                                <span class="ml-3 text-sm font-semibold text-blue-700">🔵 Work (工作)</span>
+                            </label>
+                            <label class="flex items-center p-3 border-2 border-green-200 rounded-lg hover:bg-green-50 cursor-pointer transition-colors">
+                                <input type="checkbox" id="tag-Personal" class="form-checkbox h-5 w-5 text-green-600 rounded">
+                                <span class="ml-3 text-sm font-semibold text-green-700">🟢 Personal (個人)</span>
+                            </label>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="saveNodeTags()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                                💾 儲存
+                            </button>
+                            <button onclick="closeTagModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded-lg transition-colors">
+                                取消
+                            </button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -1210,6 +1491,7 @@ public class XMLExportVisitor
                 this.created = new Date();
                 this.size = 0;
                 this.attributes = "";
+                this.tags = []; // 新增標籤屬性
             }
             get type() { throw new Error("Method not implemented."); }
             // 公開方法：外部調用
@@ -1221,6 +1503,24 @@ public class XMLExportVisitor
             getSizeDisplay() {
                 if (this.size < 1024) return `${this.size} B`;
                 return `${(this.size / 1024).toFixed(1)} KB`;
+            }
+            // 標籤管理方法
+            addTag(tagName) {
+                if (!this.tags.includes(tagName)) {
+                    this.tags.push(tagName);
+                }
+            }
+            removeTag(tagName) {
+                this.tags = this.tags.filter(t => t !== tagName);
+            }
+            hasTag(tagName) {
+                return this.tags.includes(tagName);
+            }
+            // 取得副檔名
+            getExtension() {
+                if (this instanceof DirectoryComposite) return '';
+                const parts = this.name.split('.');
+                return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
             }
         }
 
@@ -1277,9 +1577,136 @@ public class XMLExportVisitor
                 visitor.visit(this, depth);
                 this.children.forEach(child => child._accept(visitor, depth + 1));
             }
+
+            // 排序方法
+            sortChildren(sortBy, order = 'asc') {
+                this.children.sort((a, b) => {
+                    let compareA, compareB;
+                    
+                    if (sortBy === 'name') {
+                        compareA = a.name.toLowerCase();
+                        compareB = b.name.toLowerCase();
+                    } else if (sortBy === 'size') {
+                        compareA = a.size;
+                        compareB = b.size;
+                    } else if (sortBy === 'extension') {
+                        compareA = a.getExtension();
+                        compareB = b.getExtension();
+                    }
+                    
+                    let result = 0;
+                    if (compareA < compareB) result = -1;
+                    else if (compareA > compareB) result = 1;
+                    
+                    return order === 'asc' ? result : -result;
+                });
+                
+                // 遞迴排序子目錄
+                this.children.forEach(child => {
+                    if (child instanceof DirectoryComposite) {
+                        child.sortChildren(sortBy, order);
+                    }
+                });
+            }
         }
 
         // ========== 訪問者接口與實現 ==========
+        // 歷史記錄管理系統（Undo/Redo）
+        class HistoryManager {
+            constructor() {
+                this.undoStack = [];
+                this.redoStack = [];
+                this.maxHistorySize = 50;
+            }
+
+            saveState() {
+                // 深度複製當前狀態
+                const state = this.cloneNode(systemRoot);
+                this.undoStack.push(state);
+                if (this.undoStack.length > this.maxHistorySize) {
+                    this.undoStack.shift();
+                }
+                // 清空 redo stack
+                this.redoStack = [];
+                this.updateUndoRedoButtons();
+            }
+
+            undo() {
+                if (this.undoStack.length === 0) return false;
+                
+                // 保存當前狀態到 redo
+                this.redoStack.push(this.cloneNode(systemRoot));
+                
+                // 恢復上一個狀態
+                const previousState = this.undoStack.pop();
+                systemRoot = this.cloneNode(previousState);
+                
+                this.updateUndoRedoButtons();
+                return true;
+            }
+
+            redo() {
+                if (this.redoStack.length === 0) return false;
+                
+                // 保存當前狀態到 undo
+                this.undoStack.push(this.cloneNode(systemRoot));
+                
+                // 恢復 redo 狀態
+                const nextState = this.redoStack.pop();
+                systemRoot = this.cloneNode(nextState);
+                
+                this.updateUndoRedoButtons();
+                return true;
+            }
+
+            cloneNode(node) {
+                if (node instanceof DirectoryComposite) {
+                    const clone = new DirectoryComposite(node.name);
+                    clone.id = node.id;
+                    clone.created = new Date(node.created);
+                    clone.size = node.size;
+                    clone.tags = [...node.tags];
+                    node.children.forEach(child => {
+                        clone.add(this.cloneNode(child));
+                    });
+                    return clone;
+                } else if (node instanceof WordDocumentLeaf) {
+                    const clone = new WordDocumentLeaf(node.name, node.size, node.pages);
+                    clone.id = node.id;
+                    clone.created = new Date(node.created);
+                    clone.tags = [...node.tags];
+                    return clone;
+                } else if (node instanceof ImageFileLeaf) {
+                    const clone = new ImageFileLeaf(node.name, node.size, node.width, node.height);
+                    clone.id = node.id;
+                    clone.created = new Date(node.created);
+                    clone.tags = [...node.tags];
+                    return clone;
+                } else if (node instanceof TextFileLeaf) {
+                    const clone = new TextFileLeaf(node.name, node.size, node.encoding);
+                    clone.id = node.id;
+                    clone.created = new Date(node.created);
+                    clone.tags = [...node.tags];
+                    return clone;
+                }
+            }
+
+            updateUndoRedoButtons() {
+                const undoBtn = document.getElementById('undo-btn');
+                const redoBtn = document.getElementById('redo-btn');
+                if (undoBtn) undoBtn.disabled = this.undoStack.length === 0;
+                if (redoBtn) redoBtn.disabled = this.redoStack.length === 0;
+            }
+
+            canUndo() {
+                return this.undoStack.length > 0;
+            }
+
+            canRedo() {
+                return this.redoStack.length > 0;
+            }
+        }
+
         class IVisitor {
             visit(element) { throw new Error("Method not implemented."); }
         }
@@ -1385,6 +1812,15 @@ public class XMLExportVisitor
         // ========== 全域狀態與功能實作 ==========
         let systemRoot = new DirectoryComposite("根目錄(Root)");
         let folderMap = new Map();
+        let historyManager = new HistoryManager();
+        let selectedNodeId = null; // 用於標籤管理
+
+        // 標籤定義
+        const TAG_DEFINITIONS = {
+            'Urgent': { color: 'red', bgColor: 'bg-red-100', textColor: 'text-red-700', borderColor: 'border-red-500' },
+            'Work': { color: 'blue', bgColor: 'bg-blue-100', textColor: 'text-blue-700', borderColor: 'border-blue-500' },
+            'Personal': { color: 'green', bgColor: 'bg-green-100', textColor: 'text-green-700', borderColor: 'border-green-500' }
+        };
 
         function showTotalSize() {
             const visitor = new SizeCalculatorVisitor();
@@ -1457,6 +1893,9 @@ public class XMLExportVisitor
             const parent = folderMap.get(pId);
             if (!parent) return;
 
+            // 保存操作前狀態
+            historyManager.saveState();
+
             let node;
             const size = parseInt(document.getElementById('node-size').value);
             if (type === 'FOLDER') {
@@ -1476,6 +1915,10 @@ public class XMLExportVisitor
 
         function handleDeleteNode(id) {
             if (id === systemRoot.id) return;
+            
+            // 保存操作前狀態
+            historyManager.saveState();
+            
             function search(curr) {
                 const startLen = curr.getChildren().length;
                 curr.remove(id);
@@ -1486,6 +1929,89 @@ public class XMLExportVisitor
                 return false;
             }
             search(systemRoot);
+            refreshUI();
+        }
+
+        // 排序功能
+        function handleSort() {
+            const sortBy = document.getElementById('sort-by').value;
+            const sortOrder = document.getElementById('sort-order').value;
+            
+            historyManager.saveState();
+            systemRoot.sortChildren(sortBy, sortOrder);
+            refreshUI();
+        }
+
+        // Undo/Redo功能
+        function handleUndo() {
+            if (historyManager.undo()) {
+                refreshUI();
+            }
+        }
+
+        function handleRedo() {
+            if (historyManager.redo()) {
+                refreshUI();
+            }
+        }
+
+        // 標籤管理功能
+        function findNodeById(id, node = systemRoot) {
+            if (node.id === id) return node;
+            if (node instanceof DirectoryComposite) {
+                for (let child of node.getChildren()) {
+                    const found = findNodeById(id, child);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+
+        function openTagModal(nodeId) {
+            selectedNodeId = nodeId;
+            const node = findNodeById(nodeId);
+            if (!node) return;
+
+            const modal = document.getElementById('tag-modal');
+            const modalTitle = document.getElementById('modal-node-name');
+            modalTitle.textContent = node.name;
+
+            // 更新標籤選擇狀態
+            Object.keys(TAG_DEFINITIONS).forEach(tagName => {
+                const checkbox = document.getElementById(`tag-${tagName}`);
+                if (checkbox) {
+                    checkbox.checked = node.hasTag(tagName);
+                }
+            });
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeTagModal() {
+            document.getElementById('tag-modal').classList.add('hidden');
+            selectedNodeId = null;
+        }
+
+        function saveNodeTags() {
+            if (!selectedNodeId) return;
+            
+            historyManager.saveState();
+            
+            const node = findNodeById(selectedNodeId);
+            if (!node) return;
+
+            // 清除現有標籤
+            node.tags = [];
+
+            // 添加選中的標籤
+            Object.keys(TAG_DEFINITIONS).forEach(tagName => {
+                const checkbox = document.getElementById(`tag-${tagName}`);
+                if (checkbox && checkbox.checked) {
+                    node.addTag(tagName);
+                }
+            });
+
+            closeTagModal();
             refreshUI();
         }
 
@@ -1504,7 +2030,7 @@ public class XMLExportVisitor
             const row = document.createElement('div');
             row.className = "tree-item-row flex items-center group py-1";
             const content = document.createElement('div');
-            content.className = "flex-grow flex items-center";
+            content.className = "flex-grow flex items-center flex-wrap gap-1";
             let html = "";
             
             if (node instanceof DirectoryComposite) {
@@ -1518,14 +2044,46 @@ public class XMLExportVisitor
             }
             
             content.innerHTML = html;
-            row.appendChild(content);
-            if (node.id !== systemRoot.id) {
-                const btn = document.createElement('button');
-                btn.className = "delete-btn text-red-500 text-xs ml-2 font-bold px-1";
-                btn.innerHTML = "🗑️";
-                btn.onclick = (e) => { e.stopPropagation(); handleDeleteNode(node.id); };
-                row.appendChild(btn);
+
+            // 顯示標籤
+            if (node.tags && node.tags.length > 0) {
+                node.tags.forEach(tag => {
+                    const tagDef = TAG_DEFINITIONS[tag];
+                    if (tagDef) {
+                        const tagSpan = document.createElement('span');
+                        tagSpan.className = `text-xs px-2 py-0.5 rounded ${tagDef.bgColor} ${tagDef.textColor} border ${tagDef.borderColor} ml-1`;
+                        tagSpan.textContent = tag;
+                        content.appendChild(tagSpan);
+                    }
+                });
             }
+
+            row.appendChild(content);
+
+            // 按鈕組
+            const btnGroup = document.createElement('div');
+            btnGroup.className = "flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity";
+
+            // 標籤按鈕
+            const tagBtn = document.createElement('button');
+            tagBtn.className = "text-purple-600 hover:text-purple-800 text-xs ml-2 font-bold px-2 py-0.5 rounded hover:bg-purple-50";
+            tagBtn.innerHTML = "🏷️";
+            tagBtn.title = "管理標籤";
+            tagBtn.onclick = (e) => { e.stopPropagation(); openTagModal(node.id); };
+            btnGroup.appendChild(tagBtn);
+
+            // 刪除按鈕
+            if (node.id !== systemRoot.id) {
+                const delBtn = document.createElement('button');
+                delBtn.className = "text-red-500 hover:text-red-700 text-xs font-bold px-2 py-0.5 rounded hover:bg-red-50";
+                delBtn.innerHTML = "🗑️";
+                delBtn.title = "刪除";
+                delBtn.onclick = (e) => { e.stopPropagation(); handleDeleteNode(node.id); };
+                btnGroup.appendChild(delBtn);
+            }
+
+            row.appendChild(btnGroup);
+
             const wrap = document.createElement('div');
             wrap.className = "tree-node";
             wrap.appendChild(row);
@@ -1650,16 +2208,20 @@ public class XMLExportVisitor
                 folder: 'core',
                 folderName: '核心類別',
                 icon: '🏗️',
-                code: `public abstract class SystemEntryComponent {
+                code: `import java.util.*;
+
+public abstract class SystemEntryComponent {
     protected String name;
     protected java.time.LocalDateTime created;
     protected long size;
     protected String attributes;
+    protected List<String> tags;
     
     public SystemEntryComponent(String name) {
         this.name = name;
         this.created = java.time.LocalDateTime.now();
         this.size = 0;
+        this.tags = new ArrayList<>();
     }
     
     public abstract String getType();
@@ -1675,6 +2237,32 @@ public class XMLExportVisitor
     public String getSizeDisplay() {
         if (size < 1024) return size + " B";
         return String.format("%.1f KB", size / 1024.0);
+    }
+    
+    // 標籤管理方法
+    public void addTag(String tag) {
+        if (!tags.contains(tag)) {
+            tags.add(tag);
+        }
+    }
+    
+    public void removeTag(String tag) {
+        tags.remove(tag);
+    }
+    
+    public boolean hasTag(String tag) {
+        return tags.contains(tag);
+    }
+    
+    public List<String> getTags() {
+        return new ArrayList<>(tags);
+    }
+    
+    // 取得副檔名
+    public String getExtension() {
+        if (this instanceof DirectoryComposite) return "";
+        int lastDot = name.lastIndexOf('.');
+        return lastDot > 0 ? name.substring(lastDot + 1).toLowerCase() : "";
     }
     
     public String getName() { return name; }
@@ -1720,6 +2308,38 @@ public class DirectoryComposite extends SystemEntryComponent {
     
     public List<SystemEntryComponent> getChildren() {
         return new ArrayList<>(children);
+    }
+    
+    // 排序方法
+    public void sortChildren(String sortBy, String order) {
+        Comparator<SystemEntryComponent> comparator = null;
+        
+        switch (sortBy.toLowerCase()) {
+            case "name":
+                comparator = Comparator.comparing(c -> c.getName().toLowerCase());
+                break;
+            case "size":
+                comparator = Comparator.comparingLong(SystemEntryComponent::getSize);
+                break;
+            case "extension":
+                comparator = Comparator.comparing(SystemEntryComponent::getExtension);
+                break;
+            default:
+                comparator = Comparator.comparing(c -> c.getName().toLowerCase());
+        }
+        
+        if ("desc".equalsIgnoreCase(order)) {
+            comparator = comparator.reversed();
+        }
+        
+        children.sort(comparator);
+        
+        // 遞迴排序子目錄
+        for (SystemEntryComponent child : children) {
+            if (child instanceof DirectoryComposite) {
+                ((DirectoryComposite) child).sortChildren(sortBy, order);
+            }
+        }
     }
     
     @Override
@@ -2020,23 +2640,132 @@ public class XMLExportVisitor implements IVisitor {
     }
 }`
             },
+            'util/Tag.java': {
+                folder: 'util',
+                folderName: '工具類別',
+                icon: '🏷️',
+                code: `public class Tag {
+    private String name;
+    private String color;
+    private String description;
+    
+    public Tag(String name, String color, String description) {
+        this.name = name;
+        this.color = color;
+        this.description = description;
+    }
+    
+    public String getName() { return name; }
+    public String getColor() { return color; }
+    public String getDescription() { return description; }
+    
+    // 預設標籤
+    public static final Tag URGENT = new Tag("Urgent", "red", "緊急事項");
+    public static final Tag WORK = new Tag("Work", "blue", "工作相關");
+    public static final Tag PERSONAL = new Tag("Personal", "green", "個人事項");
+}`
+            },
+            'util/HistoryManager.java': {
+                folder: 'util',
+                folderName: '工具類別',
+                icon: '↶↷',
+                code: `import java.util.*;
+
+public class HistoryManager {
+    private Stack<SystemEntryComponent> undoStack;
+    private Stack<SystemEntryComponent> redoStack;
+    private int maxHistorySize;
+    
+    public HistoryManager() {
+        this.undoStack = new Stack<>();
+        this.redoStack = new Stack<>();
+        this.maxHistorySize = 50;
+    }
+    
+    public void saveState(SystemEntryComponent root) {
+        undoStack.push(cloneNode(root));
+        if (undoStack.size() > maxHistorySize) {
+            undoStack.remove(0);
+        }
+        redoStack.clear();
+    }
+    
+    public SystemEntryComponent undo(SystemEntryComponent current) {
+        if (undoStack.isEmpty()) return null;
+        redoStack.push(cloneNode(current));
+        return undoStack.pop();
+    }
+    
+    public SystemEntryComponent redo(SystemEntryComponent current) {
+        if (redoStack.isEmpty()) return null;
+        undoStack.push(cloneNode(current));
+        return redoStack.pop();
+    }
+    
+    public boolean canUndo() {
+        return !undoStack.isEmpty();
+    }
+    
+    public boolean canRedo() {
+        return !redoStack.isEmpty();
+    }
+    
+    private SystemEntryComponent cloneNode(SystemEntryComponent node) {
+        if (node instanceof DirectoryComposite) {
+            DirectoryComposite clone = new DirectoryComposite(node.getName());
+            clone.getTags().addAll(node.getTags());
+            for (SystemEntryComponent child : ((DirectoryComposite) node).getChildren()) {
+                clone.add(cloneNode(child));
+            }
+            return clone;
+        } else if (node instanceof WordDocument) {
+            WordDocument original = (WordDocument) node;
+            WordDocument clone = new WordDocument(original.getName(), original.getSize(), original.getPages());
+            clone.getTags().addAll(original.getTags());
+            return clone;
+        } else if (node instanceof ImageFile) {
+            ImageFile original = (ImageFile) node;
+            ImageFile clone = new ImageFile(original.getName(), original.getSize(), original.getWidth(), original.getHeight());
+            clone.getTags().addAll(original.getTags());
+            return clone;
+        } else if (node instanceof TextFile) {
+            TextFile original = (TextFile) node;
+            TextFile clone = new TextFile(original.getName(), original.getSize(), original.getEncoding());
+            clone.getTags().addAll(original.getTags());
+            return clone;
+        }
+        return null;
+    }
+}`
+            },
             'FileSystemDemo.java': {
                 folder: '',
                 folderName: '主程式',
                 icon: '▶️',
                 code: `public class FileSystemDemo {
     public static void main(String[] args) {
+        // 初始化歷史管理器
+        HistoryManager history = new HistoryManager();
+        
         // 建立根目錄
         DirectoryComposite root = new DirectoryComposite("根目錄(Root)");
         
         // 建立專案文件目錄
         DirectoryComposite project = new DirectoryComposite("專案文件 (Project_Docs)");
-        project.add(new WordDocument("需求規格書.docx", 500 * 1024, 15));
-        project.add(new ImageFile("系統架構圖.png", 2 * 1024 * 1024, 1920, 1080));
+        WordDocument spec = new WordDocument("需求規格書.docx", 500 * 1024, 15);
+        spec.addTag("Work");
+        spec.addTag("Urgent");
+        project.add(spec);
+        
+        ImageFile diagram = new ImageFile("系統架構圖.png", 2 * 1024 * 1024, 1920, 1080);
+        diagram.addTag("Work");
+        project.add(diagram);
         
         // 建立個人筆記目錄
         DirectoryComposite personal = new DirectoryComposite("個人筆記 (Personal_Notes)");
-        personal.add(new TextFile("待辦清單.txt", 1 * 1024, "UTF-8"));
+        TextFile todo = new TextFile("待辦清單.txt", 1 * 1024, "UTF-8");
+        todo.addTag("Personal");
+        personal.add(todo);
         
         // 建立備份目錄
         DirectoryComposite archive = new DirectoryComposite("2025備份 (Archive_2025)");
@@ -2049,7 +2778,7 @@ public class XMLExportVisitor implements IVisitor {
         root.add(new TextFile("README.txt", 500, "ASCII"));
         
         // 測試 1: 計算總大小
-        System.out.println("=== 計算總大小 ===");
+        System.out.println("=== 測試 1: 計算總大小 ===");
         SizeCalculatorVisitor sizeVisitor = new SizeCalculatorVisitor();
         root.accept(sizeVisitor);
         long total = sizeVisitor.getTotalSize();
@@ -2059,7 +2788,7 @@ public class XMLExportVisitor implements IVisitor {
         System.out.println("總大小: " + total + " Bytes (" + formatted + ")\\n");
         
         // 測試 2: 搜尋 .docx 檔案
-        System.out.println("=== 搜尋 .docx 檔案 ===");
+        System.out.println("=== 測試 2: 搜尋 .docx 檔案 ===");
         FileSearchVisitor searchVisitor = new FileSearchVisitor(".docx");
         root.accept(searchVisitor);
         java.util.List<FileLeaf> results = searchVisitor.getResults();
@@ -2069,14 +2798,47 @@ public class XMLExportVisitor implements IVisitor {
         }
         System.out.println();
         
-        // 測試 3: 顯示結構
-        System.out.println("=== 檔案結構 ===");
-        DisplayVisitor displayVisitor = new DisplayVisitor();
+        // 測試 3: 顯示結構（排序前）
+        System.out.println("=== 測試 3: 檔案結構（排序前）===");
+        TreeDisplayVisitor displayVisitor = new TreeDisplayVisitor();
         root.accept(displayVisitor);
         System.out.println(displayVisitor.getOutput());
         
-        // 測試 4: XML 匯出
-        System.out.println("=== XML 格式匯出 ===");
+        // 測試 4: 排序功能
+        System.out.println("=== 測試 4: 按名稱排序 ===");
+        history.saveState(root);
+        root.sortChildren("name", "asc");
+        displayVisitor = new TreeDisplayVisitor();
+        root.accept(displayVisitor);
+        System.out.println(displayVisitor.getOutput());
+        
+        // 測試 5: Undo 功能
+        System.out.println("=== 測試 5: Undo 排序 ===");
+        SystemEntryComponent restored = history.undo(root);
+        if (restored != null) {
+            root = (DirectoryComposite) restored;
+            System.out.println("已還原至排序前狀態");
+            displayVisitor = new TreeDisplayVisitor();
+            root.accept(displayVisitor);
+            System.out.println(displayVisitor.getOutput());
+        }
+        
+        // 測試 6: 標籤管理
+        System.out.println("=== 測試 6: 標籤系統 ===");
+        System.out.println("需求規格書.docx 的標籤: " + spec.getTags());
+        System.out.println("待辦清單.txt 的標籤: " + todo.getTags());
+        
+        // 測試 7: 刪除功能
+        System.out.println("\\n=== 測試 7: 刪除檔案 ===");
+        history.saveState(root);
+        project.remove(diagram);
+        System.out.println("已刪除: 系統架構圖.png");
+        displayVisitor = new TreeDisplayVisitor();
+        root.accept(displayVisitor);
+        System.out.println(displayVisitor.getOutput());
+        
+        // 測試 8: XML 匯出
+        System.out.println("=== 測試 8: XML 格式匯出 ===");
         XMLExportVisitor xmlVisitor = new XMLExportVisitor();
         root.accept(xmlVisitor);
         System.out.println(xmlVisitor.getXMLOutput());
@@ -2163,6 +2925,18 @@ public class XMLExportVisitor implements IVisitor {
                      class="java-file-item cursor-pointer hover:bg-blue-50 px-3 py-1.5 text-sm border-l-2 border-transparent hover:border-blue-500"
                      data-file="visitor/XMLExportVisitor.java">
                     <span class="text-gray-700">XMLExportVisitor</span>
+                </div>
+                
+                <div class="text-xs text-gray-400 px-3 py-1 mt-2">util/</div>
+                <div onclick="showJavaFile('util/Tag.java')" 
+                     class="java-file-item cursor-pointer hover:bg-blue-50 px-3 py-1.5 text-sm border-l-2 border-transparent hover:border-blue-500"
+                     data-file="util/Tag.java">
+                    <span class="text-gray-700">Tag</span>
+                </div>
+                <div onclick="showJavaFile('util/HistoryManager.java')" 
+                     class="java-file-item cursor-pointer hover:bg-blue-50 px-3 py-1.5 text-sm border-l-2 border-transparent hover:border-blue-500"
+                     data-file="util/HistoryManager.java">
+                    <span class="text-gray-700">HistoryManager</span>
                 </div>
             `;
             
