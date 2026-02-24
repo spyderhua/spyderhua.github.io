@@ -45,6 +45,7 @@
             <button onclick="openTab(event, 'er')" class="tab-btn px-6 py-3 text-gray-500 hover:text-blue-600 transition-all focus:outline-none">資料庫設計 (ERD)</button>
             <button onclick="openTab(event, 'demo')" class="tab-btn px-6 py-3 text-gray-500 hover:text-blue-600 transition-all focus:outline-none">系統 Demo</button>
             <button onclick="openTab(event, 'java')" class="tab-btn px-6 py-3 text-gray-500 hover:text-blue-600 transition-all focus:outline-none">Java 實作</button>
+            <button onclick="openTab(event, 'guide')" class="tab-btn px-6 py-3 text-gray-500 hover:text-blue-600 transition-all focus:outline-none">如何選擇設計模式</button>
         </div>
 
         <!-- 1. 系統架構說明 -->
@@ -1474,6 +1475,280 @@ public class XMLExportVisitor
                         </ul>
                     </div>
                 </div>
+            </section>
+        </div>
+
+        <!-- 6. 如何選擇設計模式 -->
+        <div id="guide" class="tab-content">
+            <section class="space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">🧭 如何選擇正確的設計模式？</h2>
+                    <p class="text-gray-500 text-sm">面對一個問題時，不是先想「這是哪個 Pattern」，而是先問自己幾個問題。</p>
+                </div>
+
+                <!-- Step 1: 問自己的問題 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-bold text-blue-700 mb-4">🔍 Step 1：先問自己這些問題</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                            <div class="text-2xl mb-2">🏗️</div>
+                            <h4 class="font-bold text-blue-700 mb-1">我在煩惱「如何建立物件」？</h4>
+                            <p class="text-xs text-gray-600">物件建立太複雜、想集中管理、想隱藏實作細節？</p>
+                            <div class="mt-2 text-xs font-bold text-blue-600">→ 考慮 Creational Pattern</div>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                            <div class="text-2xl mb-2">🔗</div>
+                            <h4 class="font-bold text-green-700 mb-1">我在煩惱「如何組合結構」？</h4>
+                            <p class="text-xs text-gray-600">類別關係太複雜、想統一介面、想靈活組合功能？</p>
+                            <div class="mt-2 text-xs font-bold text-green-600">→ 考慮 Structural Pattern</div>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                            <div class="text-2xl mb-2">⚡</div>
+                            <h4 class="font-bold text-purple-700 mb-1">我在煩惱「如何協調行為」？</h4>
+                            <p class="text-xs text-gray-600">物件互動太耦合、想分離責任、想動態切換演算法？</p>
+                            <div class="mt-2 text-xs font-bold text-purple-600">→ 考慮 Behavioral Pattern</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: 決策流程 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-bold text-blue-700 mb-4">🌳 Step 2：依問題情境對應模式</h3>
+
+                    <!-- Creational -->
+                    <div class="mb-6">
+                        <h4 class="font-bold text-blue-600 mb-3 flex items-center gap-2"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-sm">Creational 建立型</span> 如何建立物件？</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm border-collapse">
+                                <thead>
+                                    <tr class="bg-blue-50">
+                                        <th class="border border-blue-200 px-3 py-2 text-left text-blue-700">情境問題</th>
+                                        <th class="border border-blue-200 px-3 py-2 text-left text-blue-700">模式</th>
+                                        <th class="border border-blue-200 px-3 py-2 text-left text-blue-700">範例</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="hover:bg-blue-50">
+                                        <td class="border border-gray-200 px-3 py-2">物件建立邏輯很複雜，想隱藏細節</td>
+                                        <td class="border border-gray-200 px-3 py-2 font-bold text-blue-600">Factory Method</td>
+                                        <td class="border border-gray-200 px-3 py-2 text-gray-500">根據副檔名建立 WordFile / ImageFile</td>
+                                    </tr>
+                                    <tr class="hover:bg-blue-50">
+                                        <td class="border border-gray-200 px-3 py-2">有多個相關物件族群，想一起切換</td>
+                                        <td class="border border-gray-200 px-3 py-2 font-bold text-blue-600">Abstract Factory</td>
+                                        <td class="border border-gray-200 px-3 py-2 text-gray-500">Windows UI 元件 / Mac UI 元件</td>
+                                    </tr>
+                                    <tr class="hover:bg-blue-50">
+                                        <td class="border border-gray-200 px-3 py-2">全系統只需一個實例（共用資源）</td>
+                                        <td class="border border-gray-200 px-3 py-2 font-bold text-blue-600">Singleton</td>
+                                        <td class="border border-gray-200 px-3 py-2 text-gray-500">Logger、設定檔管理器</td>
+                                    </tr>
+                                    <tr class="hover:bg-blue-50">
+                                        <td class="border border-gray-200 px-3 py-2">物件建立步驟複雜，有順序性</td>
+                                        <td class="border border-gray-200 px-3 py-2 font-bold text-blue-600">Builder</td>
+                                        <td class="border border-gray-200 px-3 py-2 text-gray-500">建立 SQL Query、HTTP Request</td>
+                                    </tr>
+                                    <tr class="hover:bg-blue-50">
+                                        <td class="border border-gray-200 px-3 py-2">想複製現有物件（避免重新建立）</td>
+                                        <td class="border border-gray-200 px-3 py-2 font-bold text-blue-600">Prototype</td>
+                                        <td class="border border-gray-200 px-3 py-2 text-gray-500"><span class="bg-yellow-100 text-yellow-700 px-1 rounded text-xs">本系統</span> HistoryManager.cloneNode() 深度複製</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Structural -->
+                    <div class="mb-6">
+                        <h4 class="font-bold text-green-600 mb-3 flex items-center gap-2"><span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-sm">Structural 結構型</span> 如何組合類別？</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm border-collapse">
+                                <thead>
+                                    <tr class="bg-green-50">
+                                        <th class="border border-green-200 px-3 py-2 text-left text-green-700">情境問題</th>
+                                        <th class="border border-green-200 px-3 py-2 text-left text-green-700">模式</th>
+                                        <th class="border border-green-200 px-3 py-2 text-left text-green-700">範例</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="hover:bg-green-50">
+                                        <td class="border border-gray-200 px-3 py-2">樹狀結構，單一物件與群組要統一操作</td>
+                                        <td class="border border-gray-200 px-3 py-2 font-bold text-green-600">Composite</td>
+                                        <td class="border border-gray-200 px-3 py-2 text-gray-500"><span class="bg-yellow-100 text-yellow-700 px-1 rounded text-xs">本系統</span> FileLeaf / DirectoryComposite</td>
+                                    </tr>
+                                    <tr class="hover:bg-green-50">
+                                        <td class="border border-gray-200 px-3 py-2">想動態為物件新增功能，不用繼承</td>
+                                        <td class="border border-gray-200 px-3 py-2 font-bold text-green-600">Decorator</td>
+                                        <td class="border border-gray-200 px-3 py-2 text-gray-500">為檔案加標籤、為文字加底線/粗體</td>
+                                    </tr>
+                                    <tr class="hover:bg-green-50">
+                                        <td class="border border-gray-200 px-3 py-2">兩個不相容的介面需要合作</td>
+                                        <td class="border border-gray-200 px-3 py-2 font-bold text-green-600">Adapter</td>
+                                        <td class="border border-gray-200 px-3 py-2 text-gray-500">舊版 API 包裝成新版介面</td>
+                                    </tr>
+                                    <tr class="hover:bg-green-50">
+                                        <td class="border border-gray-200 px-3 py-2">想簡化複雜子系統的使用介面</td>
+                                        <td class="border border-gray-200 px-3 py-2 font-bold text-green-600">Facade</td>
+                                        <td class="border border-gray-200 px-3 py-2 text-gray-500">封裝複雜的第三方 Library</td>
+                                    </tr>
+                                    <tr class="hover:bg-green-50">
+                                        <td class="border border-gray-200 px-3 py-2">大量相似物件佔用太多記憶體</td>
+                                        <td class="border border-gray-200 px-3 py-2 font-bold text-green-600">Flyweight</td>
+                                        <td class="border border-gray-200 px-3 py-2 text-gray-500">遊戲地圖中大量重複的樹木/磚塊</td>
+                                    </tr>
+                                    <tr class="hover:bg-green-50">
+                                        <td class="border border-gray-200 px-3 py-2">控制物件存取、延遲載入或加入快取</td>
+                                        <td class="border border-gray-200 px-3 py-2 font-bold text-green-600">Proxy</td>
+                                        <td class="border border-gray-200 px-3 py-2 text-gray-500">圖片延遲載入、存取權限控管</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Behavioral -->
+                    <div>
+                        <h4 class="font-bold text-purple-600 mb-3 flex items-center gap-2"><span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-sm">Behavioral 行為型</span> 如何協調物件互動？</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm border-collapse">
+                                <thead>
+                                    <tr class="bg-purple-50">
+                                        <th class="border border-purple-200 px-3 py-2 text-left text-purple-700">情境問題</th>
+                                        <th class="border border-purple-200 px-3 py-2 text-left text-purple-700">模式</th>
+                                        <th class="border border-purple-200 px-3 py-2 text-left text-purple-700">範例</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="hover:bg-purple-50">
+                                        <td class="border border-gray-200 px-3 py-2">要對結構中每個元素執行不同操作，且元素種類多</td>
+                                        <td class="border border-gray-200 px-3 py-2 font-bold text-purple-600">Visitor</td>
+                                        <td class="border border-gray-200 px-3 py-2 text-gray-500"><span class="bg-yellow-100 text-yellow-700 px-1 rounded text-xs">本系統</span> SizeCalculator / XMLExport</td>
+                                    </tr>
+                                    <tr class="hover:bg-purple-50">
+                                        <td class="border border-gray-200 px-3 py-2">需要 Undo / Redo、操作記錄</td>
+                                        <td class="border border-gray-200 px-3 py-2 font-bold text-purple-600">Memento</td>
+                                        <td class="border border-gray-200 px-3 py-2 text-gray-500"><span class="bg-yellow-100 text-yellow-700 px-1 rounded text-xs">本系統</span> HistoryManager undoStack</td>
+                                    </tr>
+                                    <tr class="hover:bg-purple-50">
+                                        <td class="border border-gray-200 px-3 py-2">一個事件發生，多個物件需要被通知</td>
+                                        <td class="border border-gray-200 px-3 py-2 font-bold text-purple-600">Observer</td>
+                                        <td class="border border-gray-200 px-3 py-2 text-gray-500">UI 狀態變更通知、event listener</td>
+                                    </tr>
+                                    <tr class="hover:bg-purple-50">
+                                        <td class="border border-gray-200 px-3 py-2">演算法有多種變體，想動態切換</td>
+                                        <td class="border border-gray-200 px-3 py-2 font-bold text-purple-600">Strategy</td>
+                                        <td class="border border-gray-200 px-3 py-2 text-gray-500"><span class="bg-yellow-100 text-yellow-700 px-1 rounded text-xs">本系統</span> sortChildren 依名稱/大小/副檔名</td>
+                                    </tr>
+                                    <tr class="hover:bg-purple-50">
+                                        <td class="border border-gray-200 px-3 py-2">流程骨架固定，但某些步驟需客製化</td>
+                                        <td class="border border-gray-200 px-3 py-2 font-bold text-purple-600">Template Method</td>
+                                        <td class="border border-gray-200 px-3 py-2 text-gray-500">報表生成流程：取資料→格式化→輸出</td>
+                                    </tr>
+                                    <tr class="hover:bg-purple-50">
+                                        <td class="border border-gray-200 px-3 py-2">物件狀態改變時，行為也要跟著改變</td>
+                                        <td class="border border-gray-200 px-3 py-2 font-bold text-purple-600">State</td>
+                                        <td class="border border-gray-200 px-3 py-2 text-gray-500">訂單狀態：待付款→已付款→已出貨</td>
+                                    </tr>
+                                    <tr class="hover:bg-purple-50">
+                                        <td class="border border-gray-200 px-3 py-2">請求需要依序經過多個處理者</td>
+                                        <td class="border border-gray-200 px-3 py-2 font-bold text-purple-600">Chain of Responsibility</td>
+                                        <td class="border border-gray-200 px-3 py-2 text-gray-500">HTTP middleware、權限審核流程</td>
+                                    </tr>
+                                    <tr class="hover:bg-purple-50">
+                                        <td class="border border-gray-200 px-3 py-2">遍歷集合而不暴露內部結構</td>
+                                        <td class="border border-gray-200 px-3 py-2 font-bold text-purple-600">Iterator</td>
+                                        <td class="border border-gray-200 px-3 py-2 text-gray-500">for...of、Java Iterator</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: 本系統的選擇理由 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-bold text-blue-700 mb-4">💡 Step 3：本檔案系統為何選這些模式？</h3>
+                    <div class="space-y-4">
+
+                        <div class="flex gap-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                            <div class="text-3xl">🌲</div>
+                            <div>
+                                <div class="font-bold text-green-700">Composite — 因為資料結構是樹狀</div>
+                                <p class="text-sm text-gray-600 mt-1">資料夾可以包含檔案，也可以包含資料夾。需要對單一檔案和整個資料夾執行相同操作（如計算大小），<strong>Composite</strong> 讓兩者統一介面。</p>
+                                <div class="mt-2 text-xs text-gray-400">問自己：「我的資料是樹狀的嗎？」→ Yes → 考慮 Composite</div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                            <div class="text-3xl">👁️</div>
+                            <div>
+                                <div class="font-bold text-purple-700">Visitor — 因為操作種類會持續增加</div>
+                                <p class="text-sm text-gray-600 mt-1">計算大小、搜尋、顯示樹狀、XML 匯出... 這些操作未來還會繼續增加。如果每個操作都寫進 FileLeaf / DirectoryComposite，類別會越來越龐大。<strong>Visitor</strong> 讓新操作獨立成類別，不改動原有程式碼。</p>
+                                <div class="mt-2 text-xs text-gray-400">問自己：「我會一直新增對資料結構的操作嗎？」→ Yes → 考慮 Visitor</div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
+                            <div class="text-3xl">⏪</div>
+                            <div>
+                                <div class="font-bold text-amber-700">Memento — 因為需要 Undo / Redo</div>
+                                <p class="text-sm text-gray-600 mt-1">使用者需要能撤銷操作。<strong>Memento</strong> 在每次操作前儲存完整快照，不需要了解內部狀態就能還原。代價是記憶體空間。</p>
+                                <div class="mt-2 text-xs text-gray-400">問自己：「使用者需要撤銷嗎？」→ Yes → 考慮 Memento 或 Command</div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <div class="text-3xl">🔀</div>
+                            <div>
+                                <div class="font-bold text-blue-700">Strategy（排序）— 因為排序規則可以切換</div>
+                                <p class="text-sm text-gray-600 mt-1">依名稱、依大小、依副檔名排序是三種不同演算法。用 <strong>Strategy</strong> 概念讓 <code class="bg-white px-1 rounded text-xs">sortBy</code> 參數動態決定比較邏輯，無需 if/else 到處散落。</p>
+                                <div class="mt-2 text-xs text-gray-400">問自己：「同一件事有多種做法，想動態切換？」→ Yes → 考慮 Strategy</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Step 4: 常見誤區 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-bold text-red-600 mb-4">⚠️ 常見誤區：不要這樣選模式</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 bg-red-50 rounded-lg border border-red-200">
+                            <div class="font-bold text-red-700 mb-1">❌ 先選模式，再套問題</div>
+                            <p class="text-xs text-gray-600">「我要用 Singleton！」→ 然後硬套。應該是先描述問題，再找匹配的模式。</p>
+                        </div>
+                        <div class="p-4 bg-red-50 rounded-lg border border-red-200">
+                            <div class="font-bold text-red-700 mb-1">❌ 把所有模式都用上</div>
+                            <p class="text-xs text-gray-600">模式越多不代表設計越好。每個模式都增加抽象層，小專案過度設計反而難以維護。</p>
+                        </div>
+                        <div class="p-4 bg-red-50 rounded-lg border border-red-200">
+                            <div class="font-bold text-red-700 mb-1">❌ 只看模式名稱，不看問題情境</div>
+                            <p class="text-xs text-gray-600">Visitor 和 Iterator 都能遍歷集合，但目的不同。要理解「解決什麼問題」，不是「長什麼樣子」。</p>
+                        </div>
+                        <div class="p-4 bg-red-50 rounded-lg border border-red-200">
+                            <div class="font-bold text-red-700 mb-1">❌ 過早引入模式</div>
+                            <p class="text-xs text-gray-600">先寫直觀的程式碼。當你發現「這段程式一直在重複」或「這邊很難擴展」時，才是引入模式的時機。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 黃金原則 -->
+                <div class="bg-gradient-to-r from-yellow-50 to-amber-50 p-6 rounded-xl border border-yellow-300">
+                    <h3 class="text-lg font-bold text-yellow-700 mb-3">🌟 選擇設計模式的黃金流程</h3>
+                    <div class="flex flex-wrap gap-2 items-center text-sm">
+                        <div class="bg-white px-3 py-2 rounded-lg border border-yellow-200 font-bold text-yellow-700">1. 描述你的痛點</div>
+                        <div class="text-yellow-400 font-bold">→</div>
+                        <div class="bg-white px-3 py-2 rounded-lg border border-yellow-200 font-bold text-yellow-700">2. 找出變化點在哪</div>
+                        <div class="text-yellow-400 font-bold">→</div>
+                        <div class="bg-white px-3 py-2 rounded-lg border border-yellow-200 font-bold text-yellow-700">3. 對應上方表格</div>
+                        <div class="text-yellow-400 font-bold">→</div>
+                        <div class="bg-white px-3 py-2 rounded-lg border border-yellow-200 font-bold text-yellow-700">4. 確認代價值得嗎</div>
+                        <div class="text-yellow-400 font-bold">→</div>
+                        <div class="bg-white px-3 py-2 rounded-lg border border-yellow-200 font-bold text-yellow-700">5. 實作</div>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-3">💬 記住：<strong>設計模式是工具，不是目標。</strong> 能解決問題的最簡單方案，才是最好的設計。</p>
+                </div>
+
             </section>
         </div>
     </div>
