@@ -17,35 +17,132 @@
         }
     </script>
     <style>
-        html { scroll-behavior: smooth; scroll-padding-top: 7.5rem; }
+        html { scroll-behavior: smooth; scroll-padding-top: 4.5rem; }
         body { background: #fff7f2; }
+        main { overflow-x: clip; }   /* 進場動畫的位移不撐寬頁面（clip 不影響 sticky） */
         .dark body { background: #1c1917; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { scrollbar-width: none; }
         .card { background: #fff; border: 1px solid #fde2d6; border-radius: 1.5rem; box-shadow: 0 2px 10px rgba(244, 114, 94, 0.06); }
         .dark .card { background: #292524; border-color: #44403c; box-shadow: none; }
-        .tl-item { position: relative; padding-left: 1.9rem; padding-bottom: 1.5rem; }
-        .tl-item::before { content: ''; position: absolute; left: 0.45rem; top: 0.4rem; bottom: 0; width: 2px; background: repeating-linear-gradient(#fda4af 0 6px, transparent 6px 10px); }
-        .tl-item:last-child::before { display: none; }
-        .tl-dot { position: absolute; left: 0; top: 0.25rem; width: 1rem; height: 1rem; border-radius: 9999px; background: #fb7185; box-shadow: 0 0 0 4px #ffe4e6; }
-        .dark .tl-dot { box-shadow: 0 0 0 4px #4c0519; }
-        .tl-item.is-staff .tl-dot { background: #f59e0b; box-shadow: 0 0 0 4px #fef3c7; }
-        .dark .tl-item.is-staff .tl-dot { box-shadow: 0 0 0 4px #451a03; }
+
+        /* Hero：標題逐行浮現、漂浮花瓣與愛心 */
+        .line-mask { display: block; overflow: hidden; padding-bottom: 0.1em; }
+        .line-in { display: inline-block; transform: translateY(110%); transition: transform 0.9s cubic-bezier(.2,.8,.2,1); }
+        .loaded .line-in { transform: none; }
+        .loaded .line-mask:nth-child(2) .line-in { transition-delay: 0.15s; }
+        .fade-up { opacity: 0; transform: translateY(16px); transition: opacity 0.8s ease, transform 0.8s ease; }
+        .loaded .fade-up { opacity: 1; transform: none; }
+        .loaded .fade-up.d1 { transition-delay: 0.35s; } .loaded .fade-up.d2 { transition-delay: 0.55s; } .loaded .fade-up.d3 { transition-delay: 0.75s; }
         .petals { position: absolute; inset: 0; pointer-events: none; background-image:
             radial-gradient(4px 3px at 30px 40px, #fecdd3, transparent), radial-gradient(3px 4px at 140px 110px, #fde68a, transparent),
             radial-gradient(4px 3px at 230px 30px, #fbcfe8, transparent), radial-gradient(3px 3px at 300px 150px, #fecdd3, transparent),
             radial-gradient(4px 3px at 90px 170px, #fed7aa, transparent);
-            background-size: 340px 200px; opacity: 0.9; animation: petals 18s linear infinite; }
+            background-size: 340px 200px; animation: petals 18s linear infinite; }
         @keyframes petals { from { background-position: 0 0; } to { background-position: -80px 400px; } }
-        .check input:checked + span { text-decoration: line-through; opacity: 0.5; }
-        @media (prefers-reduced-motion: reduce) { .petals { animation: none; } html { scroll-behavior: auto; } }
+        .float-heart { animation: float-heart 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+        @keyframes float-heart { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-8px) scale(1.12); } }
+        .sway { animation: sway 4s ease-in-out infinite; transform-box: fill-box; transform-origin: bottom center; }
+        .sway.alt { animation-delay: -2s; }
+        @keyframes sway { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+        .bounce-y { animation: bounce-y 1.8s ease-in-out infinite; }
+        @keyframes bounce-y { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+
+        /* 捲動進場 */
+        .reveal { opacity: 0; transform: translateY(32px); transition: opacity 0.8s ease, transform 0.8s cubic-bezier(.2,.8,.2,1); }
+        .reveal.in { opacity: 1; transform: none; }
+        .reveal.pop { transform: translateY(24px) scale(0.92); }
+        .reveal.pop.in { transform: none; }
+        .reveal.from-left { transform: translateX(-36px); }
+        .reveal.from-right { transform: translateX(36px); }
+        .reveal.from-left.in, .reveal.from-right.in { transform: none; }
+        .stagger > * { opacity: 0; transform: translateY(22px) scale(0.96); transition: opacity 0.6s ease, transform 0.6s cubic-bezier(.2,1.3,.4,1); }
+        .stagger.in > * { opacity: 1; transform: none; }
+        .stagger.in > *:nth-child(2) { transition-delay: 0.08s; } .stagger.in > *:nth-child(3) { transition-delay: 0.16s; }
+        .stagger.in > *:nth-child(4) { transition-delay: 0.24s; } .stagger.in > *:nth-child(5) { transition-delay: 0.32s; }
+        .stagger.in > *:nth-child(6) { transition-delay: 0.40s; }
+
+        /* 時間軸：線條隨捲動畫出、每個時段依序亮起 */
+        .tl { position: relative; }
+        .tl-track { position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem; width: 2px; background: #fde2d6; }
+        .dark .tl-track { background: #44403c; }
+        .tl-fill { position: absolute; left: 0.45rem; top: 0.5rem; width: 2px; height: 0; background: linear-gradient(#fb7185, #f59e0b); transition: height 0.2s linear; }
+        .tl-item { position: relative; padding-left: 2rem; padding-bottom: 2rem; opacity: 0.25; transform: translateX(10px); transition: opacity 0.5s ease, transform 0.5s ease; }
+        .tl-item:last-child { padding-bottom: 0; }
+        .tl-item.lit { opacity: 1; transform: none; }
+        .tl-dot { position: absolute; left: 0; top: 0.2rem; width: 1rem; height: 1rem; border-radius: 9999px; background: #d6d3d1; transition: background-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s cubic-bezier(.2,1.6,.4,1); }
+        .tl-item.lit .tl-dot { background: #fb7185; box-shadow: 0 0 0 5px #ffe4e6; transform: scale(1.15); }
+        .tl-item.is-staff.lit .tl-dot { background: #f59e0b; box-shadow: 0 0 0 5px #fef3c7; }
+        .dark .tl-item.lit .tl-dot { box-shadow: 0 0 0 5px #4c0519; }
+        .dark .tl-item.is-staff.lit .tl-dot { box-shadow: 0 0 0 5px #451a03; }
+
+        /* 賓客動線舞台 */
+        #guestToken { transition: transform 1s cubic-bezier(.65,0,.35,1); }
+        .zone { transition: filter 0.4s ease; }
+        .stage[data-step="0"] .zone[data-z="0"], .stage[data-step="1"] .zone[data-z="1"], .stage[data-step="2"] .zone[data-z="2"],
+        .stage[data-step="3"] .zone[data-z="3"] { filter: drop-shadow(0 0 7px rgba(251, 113, 133, 0.8)); }
+        .table { transition: opacity 0.4s ease; transform-box: fill-box; transform-origin: center; }
+        .stage:not([data-step="4"]) .table { opacity: 0.35; }
+        .stage[data-step="4"] .table { animation: table-pop 0.6s cubic-bezier(.2,1.6,.4,1) backwards; animation-delay: calc(var(--i) * 0.05s); }
+        .stage[data-step="4"] .table.target { animation: table-pop 0.6s cubic-bezier(.2,1.6,.4,1) backwards, pulse 1.4s ease-in-out 0.9s infinite; }
+        @keyframes table-pop { from { transform: scale(0.3); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+        .walk { animation: walk 0.5s ease-in-out infinite; transform-box: fill-box; transform-origin: bottom center; }
+        @keyframes walk { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-3px) rotate(4deg); } }
+        .step-card { transition: opacity 0.5s ease, transform 0.5s ease; }
+        .step:not(.active) .step-card { opacity: 0.35; transform: scale(0.97); }
+        .step-bubble { opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease 0.7s, transform 0.4s ease 0.7s; }
+        .stage[data-step="1"] .step-bubble[data-b="1"], .stage[data-step="2"] .step-bubble[data-b="2"],
+        .stage[data-step="3"] .step-bubble[data-b="3"], .stage[data-step="4"] .step-bubble[data-b="4"] { opacity: 1; transform: none; }
+
+        /* 卡片掉進籃子 */
+        .drop { opacity: 0; transform: translateY(-70px) rotate(-20deg); transition: opacity 0.3s ease, transform 0.8s cubic-bezier(.3,1.5,.5,1); transform-box: fill-box; transform-origin: center; }
+        .in .drop { opacity: 1; transform: none; }
+        .in .drop.d2 { transition-delay: 0.35s; } .in .drop.d3 { transition-delay: 0.7s; }
+
+        /* 光線切換 */
+        #lightScene .sky { transition: fill 0.8s ease; }
+        #lightScene .sun, #lightScene .moon, #lightScene .star { transition: transform 0.8s cubic-bezier(.65,0,.35,1), opacity 0.6s ease; transform-box: fill-box; transform-origin: center; }
+        #lightScene[data-light="dark"] .sun { transform: translateY(60px); opacity: 0; }
+        #lightScene[data-light="bright"] .moon { transform: translateY(60px); opacity: 0; }
+        #lightScene[data-light="bright"] .star { opacity: 0; }
+        #lightScene .win { transition: fill 0.8s ease; }
+        #lightScene[data-light="dark"] .win { fill: #fbbf24; }
+        .device { transition: opacity 0.5s ease, transform 0.5s cubic-bezier(.2,1.4,.4,1), box-shadow 0.5s ease; }
+        .device.dim { opacity: 0.45; transform: scale(0.97); }
+        .device.pick { box-shadow: 0 0 0 3px #fb7185, 0 10px 30px rgba(251, 113, 133, 0.25); transform: translateY(-4px); }
+        .pick-badge { opacity: 0; transform: scale(0.6); transition: opacity 0.3s ease, transform 0.4s cubic-bezier(.2,1.6,.4,1); }
+        .device.pick .pick-badge { opacity: 1; transform: none; }
+
+        /* 浮動跳點 */
+        #jumpRail { opacity: 0; transform: translate(16px, -50%); pointer-events: none; transition: opacity 0.4s ease, transform 0.4s ease; }
+        #jumpRail.show { opacity: 1; transform: translate(0, -50%); pointer-events: auto; }
+        .rail-link .rail-label { opacity: 0; transform: translateX(6px); transition: opacity 0.25s ease, transform 0.25s ease; }
+        .rail-link:hover .rail-label, .rail-link.active .rail-label { opacity: 1; transform: none; }
+        .rail-link .rail-dot { transition: transform 0.3s cubic-bezier(.2,1.6,.4,1), background-color 0.3s ease; }
+        .rail-link.active .rail-dot { transform: scale(1.5); background: #fb7185; }
+        #jumpFab { opacity: 0; transform: translateY(20px) scale(0.9); pointer-events: none; transition: opacity 0.4s ease, transform 0.4s cubic-bezier(.2,1.4,.4,1); }
+        #jumpFab.show { opacity: 1; transform: none; pointer-events: auto; }
+        #jumpSheet { transform: translateY(110%); transition: transform 0.45s cubic-bezier(.2,.9,.2,1); }
+        #jumpSheet.open { transform: none; }
+        #jumpBackdrop { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        #jumpBackdrop.open { opacity: 1; pointer-events: auto; }
+
+        .check-row input:checked + span { text-decoration: line-through; opacity: 0.5; }
+        .check-row input { transition: transform 0.3s cubic-bezier(.2,1.8,.4,1); }
+        .check-row input:checked { transform: scale(1.2); }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; transition-delay: 0s !important; }
+            .reveal, .fade-up, .stagger > *, .drop, .tl-item { opacity: 1 !important; transform: none !important; }
+            .line-in { transform: none; }
+            html { scroll-behavior: auto; }
+        }
     </style>
 </head>
 <body class="text-stone-800 dark:text-stone-100 antialiased transition-colors">
 
     <!-- Header -->
     <nav class="sticky top-0 z-50 bg-[#fff7f2]/90 dark:bg-stone-900/90 backdrop-blur-md border-b border-rose-100 dark:border-stone-800">
-        <div class="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
             <a href="index.html#projects" class="flex items-center text-sm font-medium hover:text-rose-500 transition-colors">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                 回到首頁
@@ -56,61 +153,69 @@
                 <svg id="moonIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
             </button>
         </div>
-        <div class="max-w-4xl mx-auto px-4 pb-2 flex gap-2 overflow-x-auto no-scrollbar text-xs font-semibold">
-            <a href="#overview" class="shrink-0 px-3 py-1.5 rounded-full bg-rose-100/70 dark:bg-stone-800 hover:bg-rose-200 dark:hover:bg-rose-900/50">總覽</a>
-            <a href="#timeline" class="shrink-0 px-3 py-1.5 rounded-full bg-rose-100/70 dark:bg-stone-800 hover:bg-rose-200 dark:hover:bg-rose-900/50">時間軸</a>
-            <a href="#map" class="shrink-0 px-3 py-1.5 rounded-full bg-rose-100/70 dark:bg-stone-800 hover:bg-rose-200 dark:hover:bg-rose-900/50">場地示意</a>
-            <a href="#team" class="shrink-0 px-3 py-1.5 rounded-full bg-rose-100/70 dark:bg-stone-800 hover:bg-rose-200 dark:hover:bg-rose-900/50">分工</a>
-            <a href="#task1" class="shrink-0 px-3 py-1.5 rounded-full bg-rose-100/70 dark:bg-stone-800 hover:bg-rose-200 dark:hover:bg-rose-900/50">任務一 祝福卡片</a>
-            <a href="#task2" class="shrink-0 px-3 py-1.5 rounded-full bg-rose-100/70 dark:bg-stone-800 hover:bg-rose-200 dark:hover:bg-rose-900/50">任務二 拍照相簿</a>
-            <a href="#guests" class="shrink-0 px-3 py-1.5 rounded-full bg-rose-100/70 dark:bg-stone-800 hover:bg-rose-200 dark:hover:bg-rose-900/50">賓客動線</a>
-            <a href="#checklist" class="shrink-0 px-3 py-1.5 rounded-full bg-rose-100/70 dark:bg-stone-800 hover:bg-rose-200 dark:hover:bg-rose-900/50">物品清單</a>
-            <a href="#notes" class="shrink-0 px-3 py-1.5 rounded-full bg-rose-100/70 dark:bg-stone-800 hover:bg-rose-200 dark:hover:bg-rose-900/50">注意事項</a>
-        </div>
+        <div id="progress" class="absolute left-0 bottom-0 h-0.5 w-full origin-left bg-gradient-to-r from-rose-400 to-amber-400" style="transform: scaleX(0)"></div>
     </nav>
 
+    <!-- 浮動跳點：桌面版右側圓點、手機版右下角按鈕 -->
+    <nav id="jumpRail" class="hidden md:flex fixed right-5 top-1/2 z-40 flex-col items-end gap-3" aria-label="快速跳到"></nav>
+    <button id="jumpFab" class="md:hidden fixed right-4 bottom-5 z-40 flex items-center gap-2 pl-3 pr-4 py-2.5 rounded-full bg-rose-500 text-white text-sm font-bold shadow-lg shadow-rose-500/30" aria-label="快速跳到">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h10"></path></svg>
+        <span id="jumpFabLabel">跳到</span>
+    </button>
+    <div id="jumpBackdrop" class="md:hidden fixed inset-0 z-40 bg-stone-900/40"></div>
+    <div id="jumpSheet" class="md:hidden fixed inset-x-0 bottom-0 z-50 rounded-t-3xl bg-white dark:bg-stone-800 p-5 pb-8 shadow-2xl">
+        <div class="mx-auto mb-4 h-1.5 w-10 rounded-full bg-stone-200 dark:bg-stone-600"></div>
+        <p class="text-xs font-bold text-stone-400 mb-3">想看哪一段？</p>
+        <div id="jumpSheetList" class="grid grid-cols-2 gap-2"></div>
+    </div>
+
     <!-- Hero -->
-    <header class="relative overflow-hidden">
+    <header id="top" class="relative overflow-hidden">
         <div class="petals"></div>
-        <div class="relative max-w-4xl mx-auto px-4 pt-10 pb-8 text-center">
-            <p class="text-xs font-bold tracking-[0.3em] text-rose-400 uppercase">Wedding Crew Guide</p>
-            <h1 class="mt-3 text-3xl md:text-5xl font-bold">蔡侑霖 <span class="text-rose-400">&amp;</span> 詹瑜維</h1>
-            <p class="mt-3 text-stone-600 dark:text-stone-300">謝謝你們願意來幫忙 💐 這頁是當天的小抄，什麼時候、在哪裡、做什麼，都在這裡。</p>
+        <div class="relative max-w-4xl mx-auto px-4 pt-8 pb-10 text-center min-h-[calc(100svh-3.5rem)] flex flex-col justify-center">
+            <p class="fade-up text-xs font-bold tracking-[0.3em] text-rose-400 uppercase">Wedding Crew Guide</p>
+            <h1 class="mt-3 text-4xl md:text-6xl font-bold leading-tight">
+                <span class="line-mask"><span class="line-in">蔡侑霖 <span class="text-rose-400">&amp;</span></span></span>
+                <span class="line-mask"><span class="line-in">詹瑜維</span></span>
+            </h1>
+            <p class="fade-up d1 mt-3 text-stone-600 dark:text-stone-300">當天流程小抄：什麼時候、在哪裡、做什麼。</p>
 
             <!-- Q版新人 -->
-            <svg class="mx-auto mt-6 w-64 md:w-80" viewBox="0 0 240 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Q版新郎新娘">
-                <!-- arch -->
+            <svg class="fade-up d1 mx-auto mt-6 w-64 md:w-80" viewBox="0 0 240 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Q版新郎新娘">
                 <path d="M30 145 V70 A90 70 0 0 1 210 70 V145" fill="none" stroke="#fda4af" stroke-width="5" stroke-linecap="round"/>
                 <g fill="#fb7185"><circle cx="30" cy="80" r="6"/><circle cx="60" cy="28" r="6"/><circle cx="120" cy="12" r="7"/><circle cx="180" cy="28" r="6"/><circle cx="210" cy="80" r="6"/></g>
                 <g fill="#86efac"><ellipse cx="42" cy="54" rx="6" ry="3" transform="rotate(-50 42 54)"/><ellipse cx="90" cy="16" rx="6" ry="3" transform="rotate(-15 90 16)"/><ellipse cx="150" cy="16" rx="6" ry="3" transform="rotate(15 150 16)"/><ellipse cx="198" cy="54" rx="6" ry="3" transform="rotate(50 198 54)"/></g>
-                <!-- groom -->
-                <g transform="translate(82 52)">
-                    <path d="M-22 92 Q-24 58 0 54 Q24 58 22 92 Z" fill="#334155"/>
-                    <path d="M-6 56 L0 70 L6 56 Z" fill="#fff"/>
-                    <path d="M-6 60 L0 64 L6 60 L6 68 L0 64 L-6 68 Z" fill="#fb7185"/>
-                    <circle cx="0" cy="30" r="26" fill="#fde2cf"/>
-                    <path d="M-26 28 Q-26 2 0 2 Q26 2 26 26 Q18 12 4 16 Q-10 10 -26 28 Z" fill="#292524"/>
-                    <circle cx="-9" cy="33" r="3" fill="#292524"/><circle cx="9" cy="33" r="3" fill="#292524"/>
-                    <ellipse cx="-16" cy="41" rx="5" ry="3" fill="#fda4af" opacity=".7"/><ellipse cx="16" cy="41" rx="5" ry="3" fill="#fda4af" opacity=".7"/>
-                    <path d="M-5 43 Q0 48 5 43" stroke="#292524" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <g class="sway">
+                    <g transform="translate(82 52)">
+                        <path d="M-22 92 Q-24 58 0 54 Q24 58 22 92 Z" fill="#334155"/>
+                        <path d="M-6 56 L0 70 L6 56 Z" fill="#fff"/>
+                        <path d="M-6 60 L0 64 L6 60 L6 68 L0 64 L-6 68 Z" fill="#fb7185"/>
+                        <circle cx="0" cy="30" r="26" fill="#fde2cf"/>
+                        <path d="M-26 28 Q-26 2 0 2 Q26 2 26 26 Q18 12 4 16 Q-10 10 -26 28 Z" fill="#292524"/>
+                        <circle cx="-9" cy="33" r="3" fill="#292524"/><circle cx="9" cy="33" r="3" fill="#292524"/>
+                        <ellipse cx="-16" cy="41" rx="5" ry="3" fill="#fda4af" opacity=".7"/><ellipse cx="16" cy="41" rx="5" ry="3" fill="#fda4af" opacity=".7"/>
+                        <path d="M-5 43 Q0 48 5 43" stroke="#292524" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
                 </g>
-                <!-- bride -->
-                <g transform="translate(158 52)">
-                    <path d="M-30 4 Q-38 60 -34 90 L34 90 Q38 60 30 4 Q0 -8 -30 4 Z" fill="#fff1f2" opacity=".9"/>
-                    <path d="M-28 92 Q-18 56 0 54 Q18 56 28 92 Z" fill="#fff" stroke="#fecdd3" stroke-width="2"/>
-                    <circle cx="0" cy="30" r="26" fill="#fde2cf"/>
-                    <path d="M-27 40 Q-30 2 0 2 Q30 2 27 40 Q22 18 6 14 Q-14 16 -27 40 Z" fill="#57534e"/>
-                    <g fill="#fb7185"><circle cx="-14" cy="6" r="4"/><circle cx="-6" cy="2" r="4"/><circle cx="3" cy="2" r="3.5"/></g>
-                    <circle cx="-9" cy="33" r="3" fill="#292524"/><circle cx="9" cy="33" r="3" fill="#292524"/>
-                    <ellipse cx="-16" cy="41" rx="5" ry="3" fill="#fda4af" opacity=".7"/><ellipse cx="16" cy="41" rx="5" ry="3" fill="#fda4af" opacity=".7"/>
-                    <path d="M-5 43 Q0 48 5 43" stroke="#292524" stroke-width="2" fill="none" stroke-linecap="round"/>
-                    <!-- bouquet -->
-                    <g transform="translate(-30 70)"><circle r="7" fill="#fb7185"/><circle cx="8" cy="-3" r="6" fill="#fda4af"/><circle cx="3" cy="6" r="5" fill="#fcd34d"/></g>
+                <g class="sway alt">
+                    <g transform="translate(158 52)">
+                        <path d="M-30 4 Q-38 60 -34 90 L34 90 Q38 60 30 4 Q0 -8 -30 4 Z" fill="#fff1f2" opacity=".9"/>
+                        <path d="M-28 92 Q-18 56 0 54 Q18 56 28 92 Z" fill="#fff" stroke="#fecdd3" stroke-width="2"/>
+                        <circle cx="0" cy="30" r="26" fill="#fde2cf"/>
+                        <path d="M-27 40 Q-30 2 0 2 Q30 2 27 40 Q22 18 6 14 Q-14 16 -27 40 Z" fill="#57534e"/>
+                        <g fill="#fb7185"><circle cx="-14" cy="6" r="4"/><circle cx="-6" cy="2" r="4"/><circle cx="3" cy="2" r="3.5"/></g>
+                        <circle cx="-9" cy="33" r="3" fill="#292524"/><circle cx="9" cy="33" r="3" fill="#292524"/>
+                        <ellipse cx="-16" cy="41" rx="5" ry="3" fill="#fda4af" opacity=".7"/><ellipse cx="16" cy="41" rx="5" ry="3" fill="#fda4af" opacity=".7"/>
+                        <path d="M-5 43 Q0 48 5 43" stroke="#292524" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <g transform="translate(-30 70)"><circle r="7" fill="#fb7185"/><circle cx="8" cy="-3" r="6" fill="#fda4af"/><circle cx="3" cy="6" r="5" fill="#fcd34d"/></g>
+                    </g>
                 </g>
-                <path d="M114 70 q6 -8 12 0 q-6 8 -12 0" fill="#fb7185"/>
+                <path class="float-heart" d="M114 70 q6 -8 12 0 q-6 8 -12 0" fill="#fb7185"/>
+                <path class="float-heart" style="animation-delay:-1.2s" d="M104 48 q4 -5 8 0 q-4 5 -8 0" fill="#fda4af"/>
+                <path class="float-heart" style="animation-delay:-2.1s" d="M130 40 q3 -4 6 0 q-3 4 -6 0" fill="#fecdd3"/>
             </svg>
 
-            <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
+            <div class="fade-up d2 mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
                 <div class="card p-4">
                     <p class="text-xs font-bold text-rose-400">📅 日期時間</p>
                     <p class="mt-1 font-bold">2027/1/1（五）18:00</p>
@@ -123,24 +228,31 @@
                     <a class="mt-2 inline-block text-xs font-bold text-rose-500 hover:underline" href="https://www.google.com/maps/search/?api=1&query=%E4%B8%80%E5%BE%B7%E6%B4%8B%E6%A8%93+%E5%8F%B0%E4%B8%AD%E5%B8%82%E5%8C%97%E5%B1%AF%E5%8D%80%E6%96%87%E6%98%8C%E6%9D%B1%E5%8D%81%E4%B8%80%E8%A1%9714%E5%B7%B71%E8%99%9F" target="_blank" rel="noopener noreferrer">用 Google 地圖導航 →</a>
                 </div>
             </div>
-            <p id="countdown" class="mt-4 text-sm font-semibold text-rose-500 dark:text-rose-300"></p>
+            <p id="countdown" class="fade-up d3 mt-4 text-sm font-semibold text-rose-500 dark:text-rose-300"></p>
+            <a href="#overview" class="fade-up d3 mt-6 mx-auto inline-flex flex-col items-center text-xs font-semibold text-stone-400 hover:text-rose-500">
+                往下滑
+                <svg class="bounce-y w-5 h-5 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </a>
         </div>
     </header>
 
-    <main class="max-w-4xl mx-auto px-4 pb-16 space-y-14">
+    <main class="max-w-5xl mx-auto px-4 pb-24">
 
         <!-- Overview -->
-        <section id="overview">
-            <h2 class="text-2xl font-bold mb-1">🌷 一分鐘看懂</h2>
-            <p class="text-sm text-stone-500 dark:text-stone-400 mb-5">先記住這五件事，其他細節往下看。</p>
-            <div class="grid sm:grid-cols-2 gap-4">
+        <section id="overview" data-jump="🌷 重點" class="py-14">
+            <div class="reveal">
+                <p class="text-xs font-bold tracking-widest text-rose-400">01</p>
+                <h2 class="text-2xl md:text-3xl font-bold mb-1">一分鐘看懂</h2>
+                <p class="text-sm text-stone-500 dark:text-stone-400 mb-6">先記住這幾件事，其他細節往下看。</p>
+            </div>
+            <div class="reveal stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="card p-5 flex gap-4 items-start">
                     <span class="text-3xl">🙅</span>
                     <div><p class="font-bold">禮桌<span class="text-rose-500">不收禮金</span></p><p class="text-sm text-stone-600 dark:text-stone-300">只收給新人的<b>祝福卡片</b>，放進籃子裡。</p></div>
                 </div>
                 <div class="card p-5 flex gap-4 items-start">
                     <span class="text-3xl">📸</span>
-                    <div><p class="font-bold">幫賓客拍照、貼相簿、請他們簽名</p><p class="text-sm text-stone-600 dark:text-stone-300">光線夠用拍立得，太暗改手機＋相印機。</p></div>
+                    <div><p class="font-bold">拍照、貼相簿、請賓客簽名</p><p class="text-sm text-stone-600 dark:text-stone-300">光線夠用拍立得，太暗改手機＋相印機。</p></div>
                 </div>
                 <div class="card p-5 flex gap-4 items-start">
                     <span class="text-3xl">💌</span>
@@ -148,123 +260,189 @@
                 </div>
                 <div class="card p-5 flex gap-4 items-start">
                     <span class="text-3xl">🍽️</span>
-                    <div><p class="font-bold">共 14 桌</p><p class="text-sm text-stone-600 dark:text-stone-300">長輩桌 2 桌＋平輩桌 12 桌（含老師）。</p></div>
+                    <div><p class="font-bold">共 <span class="count" data-to="14">14</span> 桌</p><p class="text-sm text-stone-600 dark:text-stone-300">長輩桌 2 桌＋平輩桌 12 桌（含老師）。</p></div>
                 </div>
-                <div class="card p-5 flex gap-4 items-start sm:col-span-2">
+                <div class="card p-5 flex gap-4 items-start">
                     <span class="text-3xl">💻</span>
-                    <div><p class="font-bold">婚禮前一週有線上會議</p><p class="text-sm text-stone-600 dark:text-stone-300">婚顧會先帶大家線上走過一次流程，看不懂的地方可以在會議上問。</p></div>
+                    <div><p class="font-bold">婚禮前一週線上會議</p><p class="text-sm text-stone-600 dark:text-stone-300">婚顧會先線上帶大家走過一次流程。</p></div>
+                </div>
+                <div class="card p-5 flex gap-4 items-start">
+                    <span class="text-3xl">⏰</span>
+                    <div><p class="font-bold">工作人員 16:00 集合</p><p class="text-sm text-stone-600 dark:text-stone-300">先布置，16:30 Candy Bar 時吃點東西。</p></div>
                 </div>
             </div>
         </section>
 
         <!-- Timeline -->
-        <section id="timeline">
-            <h2 class="text-2xl font-bold mb-1">⏰ 當天時間軸</h2>
-            <p class="text-sm text-stone-500 dark:text-stone-400 mb-5"><span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-500 mr-1"></span>橘點是工作人員要做事的時間；<span class="inline-block w-2.5 h-2.5 rounded-full bg-rose-400 mx-1"></span>粉點是婚禮本身的流程。</p>
-            <div class="card p-6">
-                <div class="tl-item">
-                    <span class="tl-dot"></span>
-                    <p class="text-sm font-bold text-rose-500">12:00</p>
-                    <p class="font-bold">午宴（以長輩親友為主）</p>
-                    <p class="text-sm text-stone-600 dark:text-stone-300">可能需要一位工作人員協助<b>婚紗照輪播</b>，人選還在找。</p>
-                </div>
-                <div class="tl-item is-staff">
-                    <span class="tl-dot"></span>
-                    <p class="text-sm font-bold text-amber-600 dark:text-amber-400">16:00 · 工作人員集合</p>
-                    <p class="font-bold">喜餅裝袋 ＋ 婚禮小物擺上賓客桌</p>
-                    <ul class="mt-1 text-sm text-stone-600 dark:text-stone-300 list-disc pl-5 space-y-1">
-                        <li>先把喜餅一份一份裝進袋子，排整齊放在指定位置。</li>
-                        <li>婚禮小物照座位擺在每一桌、每個位子上（14 桌都要放到）。</li>
-                        <li>順手確認簽到禮桌區的東西都到了（看下面的<a href="#checklist" class="text-rose-500 hover:underline">物品清單</a>）。</li>
-                    </ul>
-                </div>
-                <div class="tl-item is-staff">
-                    <span class="tl-dot"></span>
-                    <p class="text-sm font-bold text-amber-600 dark:text-amber-400">16:30 · Candy Bar 開放</p>
-                    <p class="font-bold">先吃點東西 🍰</p>
-                    <p class="text-sm text-stone-600 dark:text-stone-300">賓客來了就沒空吃了，趁現在填填肚子、上個廁所。拍照組可以順便<b>試拍幾張</b>，看現場光線決定用哪套設備。</p>
-                </div>
-                <div class="tl-item is-staff">
-                    <span class="tl-dot"></span>
-                    <p class="text-sm font-bold text-amber-600 dark:text-amber-400">賓客入場前 · 各就各位</p>
-                    <p class="font-bold">禮桌組到禮桌、拍照組到拍照區</p>
-                    <p class="text-sm text-stone-600 dark:text-stone-300">籃子、相簿、筆擺好；拍立得／相印機開機待命。確切的就位時間以婚顧會議說的為準。</p>
-                </div>
-                <div class="tl-item">
-                    <span class="tl-dot"></span>
-                    <p class="text-sm font-bold text-rose-500">18:00</p>
-                    <p class="font-bold">晚宴開始 🥂</p>
-                    <p class="text-sm text-stone-600 dark:text-stone-300">賓客大致入座後，大家也可以入席。還沒拍到的賓客，可以等用餐空檔再邀請。</p>
+        <section id="timeline" data-jump="⏰ 時間軸" class="py-14">
+            <div class="reveal">
+                <p class="text-xs font-bold tracking-widest text-rose-400">02</p>
+                <h2 class="text-2xl md:text-3xl font-bold mb-1">當天時間軸</h2>
+                <p class="text-sm text-stone-500 dark:text-stone-400 mb-6"><span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-500 mr-1"></span>橘點是工作人員要做事的時間；<span class="inline-block w-2.5 h-2.5 rounded-full bg-rose-400 mx-1"></span>粉點是婚禮本身的流程。</p>
+            </div>
+            <div class="card p-6 md:p-8 max-w-3xl">
+                <div class="tl" id="tl">
+                    <div class="tl-track"></div>
+                    <div class="tl-fill" id="tlFill"></div>
+                    <div class="tl-item">
+                        <span class="tl-dot"></span>
+                        <p class="text-sm font-bold text-rose-500">12:00</p>
+                        <p class="font-bold text-lg">午宴（以長輩親友為主）</p>
+                        <p class="text-sm text-stone-600 dark:text-stone-300">可能需要一位工作人員協助<b>婚紗照輪播</b>，人選還在找。</p>
+                    </div>
+                    <div class="tl-item is-staff">
+                        <span class="tl-dot"></span>
+                        <p class="text-sm font-bold text-amber-600 dark:text-amber-400">16:00 · 工作人員集合</p>
+                        <p class="font-bold text-lg">喜餅裝袋 ＋ 婚禮小物擺上賓客桌 🎁</p>
+                        <ul class="mt-1 text-sm text-stone-600 dark:text-stone-300 list-disc pl-5 space-y-1">
+                            <li>先把喜餅一份一份裝進袋子，排整齊放在指定位置。</li>
+                            <li>婚禮小物照座位擺在每一桌、每個位子上（14 桌都要放到）。</li>
+                            <li>順手確認簽到禮桌區的東西都到了（看<a href="#checklist" class="text-rose-500 hover:underline">物品清單</a>）。</li>
+                        </ul>
+                    </div>
+                    <div class="tl-item is-staff">
+                        <span class="tl-dot"></span>
+                        <p class="text-sm font-bold text-amber-600 dark:text-amber-400">16:30 · Candy Bar 開放</p>
+                        <p class="font-bold text-lg">先吃點東西 🍰</p>
+                        <p class="text-sm text-stone-600 dark:text-stone-300">賓客來了就沒空吃了，趁現在填填肚子、上個廁所。拍照組順便<b>試拍幾張</b>，看現場光線決定用哪套設備。</p>
+                    </div>
+                    <div class="tl-item is-staff">
+                        <span class="tl-dot"></span>
+                        <p class="text-sm font-bold text-amber-600 dark:text-amber-400">賓客入場前 · 各就各位</p>
+                        <p class="font-bold text-lg">禮桌組到禮桌、拍照組到拍照區</p>
+                        <p class="text-sm text-stone-600 dark:text-stone-300">籃子、相簿、筆擺好；拍立得／相印機開機待命。確切的就位時間以婚顧會議說的為準。</p>
+                    </div>
+                    <div class="tl-item">
+                        <span class="tl-dot"></span>
+                        <p class="text-sm font-bold text-rose-500">18:00</p>
+                        <p class="font-bold text-lg">晚宴開始 🥂</p>
+                        <p class="text-sm text-stone-600 dark:text-stone-300">賓客大致入座後，大家也可以入席。還沒拍到的賓客，可以等用餐空檔再邀請。</p>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Map -->
-        <section id="map">
-            <h2 class="text-2xl font-bold mb-1">🏡 場地示意圖</h2>
-            <p class="text-sm text-stone-500 dark:text-stone-400 mb-5">Q 版示意，畫的是動線順序，不是實際比例，實際位置以現場和婚顧安排為準。</p>
-            <div class="card p-4 md:p-6">
-                <svg class="w-full h-auto" viewBox="0 0 420 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="場地動線示意圖" font-family="Inter, 'Noto Sans TC', sans-serif">
-                    <!-- house -->
-                    <rect x="150" y="18" width="250" height="300" rx="16" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
-                    <text x="275" y="40" text-anchor="middle" font-size="12" font-weight="700" fill="#b45309">一德洋樓 · 宴客區</text>
-                    <!-- tables -->
-                    <g id="tables"></g>
-                    <!-- legend -->
-                    <circle cx="176" cy="300" r="7" fill="#fb7185"/><text x="188" y="304" font-size="10" fill="#57534e">長輩桌 ×2</text>
-                    <circle cx="260" cy="300" r="7" fill="#fbbf24"/><text x="272" y="304" font-size="10" fill="#57534e">平輩桌 ×12（含老師）</text>
-                    <!-- path -->
-                    <path d="M70 288 V262 M70 218 V182 M70 138 V102 M130 80 H150" stroke="#fda4af" stroke-width="3" stroke-dasharray="6 5" fill="none" stroke-linecap="round"/>
-                    <!-- entrance -->
-                    <g transform="translate(70 300)"><rect x="-28" y="-12" width="56" height="24" rx="12" fill="#e7e5e4"/><text y="4" text-anchor="middle" font-size="11" font-weight="700" fill="#44403c">入口</text></g>
-                    <!-- signboard -->
-                    <g transform="translate(70 240)">
-                        <rect x="-60" y="-22" width="120" height="44" rx="8" fill="#fff" stroke="#fb7185" stroke-width="2"/>
-                        <g fill="#fecdd3" stroke="#fb7185" stroke-width="1"><rect x="-50" y="-12" width="12" height="9" rx="1"/><rect x="-50" y="2" width="12" height="9" rx="1"/></g>
-                        <text x="8" y="-2" text-anchor="middle" font-size="10" font-weight="700" fill="#be123c">座位看板＋信封</text>
-                        <text x="8" y="12" text-anchor="middle" font-size="9" fill="#78716c">賓客自己找座位</text>
-                    </g>
-                    <!-- gift table -->
-                    <g transform="translate(70 160)">
-                        <rect x="-60" y="-22" width="120" height="44" rx="8" fill="#fff" stroke="#f59e0b" stroke-width="2"/>
-                        <path d="M-50 -4 h16 l-3 12 h-10 z" fill="#d6a76c"/><path d="M-48 -6 q6 -8 12 0" stroke="#92400e" fill="none" stroke-width="1.5"/>
-                        <text x="10" y="-2" text-anchor="middle" font-size="10" font-weight="700" fill="#92400e">簽到禮桌</text>
-                        <text x="10" y="12" text-anchor="middle" font-size="9" fill="#78716c">收祝福卡片（2 人）</text>
-                    </g>
-                    <!-- photo zone -->
-                    <g transform="translate(70 80)">
-                        <rect x="-60" y="-22" width="120" height="44" rx="8" fill="#fff" stroke="#8b5cf6" stroke-width="2"/>
-                        <rect x="-50" y="-8" width="16" height="13" rx="2" fill="#c4b5fd"/><circle cx="-42" cy="-1.5" r="3" fill="#fff"/>
-                        <text x="10" y="-2" text-anchor="middle" font-size="10" font-weight="700" fill="#6d28d9">拍照＋相簿</text>
-                        <text x="10" y="12" text-anchor="middle" font-size="9" fill="#78716c">拍照簽名（3 人）</text>
-                    </g>
-                    <!-- candy bar -->
-                    <g transform="translate(70 24)">
-                        <rect x="-50" y="-12" width="100" height="24" rx="12" fill="#fce7f3" stroke="#ec4899" stroke-width="1.5"/>
-                        <text y="4" text-anchor="middle" font-size="10" font-weight="700" fill="#be185d">🍭 Candy Bar</text>
-                    </g>
-                </svg>
-                <ol class="mt-4 grid sm:grid-cols-4 gap-2 text-xs text-stone-600 dark:text-stone-300">
-                    <li class="rounded-xl bg-stone-100 dark:bg-stone-800 p-2"><b>① 入口</b>：賓客進場</li>
-                    <li class="rounded-xl bg-rose-50 dark:bg-rose-950/40 p-2"><b>② 看板</b>：找自己名字的信封</li>
-                    <li class="rounded-xl bg-amber-50 dark:bg-amber-950/40 p-2"><b>③ 禮桌</b>：投祝福卡片</li>
-                    <li class="rounded-xl bg-violet-50 dark:bg-violet-950/40 p-2"><b>④ 拍照</b>：拍照、貼相簿、簽名，再入座</li>
-                </ol>
+        <!-- Guest flow (scrollytelling) -->
+        <section id="flow" data-jump="🚶 賓客動線" class="py-14">
+            <div class="reveal">
+                <p class="text-xs font-bold tracking-widest text-rose-400">03</p>
+                <h2 class="text-2xl md:text-3xl font-bold mb-1">跟著賓客走一遍</h2>
+                <p class="text-sm text-stone-500 dark:text-stone-400">往下滑，小人會從入口一路走到座位。Q 版示意，不是實際比例，實際位置以現場和婚顧安排為準。</p>
+            </div>
+
+            <div class="md:grid md:grid-cols-2 md:gap-10">
+                <!-- sticky stage -->
+                <div class="sticky top-14 z-20 h-[44svh] md:h-[calc(100vh-3.5rem)] md:order-2 flex items-center justify-center py-3 bg-[#fff7f2] dark:bg-stone-900">
+                    <div id="stage" class="stage card relative h-full md:h-auto md:w-full max-h-full aspect-[420/330] max-w-full p-2 md:p-4" data-step="0">
+                        <svg class="w-full h-full" viewBox="0 0 420 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="場地動線示意圖" font-family="Inter, 'Noto Sans TC', sans-serif">
+                            <rect x="170" y="18" width="240" height="300" rx="16" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                            <text x="290" y="40" text-anchor="middle" font-size="12" font-weight="700" fill="#b45309">一德洋樓 · 宴客區</text>
+                            <g id="tables"></g>
+                            <circle cx="190" cy="300" r="7" fill="#fb7185"/><text x="202" y="304" font-size="10" fill="#57534e">長輩桌 ×2</text>
+                            <circle cx="270" cy="300" r="7" fill="#fbbf24"/><text x="282" y="304" font-size="10" fill="#57534e">平輩桌 ×12（含老師）</text>
+                            <path d="M70 288 V262 M70 218 V182 M70 138 V102 M130 80 H170" stroke="#fda4af" stroke-width="3" stroke-dasharray="6 5" fill="none" stroke-linecap="round"/>
+                            <g class="zone" data-z="0" transform="translate(70 300)"><rect x="-28" y="-12" width="56" height="24" rx="12" fill="#e7e5e4"/><text y="4" text-anchor="middle" font-size="11" font-weight="700" fill="#44403c">入口</text></g>
+                            <g class="zone" data-z="1" transform="translate(70 240)">
+                                <rect x="-60" y="-22" width="120" height="44" rx="8" fill="#fff" stroke="#fb7185" stroke-width="2"/>
+                                <g fill="#fecdd3" stroke="#fb7185" stroke-width="1"><rect x="-50" y="-12" width="12" height="9" rx="1"/><rect x="-50" y="2" width="12" height="9" rx="1"/></g>
+                                <text x="8" y="-2" text-anchor="middle" font-size="10" font-weight="700" fill="#be123c">座位看板＋信封</text>
+                                <text x="8" y="12" text-anchor="middle" font-size="9" fill="#78716c">賓客自己找座位</text>
+                            </g>
+                            <g class="zone" data-z="2" transform="translate(70 160)">
+                                <rect x="-60" y="-22" width="120" height="44" rx="8" fill="#fff" stroke="#f59e0b" stroke-width="2"/>
+                                <path d="M-50 -4 h16 l-3 12 h-10 z" fill="#d6a76c"/><path d="M-48 -6 q6 -8 12 0" stroke="#92400e" fill="none" stroke-width="1.5"/>
+                                <text x="10" y="-2" text-anchor="middle" font-size="10" font-weight="700" fill="#92400e">簽到禮桌</text>
+                                <text x="10" y="12" text-anchor="middle" font-size="9" fill="#78716c">收祝福卡片（2 人）</text>
+                            </g>
+                            <g class="zone" data-z="3" transform="translate(70 80)">
+                                <rect x="-60" y="-22" width="120" height="44" rx="8" fill="#fff" stroke="#8b5cf6" stroke-width="2"/>
+                                <rect x="-50" y="-8" width="16" height="13" rx="2" fill="#c4b5fd"/><circle cx="-42" cy="-1.5" r="3" fill="#fff"/>
+                                <text x="10" y="-2" text-anchor="middle" font-size="10" font-weight="700" fill="#6d28d9">拍照＋相簿</text>
+                                <text x="10" y="12" text-anchor="middle" font-size="9" fill="#78716c">拍照簽名（3 人）</text>
+                            </g>
+                            <g transform="translate(70 24)">
+                                <rect x="-50" y="-12" width="100" height="24" rx="12" fill="#fce7f3" stroke="#ec4899" stroke-width="1.5"/>
+                                <text y="4" text-anchor="middle" font-size="10" font-weight="700" fill="#be185d">🍭 Candy Bar</text>
+                            </g>
+                            <!-- guest token -->
+                            <g id="guestToken" style="transform: translate(118px, 300px)">
+                                <g class="walk">
+                                    <ellipse cx="0" cy="12" rx="9" ry="3" fill="#000" opacity=".12"/>
+                                    <path d="M-8 12 Q-8 0 0 0 Q8 0 8 12 Z" fill="#38bdf8"/>
+                                    <circle cx="0" cy="-8" r="9" fill="#fde2cf" stroke="#fff" stroke-width="1.5"/>
+                                    <path d="M-9 -9 Q-9 -18 0 -18 Q9 -18 9 -10 Q4 -14 0 -12 Q-5 -14 -9 -9 Z" fill="#57534e"/>
+                                    <circle cx="-3" cy="-7" r="1.3" fill="#292524"/><circle cx="3" cy="-7" r="1.3" fill="#292524"/>
+                                </g>
+                                <g class="step-bubble" data-b="1"><rect x="-4" y="-46" width="30" height="22" rx="11" fill="#fb7185"/><text x="11" y="-31" text-anchor="middle" font-size="12">💌</text></g>
+                                <g class="step-bubble" data-b="2"><rect x="-4" y="-46" width="30" height="22" rx="11" fill="#f59e0b"/><text x="11" y="-31" text-anchor="middle" font-size="12">🧺</text></g>
+                                <g class="step-bubble" data-b="3"><rect x="-4" y="-46" width="30" height="22" rx="11" fill="#8b5cf6"/><text x="11" y="-31" text-anchor="middle" font-size="12">📸</text></g>
+                                <g class="step-bubble" data-b="4"><rect x="-4" y="-46" width="30" height="22" rx="11" fill="#10b981"/><text x="11" y="-31" text-anchor="middle" font-size="12">🥂</text></g>
+                            </g>
+                        </svg>
+                        <div class="absolute top-3 right-3 flex gap-1" id="stepDots"></div>
+                    </div>
+                </div>
+
+                <!-- steps -->
+                <div class="relative z-10 md:order-1">
+                    <article class="step min-h-[60svh] md:min-h-[80vh] flex items-center py-8" data-step="0">
+                        <div class="step-card card p-5">
+                            <p class="text-xs font-bold text-stone-400">STEP 1</p>
+                            <h3 class="text-xl font-bold mt-1">🚪 賓客進場</h3>
+                            <p class="mt-2 text-sm text-stone-600 dark:text-stone-300">現場<b>沒有工作人員幫忙簽到</b>，賓客會自己往看板走。</p>
+                        </div>
+                    </article>
+                    <article class="step min-h-[60svh] md:min-h-[80vh] flex items-center py-8" data-step="1">
+                        <div class="step-card card p-5">
+                            <p class="text-xs font-bold text-rose-400">STEP 2</p>
+                            <h3 class="text-xl font-bold mt-1">💌 看板找信封</h3>
+                            <p class="mt-2 text-sm text-stone-600 dark:text-stone-300">看板上有寫著賓客名字的信封，打開以後裡面有<b>座位資訊</b>。</p>
+                            <div class="mt-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 p-3 text-sm text-stone-600 dark:text-stone-300">
+                                <p class="font-bold text-amber-700 dark:text-amber-300">找不到信封？</p>
+                                <p class="mt-1">陪他再看一次看板（可能被拿錯或擺到別排），還是找不到就請新人或家人協助，不要自己決定座位。</p>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="step min-h-[60svh] md:min-h-[80vh] flex items-center py-8" data-step="2">
+                        <div class="step-card card p-5">
+                            <p class="text-xs font-bold text-amber-500">STEP 3 · 禮桌組</p>
+                            <h3 class="text-xl font-bold mt-1">🧺 投祝福卡片</h3>
+                            <p class="mt-2 text-sm text-stone-600 dark:text-stone-300">禮桌<b>不收禮金</b>，賓客把寫給新人的卡片放進籃子。細節見<a href="#task1" class="text-rose-500 hover:underline">任務一</a>。</p>
+                        </div>
+                    </article>
+                    <article class="step min-h-[60svh] md:min-h-[80vh] flex items-center py-8" data-step="3">
+                        <div class="step-card card p-5">
+                            <p class="text-xs font-bold text-violet-500">STEP 4 · 拍照組</p>
+                            <h3 class="text-xl font-bold mt-1">📸 拍照、貼相簿、簽名</h3>
+                            <p class="mt-2 text-sm text-stone-600 dark:text-stone-300">邀請賓客拍一張，照片貼進相簿，請他在旁邊簽名留言。細節見<a href="#task2" class="text-rose-500 hover:underline">任務二</a>。</p>
+                        </div>
+                    </article>
+                    <article class="step min-h-[60svh] md:min-h-[80vh] flex items-center py-8" data-step="4">
+                        <div class="step-card card p-5">
+                            <p class="text-xs font-bold text-emerald-500">STEP 5</p>
+                            <h3 class="text-xl font-bold mt-1">🥂 照信封入座</h3>
+                            <p class="mt-2 text-sm text-stone-600 dark:text-stone-300">共 14 桌：<span class="text-rose-500 font-bold">長輩桌 2 桌</span>＋<span class="text-amber-500 font-bold">平輩桌 12 桌</span>（含老師）。每個位子上已經放好婚禮小物。</p>
+                        </div>
+                    </article>
+                </div>
             </div>
         </section>
 
         <!-- Team -->
-        <section id="team">
-            <h2 class="text-2xl font-bold mb-1">👫 工作人員與分工</h2>
-            <p class="text-sm text-stone-500 dark:text-stone-400 mb-5">簽到禮桌區共 5 位：<b>2 位顧禮桌</b>、<b>3 位負責拍照相簿</b>。誰做哪一組，婚顧會議時再一起分配。</p>
-            <div id="crew" class="grid grid-cols-5 gap-2 sm:gap-4"></div>
+        <section id="team" data-jump="👫 分工" class="py-14">
+            <div class="reveal">
+                <p class="text-xs font-bold tracking-widest text-rose-400">04</p>
+                <h2 class="text-2xl md:text-3xl font-bold mb-1">工作人員與分工</h2>
+                <p class="text-sm text-stone-500 dark:text-stone-400 mb-6">簽到禮桌區共 5 位：<b>2 位顧禮桌</b>、<b>3 位負責拍照相簿</b>。誰做哪一組，婚顧會議時再一起分配。</p>
+            </div>
+            <div id="crew" class="reveal stagger grid grid-cols-5 gap-2 sm:gap-4"></div>
             <div class="mt-5 grid sm:grid-cols-2 gap-4">
-                <a href="#task1" class="card p-5 block hover:-translate-y-0.5 transition-transform">
+                <a href="#task1" class="reveal from-left card p-5 block">
                     <p class="text-xs font-bold text-amber-600 dark:text-amber-400">禮桌組 · 2 人</p>
                     <p class="mt-1 font-bold text-lg">任務一：收祝福卡片 💌</p>
                     <p class="text-sm text-stone-600 dark:text-stone-300">顧好卡片籃、招呼賓客、婉拒禮金。</p>
                 </a>
-                <a href="#task2" class="card p-5 block hover:-translate-y-0.5 transition-transform">
+                <a href="#task2" class="reveal from-right card p-5 block">
                     <p class="text-xs font-bold text-violet-600 dark:text-violet-400">拍照組 · 3 人</p>
                     <p class="mt-1 font-bold text-lg">任務二：拍照＋相簿簽名 📸</p>
                     <p class="text-sm text-stone-600 dark:text-stone-300">邀請拍照、印出貼相簿、請賓客簽名留言。</p>
@@ -273,27 +451,28 @@
         </section>
 
         <!-- Task 1 -->
-        <section id="task1">
-            <h2 class="text-2xl font-bold mb-1">💌 任務一：收祝福卡片</h2>
-            <p class="text-sm text-stone-500 dark:text-stone-400 mb-5">禮桌組 2 人。今天<b class="text-rose-500">不收禮金</b>，只收卡片。</p>
+        <section id="task1" data-jump="💌 任務一" class="py-14">
+            <div class="reveal">
+                <p class="text-xs font-bold tracking-widest text-rose-400">05</p>
+                <h2 class="text-2xl md:text-3xl font-bold mb-1">任務一：收祝福卡片</h2>
+                <p class="text-sm text-stone-500 dark:text-stone-400 mb-6">禮桌組 2 人。今天<b class="text-rose-500">不收禮金</b>，只收卡片。</p>
+            </div>
             <div class="grid md:grid-cols-5 gap-4">
-                <div class="card p-5 md:col-span-2 flex items-center justify-center">
-                    <svg class="w-full max-w-[220px]" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Q版卡片籃">
+                <div class="reveal pop card p-5 md:col-span-2 flex items-center justify-center">
+                    <svg class="w-full max-w-[240px]" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Q版卡片籃">
                         <ellipse cx="100" cy="138" rx="70" ry="7" fill="#e7e5e4"/>
-                        <!-- cards -->
-                        <g transform="rotate(-12 70 60)"><rect x="52" y="34" width="40" height="30" rx="3" fill="#fff" stroke="#fda4af" stroke-width="2"/><path d="M52 36 L72 52 L92 36" stroke="#fda4af" stroke-width="2" fill="none"/></g>
-                        <g transform="rotate(10 128 56)"><rect x="108" y="30" width="40" height="30" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/><path d="M122 44 q6 -6 6 0 q0 -6 6 0 q0 6 -6 10 q-6 -4 -6 -10" fill="#fb7185"/></g>
-                        <rect x="84" y="22" width="34" height="38" rx="3" fill="#fff1f2" stroke="#fb7185" stroke-width="2"/><path d="M92 34 h18 M92 42 h14 M92 50 h16" stroke="#fda4af" stroke-width="2" stroke-linecap="round"/>
-                        <!-- basket -->
+                        <g class="drop"><g transform="rotate(-12 70 60)"><rect x="52" y="34" width="40" height="30" rx="3" fill="#fff" stroke="#fda4af" stroke-width="2"/><path d="M52 36 L72 52 L92 36" stroke="#fda4af" stroke-width="2" fill="none"/></g></g>
+                        <g class="drop d2"><g transform="rotate(10 128 56)"><rect x="108" y="30" width="40" height="30" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/><path d="M122 44 q6 -6 6 0 q0 -6 6 0 q0 6 -6 10 q-6 -4 -6 -10" fill="#fb7185"/></g></g>
+                        <g class="drop d3"><rect x="84" y="22" width="34" height="38" rx="3" fill="#fff1f2" stroke="#fb7185" stroke-width="2"/><path d="M92 34 h18 M92 42 h14 M92 50 h16" stroke="#fda4af" stroke-width="2" stroke-linecap="round"/></g>
                         <path d="M40 66 Q100 50 160 66" fill="none" stroke="#a16207" stroke-width="5"/>
                         <path d="M36 70 H164 L150 132 H50 Z" fill="#d6a76c" stroke="#a16207" stroke-width="3" stroke-linejoin="round"/>
                         <path d="M44 90 H156 M48 110 H152" stroke="#a16207" stroke-width="2" opacity=".6"/>
                         <path d="M70 70 L66 132 M100 70 V132 M130 70 L134 132" stroke="#a16207" stroke-width="2" opacity=".6"/>
-                        <path d="M88 96 q12 -14 24 0 q-12 14 -24 0" fill="#fb7185"/>
+                        <path class="float-heart" d="M88 96 q12 -14 24 0 q-12 14 -24 0" fill="#fb7185"/>
                         <text x="100" y="124" text-anchor="middle" font-size="10" font-weight="700" fill="#78350f">祝福卡片</text>
                     </svg>
                 </div>
-                <div class="card p-5 md:col-span-3">
+                <div class="reveal card p-5 md:col-span-3">
                     <h3 class="font-bold mb-2">怎麼做</h3>
                     <ol class="text-sm text-stone-600 dark:text-stone-300 list-decimal pl-5 space-y-1.5">
                         <li>笑著打招呼：「歡迎～有寫卡片給新人可以放這個籃子喔！」</li>
@@ -310,19 +489,46 @@
         </section>
 
         <!-- Task 2 -->
-        <section id="task2">
-            <h2 class="text-2xl font-bold mb-1">📸 任務二：拍照 → 貼相簿 → 簽名</h2>
-            <p class="text-sm text-stone-500 dark:text-stone-400 mb-5">拍照組 3 人。用哪一套設備，<b>看天氣和現場光線</b>決定。</p>
+        <section id="task2" data-jump="📸 任務二" class="py-14">
+            <div class="reveal">
+                <p class="text-xs font-bold tracking-widest text-rose-400">06</p>
+                <h2 class="text-2xl md:text-3xl font-bold mb-1">任務二：拍照 → 貼相簿 → 簽名</h2>
+                <p class="text-sm text-stone-500 dark:text-stone-400 mb-6">拍照組 3 人。用哪一套設備，<b>看天氣和現場光線</b>決定，點下面切換看看。</p>
+            </div>
+
+            <div class="reveal card p-4 md:p-5 mb-5">
+                <div class="grid md:grid-cols-5 gap-4 items-center">
+                    <svg id="lightScene" data-light="bright" class="w-full md:col-span-3 rounded-2xl" viewBox="0 0 300 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="天色示意">
+                        <rect class="sky" width="300" height="120" rx="16" fill="#bae6fd"/>
+                        <g class="sun"><circle cx="250" cy="34" r="16" fill="#fde047"/><g stroke="#facc15" stroke-width="3" stroke-linecap="round"><path d="M250 8 v6 M250 54 v6 M224 34 h6 M270 34 h6"/></g></g>
+                        <g class="moon"><path d="M256 20 a15 15 0 1 0 8 26 a12 12 0 1 1 -8 -26 Z" fill="#fef3c7"/></g>
+                        <g class="star" fill="#fef9c3"><circle cx="40" cy="20" r="1.6"/><circle cx="90" cy="30" r="1.2"/><circle cx="150" cy="16" r="1.5"/><circle cx="205" cy="44" r="1.2"/><circle cx="196" cy="14" r="1"/></g>
+                        <rect x="30" y="56" width="140" height="64" fill="#fde7c8" stroke="#d6a76c" stroke-width="2"/>
+                        <path d="M24 58 L100 34 L176 58 Z" fill="#c2410c"/>
+                        <g fill="#fff7ed" stroke="#d6a76c" stroke-width="1.5"><path d="M44 120 V94 a10 10 0 0 1 20 0 V120"/><path d="M78 120 V94 a10 10 0 0 1 20 0 V120"/><path d="M112 120 V94 a10 10 0 0 1 20 0 V120"/><path d="M146 120 V94 a8 8 0 0 1 16 0 V120"/></g>
+                        <g class="win" fill="#e0f2fe"><rect x="46" y="64" width="12" height="12" rx="2"/><rect x="94" y="64" width="12" height="12" rx="2"/><rect x="142" y="64" width="12" height="12" rx="2"/></g>
+                        <g transform="translate(222 90)"><path d="M-10 30 Q-10 10 0 10 Q10 10 10 30 Z" fill="#a78bfa"/><circle cy="0" r="10" fill="#fde2cf"/><path d="M-10 -1 Q-10 -11 0 -11 Q10 -11 10 -2 Q5 -6 0 -4 Q-6 -6 -10 -1 Z" fill="#292524"/><rect x="-22" y="8" width="14" height="10" rx="2" fill="#38bdf8"/><circle cx="-15" cy="13" r="2.5" fill="#fff"/></g>
+                    </svg>
+                    <div class="md:col-span-2">
+                        <p class="text-sm font-bold mb-2">現在的光線？</p>
+                        <div class="inline-flex rounded-full bg-stone-100 dark:bg-stone-800 p-1 text-sm font-bold" role="group">
+                            <button data-light="bright" class="light-btn px-4 py-2 rounded-full transition-colors">☀️ 還很亮</button>
+                            <button data-light="dark" class="light-btn px-4 py-2 rounded-full transition-colors">🌙 太暗了</button>
+                        </div>
+                        <p id="lightTip" class="mt-3 text-sm text-stone-600 dark:text-stone-300"></p>
+                    </div>
+                </div>
+            </div>
 
             <div class="grid sm:grid-cols-2 gap-4">
-                <div class="card p-5">
+                <div class="device card p-5 relative" data-for="bright">
+                    <span class="pick-badge absolute -top-3 right-4 text-xs font-bold text-white bg-rose-500 rounded-full px-3 py-1">用這套 ✓</span>
                     <div class="flex items-center gap-4">
                         <svg class="w-20 h-20 shrink-0" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Q版拍立得">
                             <rect x="8" y="16" width="64" height="52" rx="12" fill="#bae6fd" stroke="#0284c7" stroke-width="2.5"/>
                             <rect x="8" y="52" width="64" height="16" rx="6" fill="#7dd3fc"/>
                             <circle cx="40" cy="40" r="15" fill="#fff" stroke="#0284c7" stroke-width="2.5"/><circle cx="40" cy="40" r="8" fill="#0c4a6e"/><circle cx="37" cy="37" r="2.5" fill="#fff"/>
                             <rect x="54" y="22" width="12" height="8" rx="2" fill="#fff"/><circle cx="16" cy="24" r="3" fill="#f43f5e"/>
-                            <circle cx="28" cy="10" r="4" fill="#fde047"/><path d="M28 2 v3 M28 15 v3 M20 10 h3 M33 10 h3" stroke="#facc15" stroke-width="2" stroke-linecap="round"/>
                         </svg>
                         <div>
                             <p class="text-xs font-bold text-sky-600 dark:text-sky-400">☀️ 光線夠亮</p>
@@ -335,10 +541,10 @@
                         <li>相紙張數有限，<b>一組人拍一張</b>就好，不要每人都拍。</li>
                     </ul>
                 </div>
-                <div class="card p-5">
+                <div class="device card p-5 relative" data-for="dark">
+                    <span class="pick-badge absolute -top-3 right-4 text-xs font-bold text-white bg-rose-500 rounded-full px-3 py-1">用這套 ✓</span>
                     <div class="flex items-center gap-4">
                         <svg class="w-20 h-20 shrink-0" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Q版手機和相印機">
-                            <circle cx="64" cy="12" r="7" fill="#fde68a"/><circle cx="68" cy="9" r="6" fill="#fff7f2" class="dark:fill-stone-800"/>
                             <rect x="6" y="14" width="26" height="46" rx="6" fill="#334155"/><rect x="9" y="19" width="20" height="34" rx="2" fill="#c4b5fd"/><circle cx="19" cy="56" r="1.8" fill="#94a3b8"/>
                             <path d="M34 38 q6 -6 12 0" stroke="#a78bfa" stroke-width="2" fill="none" stroke-dasharray="2 3"/>
                             <rect x="40" y="34" width="34" height="26" rx="6" fill="#f5d0fe" stroke="#a21caf" stroke-width="2"/>
@@ -357,10 +563,9 @@
                 </div>
             </div>
 
-            <!-- flow -->
             <div class="card p-5 mt-4">
-                <h3 class="font-bold mb-4">三個人的建議分工（可以自己調整）</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-center text-sm">
+                <h3 class="reveal font-bold mb-4">三個人的建議分工（可以自己調整）</h3>
+                <div class="reveal stagger grid grid-cols-1 sm:grid-cols-4 gap-3 text-center text-sm">
                     <div class="rounded-2xl bg-violet-50 dark:bg-violet-950/40 p-3">
                         <div class="text-3xl">🙋</div><p class="font-bold mt-1">1. 邀請</p><p class="text-xs text-stone-600 dark:text-stone-300">「要不要拍一張照片留給新人？」</p>
                     </div>
@@ -377,8 +582,7 @@
                 <p class="mt-4 text-xs text-stone-500 dark:text-stone-400">建議：1 人邀請＋遞筆，1 人拍照印照片，1 人貼相簿、顧簽名。人多的時候，可以請賓客先簽名、照片印好再補貼。</p>
             </div>
 
-            <!-- album -->
-            <div class="card p-5 mt-4 grid sm:grid-cols-5 gap-4 items-center">
+            <div class="reveal card p-5 mt-4 grid sm:grid-cols-5 gap-4 items-center">
                 <svg class="w-full max-w-[240px] mx-auto sm:col-span-2" viewBox="0 0 220 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Q版相簿頁面">
                     <path d="M110 20 Q60 6 12 16 V128 Q60 118 110 132 Q160 118 208 128 V16 Q160 6 110 20 Z" fill="#fff" stroke="#d6d3d1" stroke-width="2"/>
                     <path d="M110 20 V132" stroke="#d6d3d1" stroke-width="2"/>
@@ -399,61 +603,29 @@
             </div>
         </section>
 
-        <!-- Guests -->
-        <section id="guests">
-            <h2 class="text-2xl font-bold mb-1">💌 賓客怎麼找座位</h2>
-            <p class="text-sm text-stone-500 dark:text-stone-400 mb-5">現場<b>沒有工作人員幫忙簽到</b>，賓客自己看看板找信封。</p>
-            <div class="card p-5">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-                    <div class="text-center">
-                        <svg class="w-28 mx-auto" viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <rect x="10" y="6" width="80" height="58" rx="6" fill="#fff" stroke="#fb7185" stroke-width="2.5"/>
-                            <g fill="#fecdd3" stroke="#fb7185"><rect x="18" y="16" width="18" height="13" rx="1"/><rect x="41" y="16" width="18" height="13" rx="1"/><rect x="64" y="16" width="18" height="13" rx="1"/><rect x="18" y="38" width="18" height="13" rx="1"/><rect x="41" y="38" width="18" height="13" rx="1"/><rect x="64" y="38" width="18" height="13" rx="1"/></g>
-                            <path d="M28 64 L22 86 M72 64 L78 86" stroke="#a8a29e" stroke-width="3" stroke-linecap="round"/>
-                        </svg>
-                        <p class="font-bold text-sm mt-1">① 看看板</p>
-                        <p class="text-xs text-stone-500 dark:text-stone-400">找寫著自己名字的信封</p>
-                    </div>
-                    <div class="text-center">
-                        <svg class="w-28 mx-auto" viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <rect x="14" y="24" width="72" height="50" rx="4" fill="#fff1f2" stroke="#fb7185" stroke-width="2.5"/>
-                            <path d="M14 26 L50 52 L86 26" fill="none" stroke="#fb7185" stroke-width="2.5"/>
-                            <text x="50" y="68" text-anchor="middle" font-size="10" font-weight="700" fill="#be123c">○○○ 收</text>
-                            <path d="M44 14 q6 -8 12 0 q-6 8 -12 0" fill="#fb7185"/>
-                        </svg>
-                        <p class="font-bold text-sm mt-1">② 打開信封</p>
-                        <p class="text-xs text-stone-500 dark:text-stone-400">裡面寫著座位資訊</p>
-                    </div>
-                    <div class="text-center">
-                        <svg class="w-28 mx-auto" viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <ellipse cx="50" cy="52" rx="38" ry="20" fill="#fef3c7" stroke="#f59e0b" stroke-width="2.5"/>
-                            <g fill="#fff" stroke="#d6d3d1"><circle cx="30" cy="48" r="6"/><circle cx="50" cy="44" r="6"/><circle cx="70" cy="48" r="6"/><circle cx="40" cy="60" r="6"/><circle cx="60" cy="60" r="6"/></g>
-                            <rect x="44" y="14" width="12" height="16" rx="2" fill="#fff" stroke="#f59e0b" stroke-width="2"/><text x="50" y="26" text-anchor="middle" font-size="9" font-weight="700" fill="#b45309">5</text>
-                        </svg>
-                        <p class="font-bold text-sm mt-1">③ 找到桌次入座</p>
-                        <p class="text-xs text-stone-500 dark:text-stone-400">長輩 2 桌、平輩 12 桌</p>
-                    </div>
-                </div>
-                <div class="mt-5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 p-4 text-sm text-stone-600 dark:text-stone-300">
-                    <p class="font-bold text-amber-700 dark:text-amber-300">賓客找不到自己的信封？</p>
-                    <p class="mt-1">陪他再看一次看板（可能被拿錯或擺到別排），還是找不到就請新人或家人協助安排，不要自己決定座位。</p>
+        <!-- Checklist -->
+        <section id="checklist" data-jump="🧺 物品清單" class="py-14">
+            <div class="reveal">
+                <p class="text-xs font-bold tracking-widest text-rose-400">07</p>
+                <h2 class="text-2xl md:text-3xl font-bold mb-1">物品清單</h2>
+                <p class="text-sm text-stone-500 dark:text-stone-400 mb-4">16:00 到場後一項一項確認，打勾會記在這支手機上。</p>
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="flex-1 h-2.5 rounded-full bg-rose-100 dark:bg-stone-800 overflow-hidden"><div id="checkBar" class="h-full rounded-full bg-gradient-to-r from-rose-400 to-amber-400 transition-all duration-500" style="width:0"></div></div>
+                    <span id="checkCount" class="text-sm font-bold text-rose-500 tabular-nums">0 / 0</span>
                 </div>
             </div>
-        </section>
-
-        <!-- Checklist -->
-        <section id="checklist">
-            <h2 class="text-2xl font-bold mb-1">🧺 物品清單</h2>
-            <p class="text-sm text-stone-500 dark:text-stone-400 mb-5">16:00 到場後一項一項確認，打勾會記在這支手機上。</p>
-            <div class="grid sm:grid-cols-2 gap-4" id="checkGroups"></div>
+            <div class="reveal stagger grid sm:grid-cols-2 gap-4" id="checkGroups"></div>
             <button id="resetChecks" class="mt-3 text-xs text-stone-500 hover:text-rose-500 underline">清除所有勾選</button>
         </section>
 
         <!-- Notes -->
-        <section id="notes">
-            <h2 class="text-2xl font-bold mb-1">📝 注意事項</h2>
-            <p class="text-sm text-stone-500 dark:text-stone-400 mb-5">小細節，讓當天更順。</p>
-            <div class="grid sm:grid-cols-2 gap-4 text-sm">
+        <section id="notes" data-jump="📝 注意事項" class="py-14">
+            <div class="reveal">
+                <p class="text-xs font-bold tracking-widest text-rose-400">08</p>
+                <h2 class="text-2xl md:text-3xl font-bold mb-1">注意事項</h2>
+                <p class="text-sm text-stone-500 dark:text-stone-400 mb-6">小細節，讓當天更順。</p>
+            </div>
+            <div class="reveal stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                 <div class="card p-5"><p class="font-bold">🏛️ 這是老房子</p><p class="mt-1 text-stone-600 dark:text-stone-300">一德洋樓是有歷史的洋樓，牆面、木頭和柱子請不要直接貼膠帶或釘東西，要固定東西先問婚顧或場地人員。</p></div>
                 <div class="card p-5"><p class="font-bold">🧥 1 月晚上會冷</p><p class="mt-1 text-stone-600 dark:text-stone-300">臺中冬天晚上溫度偏低，戶外待久了會冷，帶件外套。天黑得早，拍照設備的判斷也要早點做。</p></div>
                 <div class="card p-5"><p class="font-bold">🔋 電量與耗材</p><p class="mt-1 text-stone-600 dark:text-stone-300">手機、相印機、拍立得的電池前一晚充飽；相紙、筆、背膠多帶一份。</p></div>
@@ -461,11 +633,16 @@
                 <div class="card p-5"><p class="font-bold">🧾 結束後</p><p class="mt-1 text-stone-600 dark:text-stone-300">卡片籃、相簿和剩下的相紙收好一起交給新人，不要放著就離開。</p></div>
                 <div class="card p-5"><p class="font-bold">❓ 有問題問誰</p><p class="mt-1 text-stone-600 dark:text-stone-300">流程上的事先問婚顧；跟賓客、座位、禮金有關的事找新人或家人。</p></div>
             </div>
-            <p class="mt-8 text-center text-rose-400 font-bold">辛苦了，謝謝你們 💗 一起讓這天很美好！</p>
+            <div class="mt-10 text-center">
+                <a href="#top" class="inline-flex items-center gap-1 text-sm font-bold text-rose-500 hover:underline">回到最上面 ↑</a>
+            </div>
         </section>
     </main>
 
     <script>
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        requestAnimationFrame(() => document.body.classList.add('loaded'));
+
         // ===== Countdown =====
         (function () {
             const target = new Date('2027-01-01T18:00:00+08:00');
@@ -476,22 +653,77 @@
             else if (days > -1) el.textContent = '就是今天！加油 💪';
         })();
 
-        // ===== Venue map tables: 2 elder tables + 12 peer tables (layout is illustrative) =====
+        // ===== Scroll reveal =====
+        function countUp(node) {
+            const to = Number(node.dataset.to);
+            if (reduceMotion) { node.textContent = to; return; }
+            const t0 = performance.now(), dur = 1000;
+            const tick = now => {
+                const p = Math.min(1, (now - t0) / dur);
+                node.textContent = Math.round(to * (1 - Math.pow(1 - p, 3)));
+                if (p < 1) requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+        }
+        const revealObserver = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if (!e.isIntersecting) return;
+                e.target.classList.add('in');
+                e.target.querySelectorAll('.count').forEach(countUp);
+                revealObserver.unobserve(e.target);
+            });
+        }, { threshold: 0.15 });
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+        // ===== Scroll progress + timeline fill =====
+        const progress = document.getElementById('progress');
+        const tl = document.getElementById('tl'), tlFill = document.getElementById('tlFill');
+        const tlItems = [...tl.querySelectorAll('.tl-item')];
+        function onScroll() {
+            const max = document.documentElement.scrollHeight - innerHeight;
+            progress.style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`;
+            const mark = innerHeight * 0.65;   // 時間軸畫到畫面 65% 高的位置
+            const r = tl.getBoundingClientRect();
+            tlFill.style.height = Math.max(0, Math.min(r.height - 16, mark - r.top)) + 'px';
+            tlItems.forEach(it => it.classList.toggle('lit', it.getBoundingClientRect().top < mark));
+        }
+        addEventListener('scroll', onScroll, { passive: true });
+        addEventListener('resize', onScroll);
+        onScroll();
+
+        // ===== Guest flow stage =====
         (function () {
-            const g = document.getElementById('tables');
-            let html = '';
             const rows = [4, 4, 4, 2];
-            let n = 0;
+            const pos = [];
+            let html = '', n = 0;
             rows.forEach((count, row) => {
                 for (let col = 0; col < count; col++) {
+                    const x = 290 + (col - (count - 1) / 2) * 52, y = 78 + row * 52;
                     n++;
-                    const elder = n <= 2;
-                    const x = 275 + (col - (count - 1) / 2) * 54, y = 78 + row * 52;
-                    html += `<circle cx="${x}" cy="${y}" r="17" fill="${elder ? '#fb7185' : '#fbbf24'}" fill-opacity=".9"/>` +
-                            `<text x="${x}" y="${y + 4}" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">${n}</text>`;
+                    pos.push([x, y]);
+                    html += `<g class="table${n === 7 ? ' target' : ''}" style="--i:${n}"><circle cx="${x}" cy="${y}" r="17" fill="${n <= 2 ? '#fb7185' : '#fbbf24'}" fill-opacity=".9"/>` +
+                            `<text x="${x}" y="${y + 4}" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">${n}</text></g>`;
                 }
             });
-            g.innerHTML = html;
+            document.getElementById('tables').innerHTML = html;
+
+            const stage = document.getElementById('stage');
+            const token = document.getElementById('guestToken');
+            // 小人每一步站的位置：入口、看板、禮桌、拍照區、第 7 桌旁（示意）
+            const STOPS = [[118, 300], [148, 244], [148, 164], [148, 84], [pos[6][0], pos[6][1] + 30]];
+            const dots = document.getElementById('stepDots');
+            dots.innerHTML = STOPS.map(() => '<span></span>').join('');
+            function setStep(s) {
+                stage.dataset.step = s;
+                token.style.transform = `translate(${STOPS[s][0]}px, ${STOPS[s][1]}px)`;
+                [...dots.children].forEach((d, i) => d.className = 'h-1.5 rounded-full transition-all ' + (i === s ? 'w-4 bg-rose-500' : 'w-1.5 bg-stone-300 dark:bg-stone-600'));
+                document.querySelectorAll('.step').forEach(el => el.classList.toggle('active', Number(el.dataset.step) === s));
+            }
+            setStep(0);
+            const stepObserver = new IntersectionObserver(entries => {
+                entries.forEach(e => { if (e.isIntersecting) setStep(Number(e.target.dataset.step)); });
+            }, { rootMargin: '-55% 0px -35% 0px' });
+            document.querySelectorAll('.step').forEach(s => stepObserver.observe(s));
         })();
 
         // ===== Crew chibi avatars =====
@@ -520,6 +752,26 @@
                 </div>`).join('');
         })();
 
+        // ===== Light switch: which camera setup to use =====
+        (function () {
+            const scene = document.getElementById('lightScene');
+            const tip = document.getElementById('lightTip');
+            const TIPS = { bright: '天色還亮：用<b>拍立得</b>。', dark: '天暗、光線不夠：改用<b>手機＋相印機</b>，比較拍得清楚。' };
+            function setLight(mode) {
+                scene.dataset.light = mode;
+                scene.querySelector('.sky').setAttribute('fill', mode === 'dark' ? '#312e81' : '#bae6fd');
+                tip.innerHTML = TIPS[mode];
+                document.querySelectorAll('.light-btn').forEach(b => b.className = 'light-btn px-4 py-2 rounded-full transition-colors ' +
+                    (b.dataset.light === mode ? 'bg-rose-500 text-white shadow' : 'text-stone-600 dark:text-stone-300'));
+                document.querySelectorAll('.device').forEach(d => {
+                    d.classList.toggle('pick', d.dataset.for === mode);
+                    d.classList.toggle('dim', d.dataset.for !== mode);
+                });
+            }
+            document.querySelectorAll('.light-btn').forEach(b => b.addEventListener('click', () => setLight(b.dataset.light)));
+            setLight('bright');
+        })();
+
         // ===== Checklist (saved in localStorage) =====
         (function () {
             const groups = [
@@ -536,21 +788,70 @@
                 <div class="card p-5">
                     <p class="font-bold ${g.color} mb-2">${g.title}</p>
                     ${g.items.map((it, ii) => `
-                        <label class="check flex items-center gap-2 py-1 text-sm cursor-pointer">
+                        <label class="check-row flex items-center gap-2 py-1 text-sm cursor-pointer">
                             <input type="checkbox" data-key="${gi}-${ii}" class="w-4 h-4 accent-rose-500" ${state[gi + '-' + ii] ? 'checked' : ''}>
                             <span>${it}</span>
                         </label>`).join('')}
                 </div>`).join('');
+            const inputs = [...box.querySelectorAll('input')];
+            function updateCount() {
+                const done = inputs.filter(i => i.checked).length;
+                document.getElementById('checkCount').textContent = `${done} / ${inputs.length}`;
+                document.getElementById('checkBar').style.width = (done / inputs.length * 100) + '%';
+            }
             box.addEventListener('change', e => {
                 if (!e.target.dataset.key) return;
                 state[e.target.dataset.key] = e.target.checked;
                 try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (err) {}
+                updateCount();
             });
             document.getElementById('resetChecks').addEventListener('click', () => {
                 state = {};
                 try { localStorage.removeItem(KEY); } catch (err) {}
-                box.querySelectorAll('input').forEach(i => { i.checked = false; });
+                inputs.forEach(i => { i.checked = false; });
+                updateCount();
             });
+            updateCount();
+        })();
+
+        // ===== Floating jump nav (desktop rail + mobile button/sheet) =====
+        (function () {
+            const sections = [...document.querySelectorAll('section[data-jump]')];
+            const rail = document.getElementById('jumpRail');
+            const fab = document.getElementById('jumpFab'), fabLabel = document.getElementById('jumpFabLabel');
+            const sheet = document.getElementById('jumpSheet'), backdrop = document.getElementById('jumpBackdrop');
+            const list = document.getElementById('jumpSheetList');
+            rail.innerHTML = sections.map(s => `
+                <a href="#${s.id}" data-id="${s.id}" class="rail-link flex items-center gap-2 group">
+                    <span class="rail-label text-xs font-bold px-2.5 py-1 rounded-full bg-white/90 dark:bg-stone-800/90 shadow-sm whitespace-nowrap">${s.dataset.jump}</span>
+                    <span class="rail-dot w-2.5 h-2.5 rounded-full bg-stone-300 dark:bg-stone-600 group-hover:bg-rose-300"></span>
+                </a>`).join('');
+            list.innerHTML = sections.map(s => `
+                <a href="#${s.id}" data-id="${s.id}" class="sheet-link px-3 py-3 rounded-2xl bg-rose-50 dark:bg-stone-700 text-sm font-bold">${s.dataset.jump}</a>`).join('');
+            function toggleSheet(open) {
+                sheet.classList.toggle('open', open);
+                backdrop.classList.toggle('open', open);
+            }
+            fab.addEventListener('click', () => toggleSheet(true));
+            backdrop.addEventListener('click', () => toggleSheet(false));
+            list.addEventListener('click', e => { if (e.target.closest('a')) toggleSheet(false); });
+
+            function setActive(id) {
+                rail.querySelectorAll('.rail-link').forEach(a => a.classList.toggle('active', a.dataset.id === id));
+                list.querySelectorAll('.sheet-link').forEach(a => a.classList.toggle('ring-2', a.dataset.id === id));
+                const s = sections.find(x => x.id === id);
+                fabLabel.textContent = s ? s.dataset.jump : '跳到';
+            }
+            const spy = new IntersectionObserver(entries => {
+                entries.forEach(e => { if (e.isIntersecting) setActive(e.target.id); });
+            }, { rootMargin: '-45% 0px -50% 0px' });
+            sections.forEach(s => spy.observe(s));
+            // 跳點在離開 Hero 之後才出現
+            new IntersectionObserver(([e]) => {
+                rail.classList.toggle('show', !e.isIntersecting);
+                fab.classList.toggle('show', !e.isIntersecting);
+                if (e.isIntersecting) toggleSheet(false);
+            }, { threshold: 0.15 }).observe(document.getElementById('top'));
         })();
 
         // ===== Theme: shares the same 'theme' setting as the home page =====
