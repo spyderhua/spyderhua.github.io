@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#fff7f2">
+    <title>侑霖 & 瑜維 婚禮工作人員手冊 | Joe Huang</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { fontFamily: { sans: ['Inter', 'Noto Sans TC', 'sans-serif'] } } }
+        }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; scroll-padding-top: 7.5rem; }
+        body { background: #fff7f2; }
+        .dark body { background: #1c1917; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { scrollbar-width: none; }
+        .card { background: #fff; border: 1px solid #fde2d6; border-radius: 1.5rem; box-shadow: 0 2px 10px rgba(244, 114, 94, 0.06); }
+        .dark .card { background: #292524; border-color: #44403c; box-shadow: none; }
+        .tl-item { position: relative; padding-left: 1.9rem; padding-bottom: 1.5rem; }
+        .tl-item::before { content: ''; position: absolute; left: 0.45rem; top: 0.4rem; bottom: 0; width: 2px; background: repeating-linear-gradient(#fda4af 0 6px, transparent 6px 10px); }
+        .tl-item:last-child::before { display: none; }
+        .tl-dot { position: absolute; left: 0; top: 0.25rem; width: 1rem; height: 1rem; border-radius: 9999px; background: #fb7185; box-shadow: 0 0 0 4px #ffe4e6; }
+        .dark .tl-dot { box-shadow: 0 0 0 4px #4c0519; }
+        .tl-item.is-staff .tl-dot { background: #f59e0b; box-shadow: 0 0 0 4px #fef3c7; }
+        .dark .tl-item.is-staff .tl-dot { box-shadow: 0 0 0 4px #451a03; }
+        .petals { position: absolute; inset: 0; pointer-events: none; background-image:
+            radial-gradient(4px 3px at 30px 40px, #fecdd3, transparent), radial-gradient(3px 4px at 140px 110px, #fde68a, transparent),
+            radial-gradient(4px 3px at 230px 30px, #fbcfe8, transparent), radial-gradient(3px 3px at 300px 150px, #fecdd3, transparent),
+            radial-gradient(4px 3px at 90px 170px, #fed7aa, transparent);
+            background-size: 340px 200px; opacity: 0.9; animation: petals 18s linear infinite; }
+        @keyframes petals { from { background-position: 0 0; } to { background-position: -80px 400px; } }
+        .check input:checked + span { text-decoration: line-through; opacity: 0.5; }
+        @media (prefers-reduced-motion: reduce) { .petals { animation: none; } html { scroll-behavior: auto; } }
+    </style>
+</head>
+<body class="text-stone-800 dark:text-stone-100 antialiased transition-colors">
+
+    <!-- Header -->
+    <nav class="sticky top-0 z-50 bg-[#fff7f2]/90 dark:bg-stone-900/90 backdrop-blur-md border-b border-rose-100 dark:border-stone-800">
+        <div class="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+            <a href="index.html#projects" class="flex items-center text-sm font-medium hover:text-rose-500 transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                回到首頁
+            </a>
+            <span class="text-sm font-bold tracking-wide text-rose-500 dark:text-rose-300">侑霖 &amp; 瑜維 · 工作人員手冊</span>
+            <button id="themeToggle" class="p-2 rounded-full hover:bg-rose-100 dark:hover:bg-stone-800 transition-colors" aria-label="切換深淺色">
+                <svg id="sunIcon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <svg id="moonIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            </button>
+        </div>
+        <div class="max-w-4xl mx-auto px-4 pb-2 flex gap-2 overflow-x-auto no-scrollbar text-xs font-semibold">
+            <a href="#overview" class="shrink-0 px-3 py-1.5 rounded-full bg-rose-100/70 dark:bg-stone-800 hover:bg-rose-200 dark:hover:bg-rose-900/50">總覽</a>
+            <a href="#timeline" class="shrink-0 px-3 py-1.5 rounded-full bg-rose-100/70 dark:bg-stone-800 hover:bg-rose-200 dark:hover:bg-rose-900/50">時間軸</a>
+            <a href="#map" class="shrink-0 px-3 py-1.5 rounded-full bg-rose-100/70 dark:bg-stone-800 hover:bg-rose-200 dark:hover:bg-rose-900/50">場地示意</a>
+            <a href="#team" class="shrink-0 px-3 py-1.5 rounded-full bg-rose-100/70 dark:bg-stone-800 hover:bg-rose-200 dark:hover:bg-rose-900/50">分工</a>
+            <a href="#task1" class="shrink-0 px-3 py-1.5 rounded-full bg-rose-100/70 dark:bg-stone-800 hover:bg-rose-200 dark:hover:bg-rose-900/50">任務一 祝福卡片</a>
+            <a href="#task2" class="shrink-0 px-3 py-1.5 rounded-full bg-rose-100/70 dark:bg-stone-800 hover:bg-rose-200 dark:hover:bg-rose-900/50">任務二 拍照相簿</a>
+            <a href="#guests" class="shrink-0 px-3 py-1.5 rounded-full bg-rose-100/70 dark:bg-stone-800 hover:bg-rose-200 dark:hover:bg-rose-900/50">賓客動線</a>
+            <a href="#checklist" class="shrink-0 px-3 py-1.5 rounded-full bg-rose-100/70 dark:bg-stone-800 hover:bg-rose-200 dark:hover:bg-rose-900/50">物品清單</a>
+            <a href="#notes" class="shrink-0 px-3 py-1.5 rounded-full bg-rose-100/70 dark:bg-stone-800 hover:bg-rose-200 dark:hover:bg-rose-900/50">注意事項</a>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="relative overflow-hidden">
+        <div class="petals"></div>
+        <div class="relative max-w-4xl mx-auto px-4 pt-10 pb-8 text-center">
+            <p class="text-xs font-bold tracking-[0.3em] text-rose-400 uppercase">Wedding Crew Guide</p>
+            <h1 class="mt-3 text-3xl md:text-5xl font-bold">蔡侑霖 <span class="text-rose-400">&amp;</span> 詹瑜維</h1>
+            <p class="mt-3 text-stone-600 dark:text-stone-300">謝謝你們願意來幫忙 💐 這頁是當天的小抄，什麼時候、在哪裡、做什麼，都在這裡。</p>
+
+            <!-- Q版新人 -->
+            <svg class="mx-auto mt-6 w-64 md:w-80" viewBox="0 0 240 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Q版新郎新娘">
+                <!-- arch -->
+                <path d="M30 145 V70 A90 70 0 0 1 210 70 V145" fill="none" stroke="#fda4af" stroke-width="5" stroke-linecap="round"/>
+                <g fill="#fb7185"><circle cx="30" cy="80" r="6"/><circle cx="60" cy="28" r="6"/><circle cx="120" cy="12" r="7"/><circle cx="180" cy="28" r="6"/><circle cx="210" cy="80" r="6"/></g>
+                <g fill="#86efac"><ellipse cx="42" cy="54" rx="6" ry="3" transform="rotate(-50 42 54)"/><ellipse cx="90" cy="16" rx="6" ry="3" transform="rotate(-15 90 16)"/><ellipse cx="150" cy="16" rx="6" ry="3" transform="rotate(15 150 16)"/><ellipse cx="198" cy="54" rx="6" ry="3" transform="rotate(50 198 54)"/></g>
+                <!-- groom -->
+                <g transform="translate(82 52)">
+                    <path d="M-22 92 Q-24 58 0 54 Q24 58 22 92 Z" fill="#334155"/>
+                    <path d="M-6 56 L0 70 L6 56 Z" fill="#fff"/>
+                    <path d="M-6 60 L0 64 L6 60 L6 68 L0 64 L-6 68 Z" fill="#fb7185"/>
+                    <circle cx="0" cy="30" r="26" fill="#fde2cf"/>
+                    <path d="M-26 28 Q-26 2 0 2 Q26 2 26 26 Q18 12 4 16 Q-10 10 -26 28 Z" fill="#292524"/>
+                    <circle cx="-9" cy="33" r="3" fill="#292524"/><circle cx="9" cy="33" r="3" fill="#292524"/>
+                    <ellipse cx="-16" cy="41" rx="5" ry="3" fill="#fda4af" opacity=".7"/><ellipse cx="16" cy="41" rx="5" ry="3" fill="#fda4af" opacity=".7"/>
+                    <path d="M-5 43 Q0 48 5 43" stroke="#292524" stroke-width="2" fill="none" stroke-linecap="round"/>
+                </g>
+                <!-- bride -->
+                <g transform="translate(158 52)">
+                    <path d="M-30 4 Q-38 60 -34 90 L34 90 Q38 60 30 4 Q0 -8 -30 4 Z" fill="#fff1f2" opacity=".9"/>
+                    <path d="M-28 92 Q-18 56 0 54 Q18 56 28 92 Z" fill="#fff" stroke="#fecdd3" stroke-width="2"/>
+                    <circle cx="0" cy="30" r="26" fill="#fde2cf"/>
+                    <path d="M-27 40 Q-30 2 0 2 Q30 2 27 40 Q22 18 6 14 Q-14 16 -27 40 Z" fill="#57534e"/>
+                    <g fill="#fb7185"><circle cx="-14" cy="6" r="4"/><circle cx="-6" cy="2" r="4"/><circle cx="3" cy="2" r="3.5"/></g>
+                    <circle cx="-9" cy="33" r="3" fill="#292524"/><circle cx="9" cy="33" r="3" fill="#292524"/>
+                    <ellipse cx="-16" cy="41" rx="5" ry="3" fill="#fda4af" opacity=".7"/><ellipse cx="16" cy="41" rx="5" ry="3" fill="#fda4af" opacity=".7"/>
+                    <path d="M-5 43 Q0 48 5 43" stroke="#292524" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <!-- bouquet -->
+                    <g transform="translate(-30 70)"><circle r="7" fill="#fb7185"/><circle cx="8" cy="-3" r="6" fill="#fda4af"/><circle cx="3" cy="6" r="5" fill="#fcd34d"/></g>
+                </g>
+                <path d="M114 70 q6 -8 12 0 q-6 8 -12 0" fill="#fb7185"/>
+            </svg>
+
+            <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
+                <div class="card p-4">
+                    <p class="text-xs font-bold text-rose-400">📅 日期時間</p>
+                    <p class="mt-1 font-bold">2027/1/1（五）18:00</p>
+                    <p class="text-xs text-stone-500 dark:text-stone-400">工作人員 16:00 集合</p>
+                </div>
+                <div class="card p-4 sm:col-span-2">
+                    <p class="text-xs font-bold text-rose-400">📍 地點</p>
+                    <p class="mt-1 font-bold">一德洋樓（林懋陽故居）</p>
+                    <p class="text-xs text-stone-500 dark:text-stone-400">406 臺中市北屯區北屯里文昌東十一街 14 巷 1 號</p>
+                    <a class="mt-2 inline-block text-xs font-bold text-rose-500 hover:underline" href="https://www.google.com/maps/search/?api=1&query=%E4%B8%80%E5%BE%B7%E6%B4%8B%E6%A8%93+%E5%8F%B0%E4%B8%AD%E5%B8%82%E5%8C%97%E5%B1%AF%E5%8D%80%E6%96%87%E6%98%8C%E6%9D%B1%E5%8D%81%E4%B8%80%E8%A1%9714%E5%B7%B71%E8%99%9F" target="_blank" rel="noopener noreferrer">用 Google 地圖導航 →</a>
+                </div>
+            </div>
+            <p id="countdown" class="mt-4 text-sm font-semibold text-rose-500 dark:text-rose-300"></p>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 pb-16 space-y-14">
+
+        <!-- Overview -->
+        <section id="overview">
+            <h2 class="text-2xl font-bold mb-1">🌷 一分鐘看懂</h2>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mb-5">先記住這五件事，其他細節往下看。</p>
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div class="card p-5 flex gap-4 items-start">
+                    <span class="text-3xl">🙅</span>
+                    <div><p class="font-bold">禮桌<span class="text-rose-500">不收禮金</span></p><p class="text-sm text-stone-600 dark:text-stone-300">只收給新人的<b>祝福卡片</b>，放進籃子裡。</p></div>
+                </div>
+                <div class="card p-5 flex gap-4 items-start">
+                    <span class="text-3xl">📸</span>
+                    <div><p class="font-bold">幫賓客拍照、貼相簿、請他們簽名</p><p class="text-sm text-stone-600 dark:text-stone-300">光線夠用拍立得，太暗改手機＋相印機。</p></div>
+                </div>
+                <div class="card p-5 flex gap-4 items-start">
+                    <span class="text-3xl">💌</span>
+                    <div><p class="font-bold">沒有人工簽到</p><p class="text-sm text-stone-600 dark:text-stone-300">賓客看看板，拿寫自己名字的信封，裡面有座位資訊。</p></div>
+                </div>
+                <div class="card p-5 flex gap-4 items-start">
+                    <span class="text-3xl">🍽️</span>
+                    <div><p class="font-bold">共 14 桌</p><p class="text-sm text-stone-600 dark:text-stone-300">長輩桌 2 桌＋平輩桌 12 桌（含老師）。</p></div>
+                </div>
+                <div class="card p-5 flex gap-4 items-start sm:col-span-2">
+                    <span class="text-3xl">💻</span>
+                    <div><p class="font-bold">婚禮前一週有線上會議</p><p class="text-sm text-stone-600 dark:text-stone-300">婚顧會先帶大家線上走過一次流程，看不懂的地方可以在會議上問。</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Timeline -->
+        <section id="timeline">
+            <h2 class="text-2xl font-bold mb-1">⏰ 當天時間軸</h2>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mb-5"><span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-500 mr-1"></span>橘點是工作人員要做事的時間；<span class="inline-block w-2.5 h-2.5 rounded-full bg-rose-400 mx-1"></span>粉點是婚禮本身的流程。</p>
+            <div class="card p-6">
+                <div class="tl-item">
+                    <span class="tl-dot"></span>
+                    <p class="text-sm font-bold text-rose-500">12:00</p>
+                    <p class="font-bold">午宴（以長輩親友為主）</p>
+                    <p class="text-sm text-stone-600 dark:text-stone-300">可能需要一位工作人員協助<b>婚紗照輪播</b>，人選還在找。</p>
+                </div>
+                <div class="tl-item is-staff">
+                    <span class="tl-dot"></span>
+                    <p class="text-sm font-bold text-amber-600 dark:text-amber-400">16:00 · 工作人員集合</p>
+                    <p class="font-bold">喜餅裝袋 ＋ 婚禮小物擺上賓客桌</p>
+                    <ul class="mt-1 text-sm text-stone-600 dark:text-stone-300 list-disc pl-5 space-y-1">
+                        <li>先把喜餅一份一份裝進袋子，排整齊放在指定位置。</li>
+                        <li>婚禮小物照座位擺在每一桌、每個位子上（14 桌都要放到）。</li>
+                        <li>順手確認簽到禮桌區的東西都到了（看下面的<a href="#checklist" class="text-rose-500 hover:underline">物品清單</a>）。</li>
+                    </ul>
+                </div>
+                <div class="tl-item is-staff">
+                    <span class="tl-dot"></span>
+                    <p class="text-sm font-bold text-amber-600 dark:text-amber-400">16:30 · Candy Bar 開放</p>
+                    <p class="font-bold">先吃點東西 🍰</p>
+                    <p class="text-sm text-stone-600 dark:text-stone-300">賓客來了就沒空吃了，趁現在填填肚子、上個廁所。拍照組可以順便<b>試拍幾張</b>，看現場光線決定用哪套設備。</p>
+                </div>
+                <div class="tl-item is-staff">
+                    <span class="tl-dot"></span>
+                    <p class="text-sm font-bold text-amber-600 dark:text-amber-400">賓客入場前 · 各就各位</p>
+                    <p class="font-bold">禮桌組到禮桌、拍照組到拍照區</p>
+                    <p class="text-sm text-stone-600 dark:text-stone-300">籃子、相簿、筆擺好；拍立得／相印機開機待命。確切的就位時間以婚顧會議說的為準。</p>
+                </div>
+                <div class="tl-item">
+                    <span class="tl-dot"></span>
+                    <p class="text-sm font-bold text-rose-500">18:00</p>
+                    <p class="font-bold">晚宴開始 🥂</p>
+                    <p class="text-sm text-stone-600 dark:text-stone-300">賓客大致入座後，大家也可以入席。還沒拍到的賓客，可以等用餐空檔再邀請。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Map -->
+        <section id="map">
+            <h2 class="text-2xl font-bold mb-1">🏡 場地示意圖</h2>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mb-5">Q 版示意，畫的是動線順序，不是實際比例，實際位置以現場和婚顧安排為準。</p>
+            <div class="card p-4 md:p-6">
+                <svg class="w-full h-auto" viewBox="0 0 420 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="場地動線示意圖" font-family="Inter, 'Noto Sans TC', sans-serif">
+                    <!-- house -->
+                    <rect x="150" y="18" width="250" height="300" rx="16" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                    <text x="275" y="40" text-anchor="middle" font-size="12" font-weight="700" fill="#b45309">一德洋樓 · 宴客區</text>
+                    <!-- tables -->
+                    <g id="tables"></g>
+                    <!-- legend -->
+                    <circle cx="176" cy="300" r="7" fill="#fb7185"/><text x="188" y="304" font-size="10" fill="#57534e">長輩桌 ×2</text>
+                    <circle cx="260" cy="300" r="7" fill="#fbbf24"/><text x="272" y="304" font-size="10" fill="#57534e">平輩桌 ×12（含老師）</text>
+                    <!-- path -->
+                    <path d="M70 288 V262 M70 218 V182 M70 138 V102 M130 80 H150" stroke="#fda4af" stroke-width="3" stroke-dasharray="6 5" fill="none" stroke-linecap="round"/>
+                    <!-- entrance -->
+                    <g transform="translate(70 300)"><rect x="-28" y="-12" width="56" height="24" rx="12" fill="#e7e5e4"/><text y="4" text-anchor="middle" font-size="11" font-weight="700" fill="#44403c">入口</text></g>
+                    <!-- signboard -->
+                    <g transform="translate(70 240)">
+                        <rect x="-60" y="-22" width="120" height="44" rx="8" fill="#fff" stroke="#fb7185" stroke-width="2"/>
+                        <g fill="#fecdd3" stroke="#fb7185" stroke-width="1"><rect x="-50" y="-12" width="12" height="9" rx="1"/><rect x="-50" y="2" width="12" height="9" rx="1"/></g>
+                        <text x="8" y="-2" text-anchor="middle" font-size="10" font-weight="700" fill="#be123c">座位看板＋信封</text>
+                        <text x="8" y="12" text-anchor="middle" font-size="9" fill="#78716c">賓客自己找座位</text>
+                    </g>
+                    <!-- gift table -->
+                    <g transform="translate(70 160)">
+                        <rect x="-60" y="-22" width="120" height="44" rx="8" fill="#fff" stroke="#f59e0b" stroke-width="2"/>
+                        <path d="M-50 -4 h16 l-3 12 h-10 z" fill="#d6a76c"/><path d="M-48 -6 q6 -8 12 0" stroke="#92400e" fill="none" stroke-width="1.5"/>
+                        <text x="10" y="-2" text-anchor="middle" font-size="10" font-weight="700" fill="#92400e">簽到禮桌</text>
+                        <text x="10" y="12" text-anchor="middle" font-size="9" fill="#78716c">收祝福卡片（2 人）</text>
+                    </g>
+                    <!-- photo zone -->
+                    <g transform="translate(70 80)">
+                        <rect x="-60" y="-22" width="120" height="44" rx="8" fill="#fff" stroke="#8b5cf6" stroke-width="2"/>
+                        <rect x="-50" y="-8" width="16" height="13" rx="2" fill="#c4b5fd"/><circle cx="-42" cy="-1.5" r="3" fill="#fff"/>
+                        <text x="10" y="-2" text-anchor="middle" font-size="10" font-weight="700" fill="#6d28d9">拍照＋相簿</text>
+                        <text x="10" y="12" text-anchor="middle" font-size="9" fill="#78716c">拍照簽名（3 人）</text>
+                    </g>
+                    <!-- candy bar -->
+                    <g transform="translate(70 24)">
+                        <rect x="-50" y="-12" width="100" height="24" rx="12" fill="#fce7f3" stroke="#ec4899" stroke-width="1.5"/>
+                        <text y="4" text-anchor="middle" font-size="10" font-weight="700" fill="#be185d">🍭 Candy Bar</text>
+                    </g>
+                </svg>
+                <ol class="mt-4 grid sm:grid-cols-4 gap-2 text-xs text-stone-600 dark:text-stone-300">
+                    <li class="rounded-xl bg-stone-100 dark:bg-stone-800 p-2"><b>① 入口</b>：賓客進場</li>
+                    <li class="rounded-xl bg-rose-50 dark:bg-rose-950/40 p-2"><b>② 看板</b>：找自己名字的信封</li>
+                    <li class="rounded-xl bg-amber-50 dark:bg-amber-950/40 p-2"><b>③ 禮桌</b>：投祝福卡片</li>
+                    <li class="rounded-xl bg-violet-50 dark:bg-violet-950/40 p-2"><b>④ 拍照</b>：拍照、貼相簿、簽名，再入座</li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- Team -->
+        <section id="team">
+            <h2 class="text-2xl font-bold mb-1">👫 工作人員與分工</h2>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mb-5">簽到禮桌區共 5 位：<b>2 位顧禮桌</b>、<b>3 位負責拍照相簿</b>。誰做哪一組，婚顧會議時再一起分配。</p>
+            <div id="crew" class="grid grid-cols-5 gap-2 sm:gap-4"></div>
+            <div class="mt-5 grid sm:grid-cols-2 gap-4">
+                <a href="#task1" class="card p-5 block hover:-translate-y-0.5 transition-transform">
+                    <p class="text-xs font-bold text-amber-600 dark:text-amber-400">禮桌組 · 2 人</p>
+                    <p class="mt-1 font-bold text-lg">任務一：收祝福卡片 💌</p>
+                    <p class="text-sm text-stone-600 dark:text-stone-300">顧好卡片籃、招呼賓客、婉拒禮金。</p>
+                </a>
+                <a href="#task2" class="card p-5 block hover:-translate-y-0.5 transition-transform">
+                    <p class="text-xs font-bold text-violet-600 dark:text-violet-400">拍照組 · 3 人</p>
+                    <p class="mt-1 font-bold text-lg">任務二：拍照＋相簿簽名 📸</p>
+                    <p class="text-sm text-stone-600 dark:text-stone-300">邀請拍照、印出貼相簿、請賓客簽名留言。</p>
+                </a>
+            </div>
+        </section>
+
+        <!-- Task 1 -->
+        <section id="task1">
+            <h2 class="text-2xl font-bold mb-1">💌 任務一：收祝福卡片</h2>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mb-5">禮桌組 2 人。今天<b class="text-rose-500">不收禮金</b>，只收卡片。</p>
+            <div class="grid md:grid-cols-5 gap-4">
+                <div class="card p-5 md:col-span-2 flex items-center justify-center">
+                    <svg class="w-full max-w-[220px]" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Q版卡片籃">
+                        <ellipse cx="100" cy="138" rx="70" ry="7" fill="#e7e5e4"/>
+                        <!-- cards -->
+                        <g transform="rotate(-12 70 60)"><rect x="52" y="34" width="40" height="30" rx="3" fill="#fff" stroke="#fda4af" stroke-width="2"/><path d="M52 36 L72 52 L92 36" stroke="#fda4af" stroke-width="2" fill="none"/></g>
+                        <g transform="rotate(10 128 56)"><rect x="108" y="30" width="40" height="30" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/><path d="M122 44 q6 -6 6 0 q0 -6 6 0 q0 6 -6 10 q-6 -4 -6 -10" fill="#fb7185"/></g>
+                        <rect x="84" y="22" width="34" height="38" rx="3" fill="#fff1f2" stroke="#fb7185" stroke-width="2"/><path d="M92 34 h18 M92 42 h14 M92 50 h16" stroke="#fda4af" stroke-width="2" stroke-linecap="round"/>
+                        <!-- basket -->
+                        <path d="M40 66 Q100 50 160 66" fill="none" stroke="#a16207" stroke-width="5"/>
+                        <path d="M36 70 H164 L150 132 H50 Z" fill="#d6a76c" stroke="#a16207" stroke-width="3" stroke-linejoin="round"/>
+                        <path d="M44 90 H156 M48 110 H152" stroke="#a16207" stroke-width="2" opacity=".6"/>
+                        <path d="M70 70 L66 132 M100 70 V132 M130 70 L134 132" stroke="#a16207" stroke-width="2" opacity=".6"/>
+                        <path d="M88 96 q12 -14 24 0 q-12 14 -24 0" fill="#fb7185"/>
+                        <text x="100" y="124" text-anchor="middle" font-size="10" font-weight="700" fill="#78350f">祝福卡片</text>
+                    </svg>
+                </div>
+                <div class="card p-5 md:col-span-3">
+                    <h3 class="font-bold mb-2">怎麼做</h3>
+                    <ol class="text-sm text-stone-600 dark:text-stone-300 list-decimal pl-5 space-y-1.5">
+                        <li>笑著打招呼：「歡迎～有寫卡片給新人可以放這個籃子喔！」</li>
+                        <li>賓客把卡片放進籃子，籃子盡量<b>一直有人顧</b>，兩人不要同時離開。</li>
+                        <li>指引下一步：「拍照留念在旁邊，拍完再入座就可以了。」</li>
+                        <li>籃子快滿時，把卡片整理成一疊，避免掉出來。</li>
+                    </ol>
+                    <div class="mt-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 p-4 text-sm">
+                        <p class="font-bold text-rose-600 dark:text-rose-300">有人要給紅包怎麼辦？</p>
+                        <p class="mt-1 text-stone-600 dark:text-stone-300">客氣地婉拒就好：「新人說今天不收禮金，心意他們收到了，謝謝您！」如果對方堅持，請不要自己收下，先找新人或家人處理。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Task 2 -->
+        <section id="task2">
+            <h2 class="text-2xl font-bold mb-1">📸 任務二：拍照 → 貼相簿 → 簽名</h2>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mb-5">拍照組 3 人。用哪一套設備，<b>看天氣和現場光線</b>決定。</p>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div class="card p-5">
+                    <div class="flex items-center gap-4">
+                        <svg class="w-20 h-20 shrink-0" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Q版拍立得">
+                            <rect x="8" y="16" width="64" height="52" rx="12" fill="#bae6fd" stroke="#0284c7" stroke-width="2.5"/>
+                            <rect x="8" y="52" width="64" height="16" rx="6" fill="#7dd3fc"/>
+                            <circle cx="40" cy="40" r="15" fill="#fff" stroke="#0284c7" stroke-width="2.5"/><circle cx="40" cy="40" r="8" fill="#0c4a6e"/><circle cx="37" cy="37" r="2.5" fill="#fff"/>
+                            <rect x="54" y="22" width="12" height="8" rx="2" fill="#fff"/><circle cx="16" cy="24" r="3" fill="#f43f5e"/>
+                            <circle cx="28" cy="10" r="4" fill="#fde047"/><path d="M28 2 v3 M28 15 v3 M20 10 h3 M33 10 h3" stroke="#facc15" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <div>
+                            <p class="text-xs font-bold text-sky-600 dark:text-sky-400">☀️ 光線夠亮</p>
+                            <p class="font-bold">用拍立得</p>
+                        </div>
+                    </div>
+                    <ul class="mt-3 text-sm text-stone-600 dark:text-stone-300 list-disc pl-5 space-y-1">
+                        <li>拍完相片會自己吐出來，<b>不要甩</b>，正面朝下放著等顯影。</li>
+                        <li>顯影需要幾分鐘，可以先請賓客在相簿上簽名，照片好了再貼上。</li>
+                        <li>相紙張數有限，<b>一組人拍一張</b>就好，不要每人都拍。</li>
+                    </ul>
+                </div>
+                <div class="card p-5">
+                    <div class="flex items-center gap-4">
+                        <svg class="w-20 h-20 shrink-0" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Q版手機和相印機">
+                            <circle cx="64" cy="12" r="7" fill="#fde68a"/><circle cx="68" cy="9" r="6" fill="#fff7f2" class="dark:fill-stone-800"/>
+                            <rect x="6" y="14" width="26" height="46" rx="6" fill="#334155"/><rect x="9" y="19" width="20" height="34" rx="2" fill="#c4b5fd"/><circle cx="19" cy="56" r="1.8" fill="#94a3b8"/>
+                            <path d="M34 38 q6 -6 12 0" stroke="#a78bfa" stroke-width="2" fill="none" stroke-dasharray="2 3"/>
+                            <rect x="40" y="34" width="34" height="26" rx="6" fill="#f5d0fe" stroke="#a21caf" stroke-width="2"/>
+                            <rect x="46" y="56" width="22" height="18" rx="1" fill="#fff" stroke="#d946ef" stroke-width="1.5"/><rect x="49" y="59" width="16" height="10" fill="#fbcfe8"/>
+                        </svg>
+                        <div>
+                            <p class="text-xs font-bold text-violet-600 dark:text-violet-400">🌙 太暗、拍立得拍不清楚</p>
+                            <p class="font-bold">改用手機＋相印機</p>
+                        </div>
+                    </div>
+                    <ul class="mt-3 text-sm text-stone-600 dark:text-stone-300 list-disc pl-5 space-y-1">
+                        <li>手機開閃光燈或夜間模式，拍完傳到相印機印出來。</li>
+                        <li>先在 16:30 試印一張，確認手機和相印機已經連好。</li>
+                        <li>手機和相印機都要<b>充飽電</b>，備好行動電源。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- flow -->
+            <div class="card p-5 mt-4">
+                <h3 class="font-bold mb-4">三個人的建議分工（可以自己調整）</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-center text-sm">
+                    <div class="rounded-2xl bg-violet-50 dark:bg-violet-950/40 p-3">
+                        <div class="text-3xl">🙋</div><p class="font-bold mt-1">1. 邀請</p><p class="text-xs text-stone-600 dark:text-stone-300">「要不要拍一張照片留給新人？」</p>
+                    </div>
+                    <div class="rounded-2xl bg-sky-50 dark:bg-sky-950/40 p-3">
+                        <div class="text-3xl">📷</div><p class="font-bold mt-1">2. 拍照／印出</p><p class="text-xs text-stone-600 dark:text-stone-300">掌鏡的人負責拍和印</p>
+                    </div>
+                    <div class="rounded-2xl bg-amber-50 dark:bg-amber-950/40 p-3">
+                        <div class="text-3xl">📒</div><p class="font-bold mt-1">3. 貼相簿</p><p class="text-xs text-stone-600 dark:text-stone-300">照片貼好，一頁一組賓客</p>
+                    </div>
+                    <div class="rounded-2xl bg-rose-50 dark:bg-rose-950/40 p-3">
+                        <div class="text-3xl">✍️</div><p class="font-bold mt-1">4. 簽名留言</p><p class="text-xs text-stone-600 dark:text-stone-300">遞筆請賓客在照片旁簽名</p>
+                    </div>
+                </div>
+                <p class="mt-4 text-xs text-stone-500 dark:text-stone-400">建議：1 人邀請＋遞筆，1 人拍照印照片，1 人貼相簿、顧簽名。人多的時候，可以請賓客先簽名、照片印好再補貼。</p>
+            </div>
+
+            <!-- album -->
+            <div class="card p-5 mt-4 grid sm:grid-cols-5 gap-4 items-center">
+                <svg class="w-full max-w-[240px] mx-auto sm:col-span-2" viewBox="0 0 220 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Q版相簿頁面">
+                    <path d="M110 20 Q60 6 12 16 V128 Q60 118 110 132 Q160 118 208 128 V16 Q160 6 110 20 Z" fill="#fff" stroke="#d6d3d1" stroke-width="2"/>
+                    <path d="M110 20 V132" stroke="#d6d3d1" stroke-width="2"/>
+                    <g transform="rotate(-5 58 60)"><rect x="30" y="28" width="52" height="62" rx="2" fill="#fff" stroke="#a8a29e"/><rect x="35" y="33" width="42" height="42" fill="#bae6fd"/><circle cx="50" cy="52" r="6" fill="#fde2cf"/><circle cx="64" cy="52" r="6" fill="#fde2cf"/><path d="M42 75 q8 -12 16 0 M56 75 q8 -12 16 0" fill="#fb7185"/></g>
+                    <path d="M28 104 q8 -6 14 0 t14 0 t14 0" stroke="#e11d48" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <text x="60" y="122" text-anchor="middle" font-size="9" fill="#e11d48">新婚快樂！</text>
+                    <g transform="rotate(4 162 60)"><rect x="136" y="28" width="52" height="62" rx="2" fill="#fff" stroke="#a8a29e"/><rect x="141" y="33" width="42" height="42" fill="#fde68a"/><circle cx="162" cy="52" r="6" fill="#fde2cf"/><path d="M154 75 q8 -12 16 0" fill="#8b5cf6"/></g>
+                    <path d="M140 106 q10 -8 20 0 t20 0" stroke="#7c3aed" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <g transform="translate(196 92) rotate(35)"><rect x="-3" y="-18" width="6" height="30" rx="2" fill="#334155"/><path d="M-3 12 L0 18 L3 12 Z" fill="#334155"/></g>
+                </svg>
+                <div class="sm:col-span-3 text-sm text-stone-600 dark:text-stone-300 space-y-1.5">
+                    <h3 class="font-bold text-stone-800 dark:text-stone-100">相簿小提醒</h3>
+                    <p>· 照片旁邊留空間給賓客簽名，<b>一頁一組</b>比較整齊。</p>
+                    <p>· 準備幾支不同顏色的簽字筆，用完蓋好筆蓋，避免沾到相簿。</p>
+                    <p>· 照片貼之前先確認背膠或相角貼，貼歪了很難撕。</p>
+                    <p>· 共 14 桌賓客，相紙請依人數<b>多備一些</b>。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Guests -->
+        <section id="guests">
+            <h2 class="text-2xl font-bold mb-1">💌 賓客怎麼找座位</h2>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mb-5">現場<b>沒有工作人員幫忙簽到</b>，賓客自己看看板找信封。</p>
+            <div class="card p-5">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+                    <div class="text-center">
+                        <svg class="w-28 mx-auto" viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <rect x="10" y="6" width="80" height="58" rx="6" fill="#fff" stroke="#fb7185" stroke-width="2.5"/>
+                            <g fill="#fecdd3" stroke="#fb7185"><rect x="18" y="16" width="18" height="13" rx="1"/><rect x="41" y="16" width="18" height="13" rx="1"/><rect x="64" y="16" width="18" height="13" rx="1"/><rect x="18" y="38" width="18" height="13" rx="1"/><rect x="41" y="38" width="18" height="13" rx="1"/><rect x="64" y="38" width="18" height="13" rx="1"/></g>
+                            <path d="M28 64 L22 86 M72 64 L78 86" stroke="#a8a29e" stroke-width="3" stroke-linecap="round"/>
+                        </svg>
+                        <p class="font-bold text-sm mt-1">① 看看板</p>
+                        <p class="text-xs text-stone-500 dark:text-stone-400">找寫著自己名字的信封</p>
+                    </div>
+                    <div class="text-center">
+                        <svg class="w-28 mx-auto" viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <rect x="14" y="24" width="72" height="50" rx="4" fill="#fff1f2" stroke="#fb7185" stroke-width="2.5"/>
+                            <path d="M14 26 L50 52 L86 26" fill="none" stroke="#fb7185" stroke-width="2.5"/>
+                            <text x="50" y="68" text-anchor="middle" font-size="10" font-weight="700" fill="#be123c">○○○ 收</text>
+                            <path d="M44 14 q6 -8 12 0 q-6 8 -12 0" fill="#fb7185"/>
+                        </svg>
+                        <p class="font-bold text-sm mt-1">② 打開信封</p>
+                        <p class="text-xs text-stone-500 dark:text-stone-400">裡面寫著座位資訊</p>
+                    </div>
+                    <div class="text-center">
+                        <svg class="w-28 mx-auto" viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <ellipse cx="50" cy="52" rx="38" ry="20" fill="#fef3c7" stroke="#f59e0b" stroke-width="2.5"/>
+                            <g fill="#fff" stroke="#d6d3d1"><circle cx="30" cy="48" r="6"/><circle cx="50" cy="44" r="6"/><circle cx="70" cy="48" r="6"/><circle cx="40" cy="60" r="6"/><circle cx="60" cy="60" r="6"/></g>
+                            <rect x="44" y="14" width="12" height="16" rx="2" fill="#fff" stroke="#f59e0b" stroke-width="2"/><text x="50" y="26" text-anchor="middle" font-size="9" font-weight="700" fill="#b45309">5</text>
+                        </svg>
+                        <p class="font-bold text-sm mt-1">③ 找到桌次入座</p>
+                        <p class="text-xs text-stone-500 dark:text-stone-400">長輩 2 桌、平輩 12 桌</p>
+                    </div>
+                </div>
+                <div class="mt-5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 p-4 text-sm text-stone-600 dark:text-stone-300">
+                    <p class="font-bold text-amber-700 dark:text-amber-300">賓客找不到自己的信封？</p>
+                    <p class="mt-1">陪他再看一次看板（可能被拿錯或擺到別排），還是找不到就請新人或家人協助安排，不要自己決定座位。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Checklist -->
+        <section id="checklist">
+            <h2 class="text-2xl font-bold mb-1">🧺 物品清單</h2>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mb-5">16:00 到場後一項一項確認，打勾會記在這支手機上。</p>
+            <div class="grid sm:grid-cols-2 gap-4" id="checkGroups"></div>
+            <button id="resetChecks" class="mt-3 text-xs text-stone-500 hover:text-rose-500 underline">清除所有勾選</button>
+        </section>
+
+        <!-- Notes -->
+        <section id="notes">
+            <h2 class="text-2xl font-bold mb-1">📝 注意事項</h2>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mb-5">小細節，讓當天更順。</p>
+            <div class="grid sm:grid-cols-2 gap-4 text-sm">
+                <div class="card p-5"><p class="font-bold">🏛️ 這是老房子</p><p class="mt-1 text-stone-600 dark:text-stone-300">一德洋樓是有歷史的洋樓，牆面、木頭和柱子請不要直接貼膠帶或釘東西，要固定東西先問婚顧或場地人員。</p></div>
+                <div class="card p-5"><p class="font-bold">🧥 1 月晚上會冷</p><p class="mt-1 text-stone-600 dark:text-stone-300">臺中冬天晚上溫度偏低，戶外待久了會冷，帶件外套。天黑得早，拍照設備的判斷也要早點做。</p></div>
+                <div class="card p-5"><p class="font-bold">🔋 電量與耗材</p><p class="mt-1 text-stone-600 dark:text-stone-300">手機、相印機、拍立得的電池前一晚充飽；相紙、筆、背膠多帶一份。</p></div>
+                <div class="card p-5"><p class="font-bold">🙂 先照顧賓客</p><p class="mt-1 text-stone-600 dark:text-stone-300">不想拍照的賓客不用勉強；行動不便的長輩可以優先、到座位旁再拍。</p></div>
+                <div class="card p-5"><p class="font-bold">🧾 結束後</p><p class="mt-1 text-stone-600 dark:text-stone-300">卡片籃、相簿和剩下的相紙收好一起交給新人，不要放著就離開。</p></div>
+                <div class="card p-5"><p class="font-bold">❓ 有問題問誰</p><p class="mt-1 text-stone-600 dark:text-stone-300">流程上的事先問婚顧；跟賓客、座位、禮金有關的事找新人或家人。</p></div>
+            </div>
+            <p class="mt-8 text-center text-rose-400 font-bold">辛苦了，謝謝你們 💗 一起讓這天很美好！</p>
+        </section>
+    </main>
+
+    <script>
+        // ===== Countdown =====
+        (function () {
+            const target = new Date('2027-01-01T18:00:00+08:00');
+            const days = Math.ceil((target - new Date()) / 86400000);
+            const el = document.getElementById('countdown');
+            if (days > 1) el.textContent = `距離婚禮還有 ${days} 天`;
+            else if (days === 1) el.textContent = '就是明天了！';
+            else if (days > -1) el.textContent = '就是今天！加油 💪';
+        })();
+
+        // ===== Venue map tables: 2 elder tables + 12 peer tables (layout is illustrative) =====
+        (function () {
+            const g = document.getElementById('tables');
+            let html = '';
+            const rows = [4, 4, 4, 2];
+            let n = 0;
+            rows.forEach((count, row) => {
+                for (let col = 0; col < count; col++) {
+                    n++;
+                    const elder = n <= 2;
+                    const x = 275 + (col - (count - 1) / 2) * 54, y = 78 + row * 52;
+                    html += `<circle cx="${x}" cy="${y}" r="17" fill="${elder ? '#fb7185' : '#fbbf24'}" fill-opacity=".9"/>` +
+                            `<text x="${x}" y="${y + 4}" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">${n}</text>`;
+                }
+            });
+            g.innerHTML = html;
+        })();
+
+        // ===== Crew chibi avatars =====
+        (function () {
+            const crew = [
+                { name: '柏翰', hair: '#292524', top: '#60a5fa', long: false },
+                { name: '佳蒨', hair: '#57534e', top: '#f472b6', long: true },
+                { name: '邱弟', hair: '#1c1917', top: '#34d399', long: false },
+                { name: '瑜妹', hair: '#44403c', top: '#a78bfa', long: true },
+                { name: '瑜妹友人', hair: '#78350f', top: '#fbbf24', long: true }
+            ];
+            const chibi = c => `
+                <svg viewBox="0 0 60 70" class="w-full max-w-[72px] mx-auto" aria-hidden="true">
+                    ${c.long ? `<path d="M10 34 Q8 8 30 8 Q52 8 50 34 L50 46 L10 46 Z" fill="${c.hair}"/>` : ''}
+                    <path d="M14 68 Q14 46 30 46 Q46 46 46 68 Z" fill="${c.top}"/>
+                    <circle cx="30" cy="30" r="18" fill="#fde2cf"/>
+                    <path d="M12 28 Q12 10 30 10 Q48 10 48 26 Q40 16 30 20 Q20 16 12 28 Z" fill="${c.hair}"/>
+                    <circle cx="24" cy="32" r="2.2" fill="#292524"/><circle cx="36" cy="32" r="2.2" fill="#292524"/>
+                    <ellipse cx="19" cy="38" rx="3.5" ry="2" fill="#fda4af" opacity=".7"/><ellipse cx="41" cy="38" rx="3.5" ry="2" fill="#fda4af" opacity=".7"/>
+                    <path d="M26 39 Q30 43 34 39" stroke="#292524" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                </svg>`;
+            document.getElementById('crew').innerHTML = crew.map(c => `
+                <div class="card p-2 sm:p-3 text-center">
+                    ${chibi(c)}
+                    <p class="mt-1 text-xs sm:text-sm font-bold break-keep">${c.name}</p>
+                </div>`).join('');
+        })();
+
+        // ===== Checklist (saved in localStorage) =====
+        (function () {
+            const groups = [
+                { title: '🎁 布置（16:00）', color: 'text-amber-600 dark:text-amber-400', items: ['喜餅與喜餅袋', '婚禮小物（14 桌份）', '座位看板', '賓客名字信封（含座位資訊）'] },
+                { title: '💌 禮桌', color: 'text-rose-500', items: ['卡片籃', '備用小卡與筆（給沒寫卡片的賓客）'] },
+                { title: '📸 拍照', color: 'text-violet-600 dark:text-violet-400', items: ['拍立得＋相紙＋電池', '手機（已連好相印機）', '相印機＋相紙', '行動電源與充電線'] },
+                { title: '📒 相簿', color: 'text-sky-600 dark:text-sky-400', items: ['相簿', '多色簽字筆', '背膠／相角貼', '濕紙巾（擦手、擦筆）'] }
+            ];
+            const KEY = 'weddingChecklist';
+            let state = {};
+            try { state = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {}
+            const box = document.getElementById('checkGroups');
+            box.innerHTML = groups.map((g, gi) => `
+                <div class="card p-5">
+                    <p class="font-bold ${g.color} mb-2">${g.title}</p>
+                    ${g.items.map((it, ii) => `
+                        <label class="check flex items-center gap-2 py-1 text-sm cursor-pointer">
+                            <input type="checkbox" data-key="${gi}-${ii}" class="w-4 h-4 accent-rose-500" ${state[gi + '-' + ii] ? 'checked' : ''}>
+                            <span>${it}</span>
+                        </label>`).join('')}
+                </div>`).join('');
+            box.addEventListener('change', e => {
+                if (!e.target.dataset.key) return;
+                state[e.target.dataset.key] = e.target.checked;
+                try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (err) {}
+            });
+            document.getElementById('resetChecks').addEventListener('click', () => {
+                state = {};
+                try { localStorage.removeItem(KEY); } catch (err) {}
+                box.querySelectorAll('input').forEach(i => { i.checked = false; });
+            });
+        })();
+
+        // ===== Theme: shares the same 'theme' setting as the home page =====
+        const sunIcon = document.getElementById('sunIcon');
+        const moonIcon = document.getElementById('moonIcon');
+        function applyTheme(isDark) {
+            document.documentElement.classList.toggle('dark', isDark);
+            sunIcon.classList.toggle('hidden', !isDark);
+            moonIcon.classList.toggle('hidden', isDark);
+        }
+        let savedTheme = null;
+        try { savedTheme = localStorage.getItem('theme'); } catch (e) {}
+        applyTheme(savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches));
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            const isDark = !document.documentElement.classList.contains('dark');
+            applyTheme(isDark);
+            try { localStorage.setItem('theme', isDark ? 'dark' : 'light'); } catch (e) {}
+        });
+    </script>
+</body>
+</html>
