@@ -42,6 +42,14 @@
         .fstep:not(.active) .step-card { opacity: 0.35; transform: scale(0.97); }
         .gate-bar { transition: transform 0.6s cubic-bezier(.2,1.4,.4,1); transform-box: fill-box; transform-origin: left center; }
         .done .gate-bar { transform: rotate(-75deg); }
+        .git-el { opacity: 0; transition: opacity 0.5s ease; }
+        .git-el.shown { opacity: 1; }
+        .git-line { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 0.9s ease, opacity 0.3s ease; }
+        .git-line.shown { stroke-dashoffset: 0; }
+        .git-dot { transform-box: fill-box; transform-origin: center; }
+        .git-dot.shown { animation: pop 0.45s cubic-bezier(.2,1.6,.4,1); }
+        #gitPr { animation: march 0.8s linear infinite; }
+        @keyframes march { to { stroke-dashoffset: -8; } }
         .vwave { opacity: 0; }
         #voiceStage[data-step="0"] .vwave { animation: wave 0.9s ease-out infinite; }
         #voiceStage[data-step="0"] .vwave:nth-child(2) { animation-delay: 0.2s; }
@@ -52,7 +60,8 @@
         .anim-list > *:not(.is-on) { opacity: 0.45; }
         #voiceSteps > .is-on { box-shadow: 0 0 0 2px #6366f1; transform: translateY(-2px); }
         @media (prefers-reduced-motion: reduce) {
-            .walk, .fzone.on .hop, .pop, .vwave { animation: none !important; }
+            .walk, .fzone.on .hop, .pop, .vwave, .git-dot.shown, #gitPr { animation: none !important; }
+            .git-line { transition: none !important; }
             #voiceStage[data-step="0"] .vwave { opacity: 1; }
             .mover, .spark, .gate-bar, .fstep .step-card, .anim-list > * { transition: none !important; }
         }
@@ -171,6 +180,9 @@
                     <g font-size="13" font-weight="700">
                         <text x="6" y="74" class="fill-amber-600 dark:fill-amber-300" data-i18n="race.joe">我的網站</text>
                         <text x="6" y="144" class="fill-indigo-600 dark:fill-indigo-300" data-i18n="race.max">Max 的網站</text>
+                    </g>
+                    <g font-size="9" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" class="fill-slate-500 dark:fill-slate-400">
+                        <text x="6" y="90">PR → master</text><text x="6" y="160">push → main</text>
                     </g>
                     <g stroke-width="3" stroke-dasharray="6 5" stroke-linecap="round"><line x1="84" y1="86" x2="400" y2="86" stroke="#fcd34d"/><line x1="84" y1="156" x2="400" y2="156" stroke="#c7d2fe"/></g>
                     <g fill="#fff" stroke="#94a3b8" stroke-width="1.5"><circle cx="110" cy="86" r="4"/><circle cx="190" cy="86" r="4"/><circle cx="262" cy="86" r="4"/><circle cx="110" cy="156" r="4"/><circle cx="245" cy="156" r="4"/></g>
@@ -366,12 +378,12 @@
             <span data-i18n="flow.title">一次改版的流程</span>
         </h2>
         <p class="text-slate-600 dark:text-slate-400 mb-8" data-i18n="flow.sub">這是我的網站從提出需求到上線的流程，每一步由誰負責、做了什麼。Max 自己的網站沒有 ⑦～⑨：改完直接推送，自動上線。</p>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mb-2" data-i18n="flow.hint">往下滑，「需求單」小人會從我的手機出發，一路走到網站上線。</p>
-        <div class="md:grid md:grid-cols-2 md:gap-10">
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-2" data-i18n="flow.hint">往下滑，「需求單」小人會從我的手機出發，一路走到網站上線；下方的 Git 圖同步畫出分支怎麼開、怎麼合併。</p>
+        <div class="md:grid md:grid-cols-5 md:gap-8">
             <!-- sticky stage -->
-            <div class="sticky top-16 z-20 h-[44svh] md:h-[calc(100vh-4rem)] md:order-2 flex items-center justify-center py-3 bg-white dark:bg-[#172033]">
-                <div id="flowStage" class="relative h-full md:h-auto md:w-full max-h-full aspect-[420/330] max-w-full rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2 md:p-4" data-step="0">
-                    <svg class="w-full h-full" viewBox="0 0 420 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="改版流程動畫" font-family="Inter, 'Noto Sans TC', sans-serif">
+            <div class="sticky top-16 z-20 h-[48svh] md:h-[calc(100vh-4rem)] md:order-2 md:col-span-3 flex items-center justify-center py-3 bg-white dark:bg-[#172033]">
+                <div id="flowStage" class="relative h-full md:h-auto md:w-full max-h-full aspect-[420/445] max-w-full rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2 md:p-4" data-step="0">
+                    <svg class="w-full h-full" viewBox="0 0 420 445" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="改版流程動畫" font-family="Inter, 'Noto Sans TC', sans-serif">
                         <g fill="none" stroke-width="3" stroke-dasharray="6 5" stroke-linecap="round">
                             <path d="M132 266 H288" stroke="#c7d2fe"/>
                             <path d="M322 196 Q306 130 250 96" stroke="#c7d2fe"/>
@@ -402,6 +414,31 @@
                             <text x="0" y="22" text-anchor="middle" font-size="10" font-weight="700" fill="#047857" data-i18n="flow.zSite">網站上線</text>
                             <text class="spark" x="-52" y="-30" font-size="14">✨</text><text class="spark" x="40" y="-34" font-size="14">✨</text>
                         </g>
+                        <!-- Git branches: each element appears from step data-from -->
+                        <g id="gitPanel" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+                            <rect x="8" y="332" width="404" height="106" rx="12" class="fill-white dark:fill-slate-900/60 stroke-slate-200 dark:stroke-slate-700"/>
+                            <text x="20" y="352" font-size="12" font-weight="700" class="fill-slate-700 dark:fill-slate-200">Git</text>
+                            <text id="gitCmd" x="402" y="352" text-anchor="end" font-size="11" class="fill-indigo-600 dark:fill-indigo-300"></text>
+                            <g font-size="10.5" class="fill-slate-500 dark:fill-slate-400">
+                                <text x="18" y="379">upstream/master</text>
+                                <text class="git-el" data-from="2" x="18" y="405">fork/my-change</text>
+                                <text class="git-el" data-from="5" x="18" y="429">fork/pr-assets</text>
+                            </g>
+                            <path d="M124 376 H404" stroke="#94a3b8" stroke-width="3" stroke-linecap="round" fill="none"/>
+                            <circle cx="134" cy="376" r="5" fill="#94a3b8"/><circle cx="150" cy="376" r="5" fill="#94a3b8"/>
+                            <path class="git-el git-line" data-from="2" pathLength="1" d="M150 376 C166 376 166 402 182 402 H262" stroke="#6366f1" stroke-width="3" stroke-linecap="round" fill="none"/>
+                            <circle class="git-el git-dot" data-from="3" cx="205" cy="402" r="5" fill="#6366f1"/>
+                            <circle class="git-el git-dot" data-from="3" cx="232" cy="402" r="5" fill="#6366f1"/>
+                            <circle class="git-el git-dot" data-from="7" cx="258" cy="402" r="5" fill="#6366f1"/>
+                            <path class="git-el git-line" data-from="5" pathLength="1" d="M180 426 H404" stroke="#a78bfa" stroke-width="3" stroke-linecap="round" fill="none"/>
+                            <g class="git-el" data-from="5"><circle cx="300" cy="426" r="7" fill="#a78bfa"/><text x="300" y="429.5" text-anchor="middle" font-size="8">📸</text></g>
+                            <g class="git-el" data-from="6" data-until="7">
+                                <path id="gitPr" d="M262 402 C298 402 304 376 340 376" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="4 4" fill="none"/>
+                                <rect x="282" y="381" width="30" height="14" rx="7" fill="#f59e0b"/><text x="297" y="391" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">PR</text>
+                            </g>
+                            <path class="git-el git-line" data-from="8" pathLength="1" d="M262 402 C298 402 304 376 340 376" stroke="#10b981" stroke-width="3" stroke-linecap="round" fill="none"/>
+                            <g class="git-el git-dot" data-from="8"><circle cx="340" cy="376" r="7" fill="#10b981" stroke="#fff" stroke-width="2"/><text x="352" y="369" font-size="10" font-weight="700" fill="#059669">🚀 Pages</text></g>
+                        </g>
                         <g id="flowToken" class="mover" style="transform: translate(150px, 252px)">
                             <g data-art="paperMax"></g>
                             <g id="flowBubble"><rect x="-2" y="-48" width="32" height="24" rx="12" fill="#f59e0b"/><text id="flowBubbleText" x="14" y="-31" text-anchor="middle" font-size="13">🎙️</text></g>
@@ -411,7 +448,7 @@
                 </div>
             </div>
             <!-- steps -->
-            <div id="flowSteps" class="relative z-10 md:order-1"></div>
+            <div id="flowSteps" class="relative z-10 md:order-1 md:col-span-2"></div>
         </div>
         </div>
     </section>
@@ -507,7 +544,7 @@
                 'flow.title': '一次改版的流程', 'flow.sub': '這是我的網站從提出需求到上線的流程，每一步由誰負責、做了什麼。Max 自己的網站沒有 ⑦～⑨：改完直接推送，自動上線。',
                 'flow.laneJoe': '我（Joe）', 'flow.laneClaude': 'Max',
                 'flow.loop': '需要調整？回到 ④',
-                'flow.hint': '往下滑，「需求單」小人會從我的手機出發，一路走到網站上線。', 'flow.zSite': '網站上線',
+                'flow.hint': '往下滑，「需求單」小人會從我的手機出發，一路走到網站上線；下方的 Git 圖同步畫出分支怎麼開、怎麼合併。', 'flow.zSite': '網站上線',
                 'voice.me': '我', 'voice.claude': 'Claude App',
                 'race.title': '同一個修改，兩條路', 'race.sub': '兩張需求單同時出發：Max 的網站直接走到終點；我的網站要等我審查、按下 Merge，閘門才會打開。',
                 'race.joe': '我的網站', 'race.max': 'Max 的網站', 'race.edit': '修改', 'race.pr': '開 PR', 'race.review': '審查', 'race.push': '直接推送', 'race.live': '上線', 'race.done': '上線！',
@@ -550,7 +587,7 @@
                 'flow.title': 'The workflow for one change', 'flow.sub': "How a change to my site goes from request to live: who owns each step and what happens. Max's own site skips ⑦–⑨: it pushes as soon as it's done and the change goes live.",
                 'flow.laneJoe': 'Me (Joe)', 'flow.laneClaude': 'Max',
                 'flow.loop': 'Needs changes? Back to ④',
-                'flow.hint': 'Scroll down and follow the little request slip from my phone all the way to the live site.', 'flow.zSite': 'Site is live',
+                'flow.hint': 'Scroll down and follow the little request slip from my phone all the way to the live site. The Git graph below shows the branch being created and merged as you go.', 'flow.zSite': 'Site is live',
                 'voice.me': 'Me', 'voice.claude': 'Claude app',
                 'race.title': 'One change, two paths', 'race.sub': "Two request slips set off together: on Max's site it walks straight to the finish; on mine it waits until I review and tap Merge to open the gate.",
                 'race.joe': 'My site', 'race.max': "Max's site", 'race.edit': 'Edit', 'race.pr': 'Open PR', 'race.review': 'Review', 'race.push': 'Push', 'race.live': 'Live', 'race.done': 'Live!',
@@ -764,14 +801,14 @@
         // Workflow: the request slip walks between zones as the step cards scroll past.
         const FLOW_STOPS = [
             { z: 'joe', at: [150, 252], emoji: '🎙️' },
-            { z: 'max', at: [272, 252], emoji: '🔍' },
-            { z: 'max', at: [272, 252], emoji: '🌿' },
-            { z: 'max', at: [272, 252], emoji: '⌨️' },
-            { z: 'max', at: [272, 252], emoji: '✅' },
-            { z: 'max', at: [272, 252], emoji: '📸' },
-            { z: 'github', at: [206, 146], emoji: '📬' },
-            { z: 'joe', at: [150, 252], emoji: '👀' },
-            { z: 'site', at: [360, 150], emoji: '🚀' }
+            { z: 'max', at: [272, 252], emoji: '🔍', git: 'git fetch upstream' },
+            { z: 'max', at: [272, 252], emoji: '🌿', git: 'git switch -c my-change upstream/master' },
+            { z: 'max', at: [272, 252], emoji: '⌨️', git: 'git commit -m "…"' },
+            { z: 'max', at: [272, 252], emoji: '✅', git: 'git diff --stat upstream/master' },
+            { z: 'max', at: [272, 252], emoji: '📸', git: 'git push origin pr-assets' },
+            { z: 'github', at: [206, 146], emoji: '📬', git: 'git push -u origin my-change → PR' },
+            { z: 'joe', at: [150, 252], emoji: '👀', git: 'git commit && git push' },
+            { z: 'site', at: [360, 150], emoji: '🚀', git: 'Merge pull request → master' }
         ];
         const flowStage = document.getElementById('flowStage');
         const flowDots = document.getElementById('flowDots');
@@ -784,6 +821,11 @@
             moveTo(document.getElementById('flowToken'), stop.at);
             setZones(flowStage, stop.z);
             document.getElementById('flowSite').classList.toggle('done', s === FLOW_STOPS.length - 1);
+            document.getElementById('gitCmd').textContent = stop.git ? '$ ' + stop.git : '';
+            document.querySelectorAll('#gitPanel .git-el').forEach(g => {
+                const until = g.dataset.until === undefined ? Infinity : Number(g.dataset.until);
+                g.classList.toggle('shown', s >= Number(g.dataset.from) && s <= until);
+            });
             const bubble = document.getElementById('flowBubble');
             bubble.querySelector('rect').setAttribute('fill', FLOW[s].lane === 'joe' ? '#f59e0b' : '#6366f1');
             document.getElementById('flowBubbleText').textContent = stop.emoji;
@@ -793,7 +835,7 @@
         }
         const flowObserver = new IntersectionObserver(entries => {
             entries.forEach(e => { if (e.isIntersecting) setFlowStep(Number(e.target.dataset.step)); });
-        }, { rootMargin: '-55% 0px -35% 0px' });
+        }, { rootMargin: '-62% 0px -28% 0px' });
 
         function renderFlow(lang, t) {
             flowObserver.disconnect();
@@ -806,6 +848,7 @@
                 who.style.color = step.lane === 'joe' ? 'var(--joe)' : 'var(--claude)';
                 card.append(who, el('h3', 'text-xl font-bold mt-1', `${FLOW_STOPS[i].emoji} ${step[lang][0]}`),
                     el('p', 'mt-2 text-sm text-slate-600 dark:text-slate-400', step[lang][1]));
+                if (FLOW_STOPS[i].git) card.appendChild(el('code', 'mt-3 block w-fit max-w-full overflow-x-auto whitespace-nowrap text-xs px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-900 text-indigo-600 dark:text-indigo-300', '$ ' + FLOW_STOPS[i].git));
                 if (step.loop) card.appendChild(el('p', 'mt-3 inline-block text-xs font-semibold px-2 py-0.5 rounded-full border border-dashed border-amber-400 text-amber-600 dark:text-amber-300', t['flow.loop']));
                 article.appendChild(card);
                 return article;
