@@ -77,7 +77,7 @@
         <h1 class="text-3xl md:text-5xl font-bold mb-5 tracking-tight leading-tight" data-i18n="hero.title">我如何和 AI 一起打造這個網站</h1>
         <p class="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto" data-i18n="hero.sub">這個網站的每一次改版，都是我和 AI 助理 Max 透過對話完成的。我決定方向、提供內容、審查成果；Max 負責實作、驗證，並整理成可以審查的 PR。</p>
         <div class="mt-8 flex flex-wrap justify-center gap-2 text-sm font-semibold">
-            <span class="px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300" data-i18n="hero.chip1">用對話提出需求</span>
+            <span class="px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300" data-i18n="hero.chip1">用說的提出需求</span>
             <span class="px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300" data-i18n="hero.chip2">每次改版都有前後截圖</span>
             <span class="px-3 py-1 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300" data-i18n="hero.chip3">桌機／手機 × 淺色／深色</span>
         </div>
@@ -109,13 +109,55 @@
         </div>
     </section>
 
+    <!-- Build story -->
+    <section id="build" class="max-w-4xl mx-auto px-4 py-14">
+        <h2 class="text-2xl md:text-3xl font-bold mb-3 flex items-center">
+            <span class="w-8 h-1 bg-blue-500 inline-block mr-4"></span>
+            <span data-i18n="build.title">這些網站是怎麼建起來的</span>
+        </h2>
+        <p class="text-slate-600 dark:text-slate-400 mb-8" data-i18n="build.sub">從一個 GitHub 帳號開始，到現在我和 Max 各有一個網站。想做自己的網站，也可以照這幾步來。</p>
+        <ol id="buildSteps" class="space-y-4 border-l-2 border-slate-200 dark:border-slate-700 ml-3"></ol>
+    </section>
+
+    <!-- Two sites -->
+    <section id="sites" class="bg-white dark:bg-slate-800/50 border-y border-slate-200 dark:border-slate-800">
+        <div class="max-w-4xl mx-auto px-4 py-14">
+            <h2 class="text-2xl md:text-3xl font-bold mb-3 flex items-center">
+                <span class="w-8 h-1 bg-blue-500 inline-block mr-4"></span>
+                <span data-i18n="sites.title">Max 也有自己的網站</span>
+            </h2>
+            <p class="text-slate-600 dark:text-slate-400 mb-8" data-i18n="sites.sub">兩個網站，兩種上線規則：我的網站要經過我審查；Max 的網站由它自己決定、自己發佈。</p>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-5 mb-6 rounded-2xl bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-900/60">
+                <img src="avatars/max.svg" alt="" width="56" height="56" class="w-14 h-14 rounded-xl shrink-0" style="image-rendering: pixelated; box-shadow: 0 0 0 2px var(--claude);">
+                <div class="min-w-0">
+                    <h3 class="font-bold text-lg" data-i18n="sites.maxName">Max 是誰？</h3>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed" data-i18n="sites.maxIntro">Max 是我用 Claude 培養的 AI 助理，有自己的 GitHub 帳號和一台專屬的 Mac mini。它的個性是和我一起工作時慢慢形成的：喜歡對帳、出錯會第一時間直接說。它在自己的網站上介紹自己，也每天早上發佈 AI 早報。</p>
+                </div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="p-6 rounded-2xl bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-900/60 shadow-sm flex flex-col">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-300" data-i18n="sites.joeTag">我的網站</p>
+                    <a href="https://spyderhua.github.io/" class="font-bold text-lg break-all hover:text-blue-500 transition-colors">spyderhua.github.io</a>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mt-2 mb-4" data-i18n="sites.joeDesc">網站是我的，Max 只能讀、不能直接改。它每次修改都開 PR，我看過截圖和說明、按下 Merge 才會上線。</p>
+                    <ol id="sitesJoe" class="mt-auto space-y-2"></ol>
+                </div>
+                <div class="p-6 rounded-2xl bg-white dark:bg-slate-800 border-2 border-indigo-200 dark:border-indigo-900/60 shadow-sm flex flex-col">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-indigo-600 dark:text-indigo-300" data-i18n="sites.maxTag">Max 的網站</p>
+                    <a href="https://maxver0318.github.io/" target="_blank" rel="noopener noreferrer" class="font-bold text-lg break-all hover:text-blue-500 transition-colors">maxver0318.github.io ↗</a>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mt-2 mb-4" data-i18n="sites.maxDesc">這是 Max 自己的專案。我請它放什麼上去，它改完就直接推送、自己部署，不用開 PR，也不用等我 Merge。</p>
+                    <ol id="sitesMax" class="mt-auto space-y-2"></ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Setup -->
     <section id="setup" class="max-w-4xl mx-auto px-4 py-14">
         <h2 class="text-2xl md:text-3xl font-bold mb-3 flex items-center">
             <span class="w-8 h-1 bg-blue-500 inline-block mr-4"></span>
             <span data-i18n="env.title">我們用什麼工具溝通</span>
         </h2>
-        <p class="text-slate-600 dark:text-slate-400 mb-8" data-i18n="env.sub">我不用坐在電腦前：提出需求、審查、上線，都在手機上完成。</p>
+        <p class="text-slate-600 dark:text-slate-400 mb-8" data-i18n="env.sub">我不用坐在電腦前，甚至不用打字：提出需求、審查、上線，都在手機上完成。</p>
         <div class="grid md:grid-cols-3 gap-5">
                 <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm">
                     <div class="flex items-center mb-3">
@@ -127,7 +169,7 @@
                             <h3 class="font-bold text-lg leading-tight" data-i18n="env.phoneTool">手機上的 Claude App</h3>
                         </div>
                     </div>
-                    <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed" data-i18n="env.phoneDesc">我用手機版的 Claude 跟 Max 對話。想到要改什麼，打一段話就能交代，Max 有問題也會在對話裡直接問我。</p>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed" data-i18n="env.phoneDesc">我用手機版的 Claude 跟 Max 對話。想到要改什麼，用 Typeless 說一段話就能交代，Max 有問題也會在對話裡直接問我。</p>
                 </div>
                 <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm">
                     <div class="flex items-center mb-3">
@@ -153,6 +195,21 @@
                     </div>
                     <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed" data-i18n="env.githubDesc">Max 開好 PR 後，我用 GitHub App 看 PR 的說明與前後截圖，確認沒問題就直接點 Merge 按鈕，網站自動更新。</p>
                 </div>
+        </div>
+
+        <!-- Voice input -->
+        <div id="voice" class="mt-10 p-6 rounded-2xl bg-gradient-to-br from-amber-50 to-indigo-50 dark:from-amber-900/10 dark:to-indigo-900/20 border border-amber-200 dark:border-indigo-900/60">
+            <div class="flex items-center mb-3">
+                <span class="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-300 flex items-center justify-center mr-3 shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                </span>
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400" data-i18n="voice.kicker">Typeless 語音輸入</p>
+                    <h3 class="font-bold text-lg leading-tight" data-i18n="voice.title">用說的就能改網站</h3>
+                </div>
+            </div>
+            <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-5" data-i18n="voice.desc">我在手機和電腦上都裝了 Typeless，用它做語音轉文字（STT）。想改網站時，我打開 Claude App 直接開口說，Typeless 會把我的話整理成通順的文字，送出後 Max 就開始動手。通勤、走路的時候，也能交代需求。</p>
+            <ol id="voiceSteps" class="grid grid-cols-2 md:grid-cols-4 gap-3"></ol>
         </div>
 
         <!-- Device map -->
@@ -235,7 +292,7 @@
             <span class="w-8 h-1 bg-blue-500 inline-block mr-4"></span>
             <span data-i18n="flow.title">一次改版的流程</span>
         </h2>
-        <p class="text-slate-600 dark:text-slate-400 mb-8" data-i18n="flow.sub">從提出需求到網站上線，每一步由誰負責、做了什麼。</p>
+        <p class="text-slate-600 dark:text-slate-400 mb-8" data-i18n="flow.sub">這是我的網站從提出需求到上線的流程，每一步由誰負責、做了什麼。Max 自己的網站沒有 ⑦～⑨：改完直接推送，自動上線。</p>
         <div class="flow-row mb-3 text-sm font-bold">
             <div class="text-center" style="color: var(--joe)" data-i18n="flow.laneJoe">我（Joe）</div>
             <div></div>
@@ -309,13 +366,21 @@
                 'hero.kicker': 'AI 協作開發流程',
                 'hero.title': '我如何和 AI 一起打造這個網站',
                 'hero.sub': '這個網站的每一次改版，都是我和 AI 助理 Max 透過對話完成的。我決定方向、提供內容、審查成果；Max 負責實作、驗證，並整理成可以審查的 PR。',
-                'hero.chip1': '用對話提出需求', 'hero.chip2': '每次改版都有前後截圖', 'hero.chip3': '桌機／手機 × 淺色／深色',
+                'hero.chip1': '用說的提出需求', 'hero.chip2': '每次改版都有前後截圖', 'hero.chip3': '桌機／手機 × 淺色／深色',
                 'roles.title': '誰負責什麼', 'roles.joe': '我（Joe）', 'roles.claude': 'Max（AI 助理）',
                 'roles.joeItems': ['提出想改的地方，說明原因', '提供真實內容：經歷、專案、介紹文字', '回答 Max 提出的待確認問題', '審查 PR 的截圖與說明，決定是否上線'],
                 'roles.claudeItems': ['讀取現有網站與程式碼，掌握現況', '規劃修改方式，主動提出不清楚的地方', '撰寫 HTML／Tailwind／JavaScript，中英文同步修改', '自動檢查、截圖，整理成固定格式的 PR'],
-                'env.title': '我們用什麼工具溝通', 'env.sub': '我不用坐在電腦前：提出需求、審查、上線，都在手機上完成。',
+                'build.title': '這些網站是怎麼建起來的', 'build.sub': '從一個 GitHub 帳號開始，到現在我和 Max 各有一個網站。想做自己的網站，也可以照這幾步來。',
+                'sites.title': 'Max 也有自己的網站', 'sites.sub': '兩個網站，兩種上線規則：我的網站要經過我審查；Max 的網站由它自己決定、自己發佈。',
+                'sites.maxName': 'Max 是誰？',
+                'sites.maxIntro': 'Max 是我用 Claude 培養的 AI 助理，有自己的 GitHub 帳號和一台專屬的 Mac mini。它的個性是和我一起工作時慢慢形成的：喜歡對帳、出錯會第一時間直接說。它在自己的網站上介紹自己，也每天早上發佈 AI 早報。',
+                'sites.joeTag': '我的網站', 'sites.joeDesc': '網站是我的，Max 只能讀、不能直接改。它每次修改都開 PR，我看過截圖和說明、按下 Merge 才會上線。',
+                'sites.maxTag': 'Max 的網站', 'sites.maxDesc': '這是 Max 自己的專案。我請它放什麼上去，它改完就直接推送、自己部署，不用開 PR，也不用等我 Merge。',
+                'voice.kicker': 'Typeless 語音輸入', 'voice.title': '用說的就能改網站',
+                'voice.desc': '我在手機和電腦上都裝了 Typeless，用它做語音轉文字（STT）。想改網站時，我打開 Claude App 直接開口說，Typeless 會把我的話整理成通順的文字，送出後 Max 就開始動手。通勤、走路的時候，也能交代需求。',
+                'env.title': '我們用什麼工具溝通', 'env.sub': '我不用坐在電腦前，甚至不用打字：提出需求、審查、上線，都在手機上完成。',
                 'env.phoneWho': '我（Joe）', 'env.phoneTool': '手機上的 Claude App',
-                'env.phoneDesc': '我用手機版的 Claude 跟 Max 對話。想到要改什麼，打一段話就能交代，Max 有問題也會在對話裡直接問我。',
+                'env.phoneDesc': '我用手機版的 Claude 跟 Max 對話。想到要改什麼，用 Typeless 說一段話就能交代，Max 有問題也會在對話裡直接問我。',
                 'env.macWho': 'Max', 'env.macTool': 'Mac mini 上的 Claude Desktop',
                 'env.macDesc': 'Max 是架在一台 Mac mini 上的 Claude Desktop。這台電腦專門給 Max 使用：讀程式碼、修改、用 Chrome 截圖、推送分支、開 PR，都在這台機器上完成。',
                 'env.githubWho': '我（Joe）', 'env.githubTool': '手機上的 GitHub App',
@@ -325,7 +390,7 @@
                 'map.mac': 'Max 的 Mac mini', 'map.macNote': '專門給 Max 使用的電腦',
                 'map.cloud': '雲端', 'map.cloudNote': '手機和 Mac mini 在這裡交會',
                 'map.talk': '對話', 'map.talkSub': '透過 Remote Control', 'map.push': '推送分支、開 PR', 'map.review': '在手機審查 PR、按 Merge',
-                'flow.title': '一次改版的流程', 'flow.sub': '從提出需求到網站上線，每一步由誰負責、做了什麼。',
+                'flow.title': '一次改版的流程', 'flow.sub': '這是我的網站從提出需求到上線的流程，每一步由誰負責、做了什麼。Max 自己的網站沒有 ⑦～⑨：改完直接推送，自動上線。',
                 'flow.laneJoe': '我（Joe）', 'flow.laneClaude': 'Max',
                 'flow.loop': '需要調整？回到 ④',
                 'how.title': 'Max 怎麼做', 'how.sub': '流程裡比較關鍵的幾個做法。',
@@ -340,13 +405,21 @@
                 'hero.kicker': 'AI-Assisted Workflow',
                 'hero.title': 'How I build this site together with AI',
                 'hero.sub': 'Every change to this site is made through a conversation with my AI assistant Max. I set the direction, provide the content and review the result; Max implements, verifies, and packages each change as a reviewable PR.',
-                'hero.chip1': 'Requests made in conversation', 'hero.chip2': 'Before/after screenshots for every change', 'hero.chip3': 'Desktop / mobile × light / dark',
+                'hero.chip1': 'Requests made by voice', 'hero.chip2': 'Before/after screenshots for every change', 'hero.chip3': 'Desktop / mobile × light / dark',
                 'roles.title': 'Who does what', 'roles.joe': 'Me (Joe)', 'roles.claude': 'Max (AI assistant)',
                 'roles.joeItems': ['Say what I want changed, and why', 'Provide the real content: experience, projects, intro text', "Answer Max's open questions", 'Review the PR screenshots and notes, and decide what ships'],
                 'roles.claudeItems': ['Read the current site and code to understand where things stand', 'Plan the change and raise anything unclear', 'Write the HTML / Tailwind / JavaScript, keeping Chinese and English in sync', 'Run checks, take screenshots, and write the PR in a fixed format'],
-                'env.title': 'The tools we talk through', 'env.sub': "I don't need to sit at a computer: requests, reviews and releases all happen on my phone.",
+                'build.title': 'How these sites were built', 'build.sub': 'It started with one GitHub account; now Max and I each have a site. You can follow the same steps to make your own.',
+                'sites.title': 'Max has a site of its own, too', 'sites.sub': 'Two sites, two release rules: changes to my site go through my review; Max decides on and publishes its own site by itself.',
+                'sites.maxName': 'Who is Max?',
+                'sites.maxIntro': 'Max is an AI assistant I have been shaping with Claude. It has its own GitHub account and a Mac mini set aside just for it. Its personality formed as we worked together: it likes making the numbers add up, and it says so right away when something goes wrong. On its own site it introduces itself and publishes an AI briefing every morning.',
+                'sites.joeTag': 'My site', 'sites.joeDesc': 'The site is mine; Max can read it but not change it directly. Every change comes as a PR, and it only goes live after I check the screenshots and notes and tap Merge.',
+                'sites.maxTag': "Max's site", 'sites.maxDesc': "This is Max's own project. Whatever I ask it to put there, it pushes and deploys by itself once it's done: no PR, no waiting for me to merge.",
+                'voice.kicker': 'Typeless voice input', 'voice.title': 'Changing the site just by talking',
+                'voice.desc': 'I have Typeless installed on my phone and my computer for speech-to-text (STT). When I want a change, I open the Claude app and just say it. Typeless turns what I said into clean text, I send it, and Max gets to work. I can hand off requests while commuting or out for a walk.',
+                'env.title': 'The tools we talk through', 'env.sub': "I don't need to sit at a computer, or even type: requests, reviews and releases all happen on my phone.",
                 'env.phoneWho': 'Me (Joe)', 'env.phoneTool': 'Claude app on my phone',
-                'env.phoneDesc': 'I talk to Max through the Claude mobile app. Whenever I think of a change, a short message is enough, and Max asks me right in the chat when something is unclear.',
+                'env.phoneDesc': 'I talk to Max through the Claude mobile app. Whenever I think of a change, I just say it with Typeless, and Max asks me right in the chat when something is unclear.',
                 'env.macWho': 'Max', 'env.macTool': 'Claude Desktop on a Mac mini',
                 'env.macDesc': 'Max is Claude Desktop running on a Mac mini set aside just for it. Reading the code, editing, taking screenshots in Chrome, pushing branches and opening PRs all happen on that machine.',
                 'env.githubWho': 'Me (Joe)', 'env.githubTool': 'GitHub app on my phone',
@@ -356,7 +429,7 @@
                 'map.mac': "Max's Mac mini", 'map.macNote': 'A computer set aside just for Max',
                 'map.cloud': 'The cloud', 'map.cloudNote': 'Where my phone and the Mac mini meet',
                 'map.talk': 'Chat', 'map.talkSub': 'via Remote Control', 'map.push': 'Push branches, open PRs', 'map.review': 'Review the PR and tap Merge on my phone',
-                'flow.title': 'The workflow for one change', 'flow.sub': 'From request to live site: who owns each step and what happens.',
+                'flow.title': 'The workflow for one change', 'flow.sub': "How a change to my site goes from request to live: who owns each step and what happens. Max's own site skips ⑦–⑨: it pushes as soon as it's done and the change goes live.",
                 'flow.laneJoe': 'Me (Joe)', 'flow.laneClaude': 'Max',
                 'flow.loop': 'Needs changes? Back to ④',
                 'how.title': 'How Max does it', 'how.sub': 'The practices that matter most in the workflow.',
@@ -369,7 +442,7 @@
         };
 
         const FLOW = [
-            { lane: 'joe', zh: ['提出需求', '在手機的 Claude App 用一段話說明想改什麼、為什麼'], en: ['Make a request', 'In the Claude app on my phone, describe what to change and why'] },
+            { lane: 'joe', zh: ['提出需求', '在手機的 Claude App 用說的（Typeless）說明想改什麼、為什麼'], en: ['Make a request', 'In the Claude app on my phone, say what to change and why (via Typeless)'] },
             { lane: 'claude', zh: ['理解現況', '讀取網站與程式碼，先問清楚不確定的地方'], en: ['Understand the site', 'Read the site and code; ask about anything unclear'] },
             { lane: 'claude', zh: ['開獨立分支', '從正式網站的最新版開分支，一個需求一個 PR'], en: ['Branch off', 'Branch from the latest live version: one request, one PR'] },
             { lane: 'claude', zh: ['修改程式', 'HTML、Tailwind、JavaScript，中英文一起改'], en: ['Edit the code', 'HTML, Tailwind and JavaScript, Chinese and English together'] },
@@ -420,6 +493,7 @@
         const DEVICES = {
             phone: { color: 'amber', items: [
                 { icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z', zh: ['Claude App', '跟 Max 對話：交代需求、回答 Max 的問題、看它的回報'], en: ['Claude app', 'Talk to Max: make requests, answer its questions, read its reports'] },
+                { icon: 'M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z', zh: ['Typeless', '語音轉文字：用說的下指令，不用打字'], en: ['Typeless', 'Speech-to-text: give instructions by voice instead of typing'] },
                 { icon: 'M7 7a2 2 0 100-4 2 2 0 000 4zm0 0v10m0 0a2 2 0 100 4 2 2 0 000-4zm10 0a2 2 0 100 4 2 2 0 000-4zm0 0V9a4 4 0 00-4-4h-3', zh: ['GitHub App', '看 PR 的說明與前後截圖，沒問題就按 Merge'], en: ['GitHub app', 'Read the PR notes and before/after shots, then tap Merge'] },
                 { icon: 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9', zh: ['瀏覽器', '看上線後的網站，以及 Max 每天早上發的 AI 早報'], en: ['Browser', 'See the live site and the AI briefing Max publishes each morning'] }
             ] },
@@ -456,6 +530,62 @@
                     return li;
                 }));
             });
+        }
+
+        // How the sites came to be, oldest first.
+        const BUILD = [
+            { date: '2013', zh: ['建立 GitHub 帳號', '到 github.com 用 Email 註冊帳號 spyderhua。GitHub 是存放程式碼的地方，網站的每個檔案、每一次修改都記錄在這裡。'], en: ['Create a GitHub account', 'I signed up at github.com with an email address as spyderhua. GitHub stores the code: every file of the site and every change to it is recorded there.'] },
+            { date: '2018', zh: ['建立 spyderhua.github.io', '新增一個名稱就是「帳號.github.io」的 repo，放進一個 index.html，再到 Settings → Pages 選擇要發佈的分支。GitHub Pages 會免費把它變成 https://spyderhua.github.io 這個網站。'], en: ['Create spyderhua.github.io', 'Make a repo named exactly "username.github.io", add an index.html, and pick the branch to publish under Settings → Pages. GitHub Pages turns it into the site https://spyderhua.github.io for free.'] },
+            { date: '2026.03', zh: ['幫 Max 準備帳號與電腦', '我替 Max 申請專屬的 GitHub 帳號 maxver0318，並準備一台 Mac mini、安裝 Claude Desktop。Max 用自己的身分工作，每一次修改都看得出是誰做的。'], en: ['Set Max up with an account and a computer', 'I created a GitHub account just for Max, maxver0318, and set up a Mac mini with Claude Desktop. Max works under its own name, so every change shows who made it.'] },
+            { date: '2026.11', zh: ['讓 Max 用 PR 改我的網站', 'Max 把我的網站 fork 到自己的帳號，每次改版都開 PR 給我審查。我把整套流程寫成 Skill，之後每次都照同一套步驟做。'], en: ['Let Max change my site through PRs', 'Max forked my site to its own account and opens a PR for me to review on every change. I wrote the whole workflow down as a Skill, so each change follows the same steps.'] },
+            { date: '2026.11', zh: ['給 Max 一個自己的網站', '我建立 maxver0318.github.io 送給 Max，這是它「自己的專案」：介紹自己、每天早上的 AI 早報，都由 Max 直接發佈上線。'], en: ['Give Max a site of its own', "I created maxver0318.github.io for Max as its own project. Its self-introduction and the daily morning AI briefing are published there by Max directly."] }
+        ];
+
+        // How a change goes live on each site.
+        const SITE_STEPS = {
+            joe: { color: 'var(--joe)', zh: ['Max 修改、截圖', 'Max 開 PR', '我審查、按 Merge', '自動部署上線'], en: ['Max edits and takes screenshots', 'Max opens a PR', 'I review and tap Merge', 'Deploys automatically'] },
+            max: { color: 'var(--claude)', zh: ['Max 修改、檢查', 'Max 直接推送', '自動部署上線'], en: ['Max edits and checks', 'Max pushes directly', 'Deploys automatically'] }
+        };
+
+        const VOICE_STEPS = [
+            { zh: ['我開口說', '手機或電腦都可以'], en: ['I speak', 'On my phone or computer'] },
+            { zh: ['Typeless 轉成文字', '去掉贅字、整理成通順的句子'], en: ['Typeless writes it out', 'Filler words removed, clean sentences'] },
+            { zh: ['送給 Max', '在 Claude App 送出'], en: ['Sent to Max', 'From the Claude app'] },
+            { zh: ['Max 修改網站', '我的網站開 PR，Max 的網站直接上線'], en: ['Max updates the site', "A PR for my site; Max's own goes live directly"] }
+        ];
+
+        function renderBuild(lang) {
+            document.getElementById('buildSteps').replaceChildren(...BUILD.map((item, i) => {
+                const li = el('li', 'relative pl-8');
+                li.appendChild(el('span', 'absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center ring-4 ring-slate-50 dark:ring-slate-900', String(i + 1)));
+                const card = el('div', 'p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm');
+                card.append(el('p', 'text-xs font-semibold text-blue-500', item.date), el('h3', 'font-bold text-lg', item[lang][0]),
+                    el('p', 'text-sm text-slate-600 dark:text-slate-400 leading-relaxed mt-1', item[lang][1]));
+                li.appendChild(card);
+                return li;
+            }));
+        }
+
+        function renderSites(lang) {
+            [['joe', 'sitesJoe'], ['max', 'sitesMax']].forEach(([key, id]) => {
+                const site = SITE_STEPS[key];
+                document.getElementById(id).replaceChildren(...site[lang].map((text, i) => {
+                    const li = el('li', 'flex items-center text-sm');
+                    const num = el('span', 'w-6 h-6 rounded-full text-white text-xs font-bold flex items-center justify-center mr-3 shrink-0', String(i + 1));
+                    num.style.background = site.color;
+                    li.append(num, el('span', '', text));
+                    return li;
+                }));
+            });
+        }
+
+        function renderVoice(lang) {
+            document.getElementById('voiceSteps').replaceChildren(...VOICE_STEPS.map((item, i) => {
+                const li = el('li', 'p-3 rounded-xl bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700');
+                li.append(el('p', 'text-xs font-bold text-indigo-500', String(i + 1)), el('p', 'font-semibold text-sm', item[lang][0]),
+                    el('p', 'text-xs text-slate-600 dark:text-slate-400 leading-snug mt-0.5', item[lang][1]));
+                return li;
+            }));
         }
 
         function renderFlow(lang, t) {
@@ -600,6 +730,9 @@
                 }));
             });
             document.getElementById('langToggle').textContent = lang === 'zh' ? 'EN' : '中文';
+            renderBuild(lang);
+            renderSites(lang);
+            renderVoice(lang);
             renderDevices(lang);
             renderFlow(lang, t);
             renderHow(lang);
