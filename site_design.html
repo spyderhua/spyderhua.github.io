@@ -23,22 +23,38 @@
     </script>
     <style>
         :root { --joe: #f59e0b; --claude: #6366f1; }
-        /* Swimlane flowchart: [Joe lane] [spine] [Claude lane] */
-        .flow-row { display: grid; grid-template-columns: 1fr 44px 1fr; }
-        @media (min-width: 768px) { .flow-row { grid-template-columns: 1fr 72px 1fr; } }
-        .flow-spine { position: relative; display: flex; justify-content: center; }
-        .flow-spine::before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; transform: translateX(-50%); background: #cbd5e1; }
-        .dark .flow-spine::before { background: #475569; }
-        .flow-row:first-child .flow-spine::before { top: 50%; }
-        .flow-row:last-child .flow-spine::before { bottom: 50%; }
-        .flow-num { position: relative; z-index: 1; align-self: center; width: 30px; height: 30px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; color: white; }
-        .flow-node { position: relative; }
-        .flow-node[data-lane="joe"]::after, .flow-node[data-lane="claude"]::after { content: ''; position: absolute; top: 50%; width: 22px; height: 2px; background: currentColor; opacity: 0.5; }
-        .flow-node[data-lane="joe"]::after { right: -22px; }
-        .flow-node[data-lane="claude"]::after { left: -22px; }
-        @media (max-width: 767px) {
-            .flow-node[data-lane="joe"]::after { right: -7px; width: 7px; }
-            .flow-node[data-lane="claude"]::after { left: -7px; width: 7px; }
+        /* Q 版動畫（參考婚禮頁「跟著賓客走一遍」） */
+        .walk { animation: walk 0.5s ease-in-out infinite; transform-box: fill-box; transform-origin: bottom center; }
+        @keyframes walk { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-3px) rotate(4deg); } }
+        .hop { transform-box: fill-box; transform-origin: bottom center; }
+        .fzone.on .hop { animation: hop 0.9s ease-in-out infinite; }
+        @keyframes hop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        .fzone { transition: filter 0.4s ease; }
+        .fzone.on { filter: drop-shadow(0 0 7px rgba(99, 102, 241, 0.75)); }
+        .mover { transition: transform 1s cubic-bezier(.65,0,.35,1); }
+        .mover.instant { transition: none; }
+        .pop { animation: pop 0.45s cubic-bezier(.2,1.6,.4,1); transform-box: fill-box; transform-origin: bottom left; }
+        @keyframes pop { from { transform: scale(0.3); opacity: 0; } }
+        .spark { opacity: 0; transform: scale(0.4); transition: opacity 0.4s ease, transform 0.5s cubic-bezier(.2,1.6,.4,1); transform-box: fill-box; transform-origin: center; }
+        .done .spark { opacity: 1; transform: none; }
+        #finishJoe .spark, #finishMax .spark { transition-delay: 0.8s; }
+        .fstep .step-card { transition: opacity 0.5s ease, transform 0.5s ease; }
+        .fstep:not(.active) .step-card { opacity: 0.35; transform: scale(0.97); }
+        .gate-bar { transition: transform 0.6s cubic-bezier(.2,1.4,.4,1); transform-box: fill-box; transform-origin: left center; }
+        .done .gate-bar { transform: rotate(-75deg); }
+        .vwave { opacity: 0; }
+        #voiceStage[data-step="0"] .vwave { animation: wave 0.9s ease-out infinite; }
+        #voiceStage[data-step="0"] .vwave:nth-child(2) { animation-delay: 0.2s; }
+        #voiceStage[data-step="0"] .vwave:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes wave { 0% { opacity: 0; } 40% { opacity: 1; } 100% { opacity: 0; } }
+        #voiceStage[data-step="0"] .vb-text, #voiceStage:not([data-step="0"]) .vb-wave { display: none; }
+        .anim-list > * { transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease; }
+        .anim-list > *:not(.is-on) { opacity: 0.45; }
+        #voiceSteps > .is-on { box-shadow: 0 0 0 2px #6366f1; transform: translateY(-2px); }
+        @media (prefers-reduced-motion: reduce) {
+            .walk, .fzone.on .hop, .pop, .vwave { animation: none !important; }
+            #voiceStage[data-step="0"] .vwave { opacity: 1; }
+            .mover, .spark, .gate-bar, .fstep .step-card, .anim-list > * { transition: none !important; }
         }
         /* Device map: [phone] [link] [Mac mini] / [cloud]; stacked on mobile */
         .dmap { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "phone" "talk" "mac" "push" "cloud" "review"; }
@@ -139,14 +155,40 @@
                     <p class="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-300" data-i18n="sites.joeTag">我的網站</p>
                     <a href="https://spyderhua.github.io/" class="font-bold text-lg break-all hover:text-blue-500 transition-colors">spyderhua.github.io</a>
                     <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mt-2 mb-4" data-i18n="sites.joeDesc">網站是我的，Max 只能讀、不能直接改。它每次修改都開 PR，我看過截圖和說明、按下 Merge 才會上線。</p>
-                    <ol id="sitesJoe" class="mt-auto space-y-2"></ol>
+                    <ol id="sitesJoe" class="anim-list mt-auto space-y-2"></ol>
                 </div>
                 <div class="p-6 rounded-2xl bg-white dark:bg-slate-800 border-2 border-indigo-200 dark:border-indigo-900/60 shadow-sm flex flex-col">
                     <p class="text-xs font-semibold uppercase tracking-wide text-indigo-600 dark:text-indigo-300" data-i18n="sites.maxTag">Max 的網站</p>
                     <a href="https://maxver0318.github.io/" target="_blank" rel="noopener noreferrer" class="font-bold text-lg break-all hover:text-blue-500 transition-colors">maxver0318.github.io ↗</a>
                     <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mt-2 mb-4" data-i18n="sites.maxDesc">這是 Max 自己的專案。我請它放什麼上去，它改完就直接推送、自己部署，不用開 PR，也不用等我 Merge。</p>
-                    <ol id="sitesMax" class="mt-auto space-y-2"></ol>
+                    <ol id="sitesMax" class="anim-list mt-auto space-y-2"></ol>
                 </div>
+            </div>
+            <div class="mt-6 p-5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <h3 class="font-bold text-lg" data-i18n="race.title">同一個修改，兩條路</h3>
+                <p class="text-sm text-slate-600 dark:text-slate-400 mb-3" data-i18n="race.sub">兩張需求單同時出發：Max 的網站直接走到終點；我的網站要等我審查、按下 Merge，閘門才會打開。</p>
+                <svg id="race" class="w-full max-w-xl mx-auto block" viewBox="0 0 420 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="兩個網站上線流程動畫" font-family="Inter, 'Noto Sans TC', sans-serif">
+                    <g font-size="13" font-weight="700">
+                        <text x="6" y="74" class="fill-amber-600 dark:fill-amber-300" data-i18n="race.joe">我的網站</text>
+                        <text x="6" y="144" class="fill-indigo-600 dark:fill-indigo-300" data-i18n="race.max">Max 的網站</text>
+                    </g>
+                    <g stroke-width="3" stroke-dasharray="6 5" stroke-linecap="round"><line x1="84" y1="86" x2="400" y2="86" stroke="#fcd34d"/><line x1="84" y1="156" x2="400" y2="156" stroke="#c7d2fe"/></g>
+                    <g fill="#fff" stroke="#94a3b8" stroke-width="1.5"><circle cx="110" cy="86" r="4"/><circle cx="190" cy="86" r="4"/><circle cx="262" cy="86" r="4"/><circle cx="110" cy="156" r="4"/><circle cx="245" cy="156" r="4"/></g>
+                    <g font-size="12" text-anchor="middle" class="fill-slate-500 dark:fill-slate-400">
+                        <text x="110" y="104" data-i18n="race.edit">修改</text><text x="190" y="104" data-i18n="race.pr">開 PR</text><text x="262" y="104" data-i18n="race.review">審查</text><text x="385" y="104" data-i18n="race.live">上線</text>
+                        <text x="110" y="174" data-i18n="race.edit">修改</text><text x="245" y="174" data-i18n="race.push">直接推送</text><text x="385" y="174" data-i18n="race.live">上線</text>
+                    </g>
+                    <g id="raceGate" class="fzone" data-z="gate">
+                        <rect x="262" y="52" width="4" height="34" rx="2" fill="#78716c"/>
+                        <rect class="gate-bar" x="266" y="58" width="28" height="5" rx="2" fill="#ef4444"/>
+                        <g transform="translate(300 38) scale(.5)"><g class="hop" data-art="joe"></g></g>
+                        <g class="spark"><rect x="318" y="14" width="54" height="20" rx="10" fill="#10b981"/><text x="345" y="28" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">✓ Merge</text></g>
+                    </g>
+                    <g id="finishJoe"><line x1="395" y1="52" x2="395" y2="86" stroke="#64748b" stroke-width="2"/><path d="M395 52 h16 l-4 6 l4 6 h-16 z" fill="#10b981"/><text class="spark" x="354" y="66" text-anchor="end" font-size="11" font-weight="700" fill="#10b981" data-i18n="race.done">上線！</text></g>
+                    <g id="finishMax"><line x1="395" y1="122" x2="395" y2="156" stroke="#64748b" stroke-width="2"/><path d="M395 122 h16 l-4 6 l4 6 h-16 z" fill="#10b981"/><text class="spark" x="354" y="136" text-anchor="end" font-size="11" font-weight="700" fill="#10b981" data-i18n="race.done">上線！</text></g>
+                    <g id="raceJoe" class="mover" style="transform: translate(110px, 70px)"><g data-art="paperJoe"></g></g>
+                    <g id="raceMax" class="mover" style="transform: translate(110px, 140px)"><g data-art="paperMax"></g></g>
+                </svg>
             </div>
         </div>
     </section>
@@ -209,7 +251,38 @@
                 </div>
             </div>
             <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-5" data-i18n="voice.desc">我在手機和電腦上都裝了 Typeless，用它做語音轉文字（STT）。想改網站時，我打開 Claude App 直接開口說，Typeless 會把我的話整理成通順的文字，送出後 Max 就開始動手。通勤、走路的時候，也能交代需求。</p>
-            <ol id="voiceSteps" class="grid grid-cols-2 md:grid-cols-4 gap-3"></ol>
+            <svg id="voiceStage" data-step="0" class="w-full max-w-xl mx-auto block mb-5" viewBox="0 0 400 125" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="語音輸入動畫" font-family="Inter, 'Noto Sans TC', sans-serif">
+                <path d="M128 72 H140 M182 72 H240 M280 72 H330" stroke="#c7d2fe" stroke-width="3" stroke-dasharray="5 5" stroke-linecap="round" fill="none"/>
+                <g class="fzone" data-z="joe" transform="translate(45 62)">
+                    <g class="hop" data-art="joe"></g>
+                    <text y="50" text-anchor="middle" font-size="13" font-weight="700" class="fill-amber-700 dark:fill-amber-300" data-i18n="voice.me">我</text>
+                </g>
+                <g stroke="#f59e0b" stroke-width="2.5" fill="none" stroke-linecap="round">
+                    <path class="vwave" d="M78 54 q5 7 0 14"/><path class="vwave" d="M86 49 q8 12 0 24"/><path class="vwave" d="M94 44 q11 17 0 34"/>
+                </g>
+                <g class="fzone" data-z="typeless" transform="translate(160 62)">
+                    <rect x="-22" y="-22" width="44" height="44" rx="12" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                    <path transform="translate(-12 -12)" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" stroke="#d97706" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <text y="50" text-anchor="middle" font-size="13" font-weight="700" class="fill-slate-700 dark:fill-slate-200">Typeless</text>
+                </g>
+                <g class="fzone" data-z="claude" transform="translate(260 62)">
+                    <rect x="-15" y="-28" width="30" height="52" rx="6" fill="#1e293b"/><rect x="-11" y="-22" width="22" height="38" rx="2" fill="#eef2ff"/>
+                    <rect x="-8" y="-17" width="13" height="6" rx="3" fill="#c7d2fe"/><rect x="-5" y="-7" width="13" height="6" rx="3" fill="#a5b4fc"/>
+                    <text y="50" text-anchor="middle" font-size="13" font-weight="700" class="fill-slate-700 dark:fill-slate-200" data-i18n="voice.claude">Claude App</text>
+                </g>
+                <g class="fzone" data-z="max" transform="translate(355 80)">
+                    <g class="hop" data-art="max"></g>
+                    <rect x="-22" y="2" width="44" height="12" rx="4" fill="#cbd5e1" stroke="#94a3b8"/>
+                    <text y="32" text-anchor="middle" font-size="13" font-weight="700" class="fill-indigo-700 dark:fill-indigo-300">Max</text>
+                </g>
+                <g id="voiceToken" class="mover" style="transform: translate(112px, 24px)">
+                    <rect x="-18" y="-11" width="36" height="22" rx="9" fill="#fff" stroke="#6366f1" stroke-width="1.8"/>
+                    <path d="M-9 11 l-4 6 l10 -6" fill="#fff" stroke="#6366f1" stroke-width="1.8" stroke-linejoin="round"/>
+                    <path class="vb-wave" d="M-11 0 q2.5 -6 5 0 t5 0 t5 0 t5 0" stroke="#f59e0b" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <g class="vb-text" fill="#6366f1"><rect x="-11" y="-5" width="22" height="3" rx="1.5"/><rect x="-11" y="1" width="15" height="3" rx="1.5"/></g>
+                </g>
+            </svg>
+            <ol id="voiceSteps" class="anim-list grid grid-cols-2 md:grid-cols-4 gap-3"></ol>
         </div>
 
         <!-- Device map -->
@@ -293,12 +366,53 @@
             <span data-i18n="flow.title">一次改版的流程</span>
         </h2>
         <p class="text-slate-600 dark:text-slate-400 mb-8" data-i18n="flow.sub">這是我的網站從提出需求到上線的流程，每一步由誰負責、做了什麼。Max 自己的網站沒有 ⑦～⑨：改完直接推送，自動上線。</p>
-        <div class="flow-row mb-3 text-sm font-bold">
-            <div class="text-center" style="color: var(--joe)" data-i18n="flow.laneJoe">我（Joe）</div>
-            <div></div>
-            <div class="text-center" style="color: var(--claude)" data-i18n="flow.laneClaude">Max</div>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-2" data-i18n="flow.hint">往下滑，「需求單」小人會從我的手機出發，一路走到網站上線。</p>
+        <div class="md:grid md:grid-cols-2 md:gap-10">
+            <!-- sticky stage -->
+            <div class="sticky top-16 z-20 h-[44svh] md:h-[calc(100vh-4rem)] md:order-2 flex items-center justify-center py-3 bg-white dark:bg-[#172033]">
+                <div id="flowStage" class="relative h-full md:h-auto md:w-full max-h-full aspect-[420/330] max-w-full rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2 md:p-4" data-step="0">
+                    <svg class="w-full h-full" viewBox="0 0 420 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="改版流程動畫" font-family="Inter, 'Noto Sans TC', sans-serif">
+                        <g fill="none" stroke-width="3" stroke-dasharray="6 5" stroke-linecap="round">
+                            <path d="M132 266 H288" stroke="#c7d2fe"/>
+                            <path d="M322 196 Q306 130 250 96" stroke="#c7d2fe"/>
+                            <path d="M162 96 Q108 130 92 186" stroke="#fcd34d"/>
+                            <path d="M252 68 H304" stroke="#6ee7b7"/>
+                        </g>
+                        <g class="fzone" data-z="joe" transform="translate(80 236)">
+                            <ellipse cx="6" cy="10" rx="58" ry="46" class="fill-amber-100 dark:fill-amber-900/30"/>
+                            <g class="hop" data-art="joe"></g>
+                            <rect x="20" y="-6" width="20" height="34" rx="4" fill="#1e293b"/><rect x="23" y="-2" width="14" height="24" rx="2" fill="#fde68a"/>
+                            <text x="6" y="72" text-anchor="middle" font-size="13" font-weight="700" class="fill-amber-700 dark:fill-amber-300" data-i18n="map.phone">我（Joe）的手機</text>
+                        </g>
+                        <g class="fzone" data-z="max" transform="translate(338 248)">
+                            <ellipse cx="0" cy="-2" rx="56" ry="46" class="fill-indigo-100 dark:fill-indigo-900/40"/>
+                            <g class="hop" data-art="max"></g>
+                            <rect x="-30" y="2" width="60" height="18" rx="6" fill="#cbd5e1" stroke="#94a3b8"/><circle cx="22" cy="11" r="2" fill="#34d399"/>
+                            <text x="0" y="60" text-anchor="middle" font-size="13" font-weight="700" class="fill-indigo-700 dark:fill-indigo-300" data-i18n="map.mac">Max 的 Mac mini</text>
+                        </g>
+                        <g class="fzone" data-z="github" transform="translate(206 70)">
+                            <g fill="#e0f2fe"><circle cx="-22" cy="6" r="17"/><circle cx="0" cy="-6" r="23"/><circle cx="24" cy="6" r="17"/><rect x="-38" y="6" width="78" height="17" rx="8"/></g>
+                            <text x="1" y="8" text-anchor="middle" font-size="12" font-weight="700" fill="#0369a1">GitHub</text>
+                        </g>
+                        <g id="flowSite" class="fzone" data-z="site" transform="translate(360 68)">
+                            <rect x="-48" y="-32" width="96" height="64" rx="8" fill="#fff" stroke="#10b981" stroke-width="2"/>
+                            <path d="M-48 -18 H48" stroke="#d1fae5" stroke-width="2"/>
+                            <circle cx="-40" cy="-25" r="2" fill="#fb7185"/><circle cx="-33" cy="-25" r="2" fill="#fbbf24"/><circle cx="-26" cy="-25" r="2" fill="#34d399"/>
+                            <text x="0" y="4" text-anchor="middle" font-size="15">🌐</text>
+                            <text x="0" y="22" text-anchor="middle" font-size="10" font-weight="700" fill="#047857" data-i18n="flow.zSite">網站上線</text>
+                            <text class="spark" x="-52" y="-30" font-size="14">✨</text><text class="spark" x="40" y="-34" font-size="14">✨</text>
+                        </g>
+                        <g id="flowToken" class="mover" style="transform: translate(150px, 252px)">
+                            <g data-art="paperMax"></g>
+                            <g id="flowBubble"><rect x="-2" y="-48" width="32" height="24" rx="12" fill="#f59e0b"/><text id="flowBubbleText" x="14" y="-31" text-anchor="middle" font-size="13">🎙️</text></g>
+                        </g>
+                    </svg>
+                    <div class="absolute top-3 right-3 flex gap-1" id="flowDots"></div>
+                </div>
+            </div>
+            <!-- steps -->
+            <div id="flowSteps" class="relative z-10 md:order-1"></div>
         </div>
-        <div id="flow"></div>
         </div>
     </section>
 
@@ -393,6 +507,10 @@
                 'flow.title': '一次改版的流程', 'flow.sub': '這是我的網站從提出需求到上線的流程，每一步由誰負責、做了什麼。Max 自己的網站沒有 ⑦～⑨：改完直接推送，自動上線。',
                 'flow.laneJoe': '我（Joe）', 'flow.laneClaude': 'Max',
                 'flow.loop': '需要調整？回到 ④',
+                'flow.hint': '往下滑，「需求單」小人會從我的手機出發，一路走到網站上線。', 'flow.zSite': '網站上線',
+                'voice.me': '我', 'voice.claude': 'Claude App',
+                'race.title': '同一個修改，兩條路', 'race.sub': '兩張需求單同時出發：Max 的網站直接走到終點；我的網站要等我審查、按下 Merge，閘門才會打開。',
+                'race.joe': '我的網站', 'race.max': 'Max 的網站', 'race.edit': '修改', 'race.pr': '開 PR', 'race.review': '審查', 'race.push': '直接推送', 'race.live': '上線', 'race.done': '上線！',
                 'how.title': 'Max 怎麼做', 'how.sub': '流程裡比較關鍵的幾個做法。',
                 'pr.title': '每個 PR 的固定格式', 'pr.sub': '我只要看 PR 說明，就能判斷這次改版能不能上線。',
                 'history.title': '改版紀錄', 'history.sub': '最近 6 個用這個流程合併的 PR，點擊可以在 GitHub 看到完整的說明與截圖。',
@@ -432,6 +550,10 @@
                 'flow.title': 'The workflow for one change', 'flow.sub': "How a change to my site goes from request to live: who owns each step and what happens. Max's own site skips ⑦–⑨: it pushes as soon as it's done and the change goes live.",
                 'flow.laneJoe': 'Me (Joe)', 'flow.laneClaude': 'Max',
                 'flow.loop': 'Needs changes? Back to ④',
+                'flow.hint': 'Scroll down and follow the little request slip from my phone all the way to the live site.', 'flow.zSite': 'Site is live',
+                'voice.me': 'Me', 'voice.claude': 'Claude app',
+                'race.title': 'One change, two paths', 'race.sub': "Two request slips set off together: on Max's site it walks straight to the finish; on mine it waits until I review and tap Merge to open the gate.",
+                'race.joe': 'My site', 'race.max': "Max's site", 'race.edit': 'Edit', 'race.pr': 'Open PR', 'race.review': 'Review', 'race.push': 'Push', 'race.live': 'Live', 'race.done': 'Live!',
                 'how.title': 'How Max does it', 'how.sub': 'The practices that matter most in the workflow.',
                 'pr.title': 'A fixed format for every PR', 'pr.sub': 'The PR description alone tells me whether a change is ready to go live.',
                 'history.title': 'Change history', 'history.sub': 'The latest 6 PRs merged with this workflow. Open one to see its full notes and screenshots on GitHub.',
@@ -577,6 +699,7 @@
                     return li;
                 }));
             });
+            highlightSites();
         }
 
         function renderVoice(lang) {
@@ -586,31 +709,144 @@
                     el('p', 'text-xs text-slate-600 dark:text-slate-400 leading-snug mt-0.5', item[lang][1]));
                 return li;
             }));
+            highlight(document.getElementById('voiceSteps'), voiceStep);
         }
 
+        // ===== Q 版動畫（參考婚禮頁「跟著賓客走一遍」） =====
+        const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        // A walking "request slip" with a face
+        const PAPER = stroke => `<g class="walk">
+            <ellipse cx="0" cy="15" rx="10" ry="3" fill="#000" opacity=".12"/>
+            <path d="M-5 9 v5 M5 9 v5" stroke="#475569" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M-11 -14 h15 l7 7 v18 h-22 z" fill="#fff" stroke="${stroke}" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M4 -14 v7 h7" fill="#e0e7ff" stroke="${stroke}" stroke-width="1.5" stroke-linejoin="round"/>
+            <circle cx="-4" cy="-1" r="1.5" fill="#292524"/><circle cx="4" cy="-1" r="1.5" fill="#292524"/>
+            <ellipse cx="-7" cy="3" rx="2.2" ry="1.3" fill="#fda4af" opacity=".8"/><ellipse cx="7" cy="3" rx="2.2" ry="1.3" fill="#fda4af" opacity=".8"/>
+            <path d="M-2 4 Q0 6 2 4" stroke="#292524" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        </g>`;
+        // Joe drawn like the wedding page's chibi crew, centred on (0, 0)
+        const JOE_CHIBI = `<g transform="translate(-30 -40)">
+            <path d="M14 68 Q14 46 30 46 Q46 46 46 68 Z" fill="#f59e0b"/>
+            <circle cx="30" cy="30" r="18" fill="#fde2cf"/>
+            <path d="M12 28 Q12 10 30 10 Q48 10 48 26 Q40 16 30 20 Q20 16 12 28 Z" fill="#292524"/>
+            <circle cx="24" cy="32" r="2.2" fill="#292524"/><circle cx="36" cy="32" r="2.2" fill="#292524"/>
+            <ellipse cx="19" cy="38" rx="3.5" ry="2" fill="#fda4af" opacity=".7"/><ellipse cx="41" cy="38" rx="3.5" ry="2" fill="#fda4af" opacity=".7"/>
+            <path d="M26 39 Q30 43 34 39" stroke="#292524" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        </g>`;
+        const ART = {
+            joe: JOE_CHIBI,
+            max: '<image href="avatars/max.svg" x="-20" y="-40" width="40" height="40" style="image-rendering: pixelated"/>',
+            paperJoe: PAPER('#f59e0b'),
+            paperMax: PAPER('#6366f1')
+        };
+        document.querySelectorAll('[data-art]').forEach(g => { g.innerHTML = ART[g.dataset.art]; });
+
+        function moveTo(g, [x, y], instant) {
+            g.classList.toggle('instant', !!instant);
+            g.style.transform = `translate(${x}px, ${y}px)`;
+        }
+        function setZones(root, active) {
+            root.querySelectorAll('.fzone').forEach(z => z.classList.toggle('on', z.dataset.z === active));
+        }
+        function popIn(node) { node.classList.remove('pop'); node.getBoundingClientRect(); node.classList.add('pop'); }
+        function highlight(list, index) { [...list.children].forEach((li, i) => li.classList.toggle('is-on', i === index)); }
+        // Play tick(0..count-1) on a loop while the stage is on screen; reduced motion shows the last frame.
+        function autoplay(stage, count, tick, ms) {
+            let step = 0, timer = null;
+            tick(REDUCED ? count - 1 : 0);
+            if (REDUCED) return;
+            new IntersectionObserver(([e]) => {
+                clearInterval(timer);
+                if (e.isIntersecting) timer = setInterval(() => { step = (step + 1) % count; tick(step); }, ms);
+            }, { threshold: 0.4 }).observe(stage);
+        }
+
+        // Workflow: the request slip walks between zones as the step cards scroll past.
+        const FLOW_STOPS = [
+            { z: 'joe', at: [150, 252], emoji: '🎙️' },
+            { z: 'max', at: [272, 252], emoji: '🔍' },
+            { z: 'max', at: [272, 252], emoji: '🌿' },
+            { z: 'max', at: [272, 252], emoji: '⌨️' },
+            { z: 'max', at: [272, 252], emoji: '✅' },
+            { z: 'max', at: [272, 252], emoji: '📸' },
+            { z: 'github', at: [206, 146], emoji: '📬' },
+            { z: 'joe', at: [150, 252], emoji: '👀' },
+            { z: 'site', at: [360, 150], emoji: '🚀' }
+        ];
+        const flowStage = document.getElementById('flowStage');
+        const flowDots = document.getElementById('flowDots');
+        flowDots.innerHTML = FLOW_STOPS.map(() => '<span></span>').join('');
+        let flowStep = 0;
+        function setFlowStep(s) {
+            const stop = FLOW_STOPS[s];
+            flowStep = s;
+            flowStage.dataset.step = s;
+            moveTo(document.getElementById('flowToken'), stop.at);
+            setZones(flowStage, stop.z);
+            document.getElementById('flowSite').classList.toggle('done', s === FLOW_STOPS.length - 1);
+            const bubble = document.getElementById('flowBubble');
+            bubble.querySelector('rect').setAttribute('fill', FLOW[s].lane === 'joe' ? '#f59e0b' : '#6366f1');
+            document.getElementById('flowBubbleText').textContent = stop.emoji;
+            if (!REDUCED) popIn(bubble);
+            [...flowDots.children].forEach((d, i) => d.className = 'h-1.5 rounded-full transition-all ' + (i === s ? 'w-4 bg-indigo-500' : 'w-1.5 bg-slate-300 dark:bg-slate-600'));
+            document.querySelectorAll('.fstep').forEach(a => a.classList.toggle('active', Number(a.dataset.step) === s));
+        }
+        const flowObserver = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) setFlowStep(Number(e.target.dataset.step)); });
+        }, { rootMargin: '-55% 0px -35% 0px' });
+
         function renderFlow(lang, t) {
-            const wrap = document.getElementById('flow');
+            flowObserver.disconnect();
+            const wrap = document.getElementById('flowSteps');
             wrap.replaceChildren(...FLOW.map((step, i) => {
-                const row = el('div', 'flow-row');
-                const color = step.lane === 'joe' ? 'var(--joe)' : 'var(--claude)';
-                const node = el('div', 'flow-node my-2 p-3 md:p-4 rounded-xl border bg-white dark:bg-slate-800 shadow-sm');
-                node.dataset.lane = step.lane;
-                node.style.borderColor = color;
-                node.style.color = color;
-                node.appendChild(el('p', 'font-bold text-sm md:text-base', step[lang][0]));
-                node.appendChild(el('p', 'text-xs md:text-sm text-slate-600 dark:text-slate-400 mt-1 leading-snug', step[lang][1]));
-                if (step.loop) {
-                    node.appendChild(el('p', 'mt-2 inline-block text-xs font-semibold px-2 py-0.5 rounded-full border border-dashed', t['flow.loop']));
-                }
-                const spine = el('div', 'flow-spine');
-                const num = el('span', 'flow-num', String(i + 1));
-                num.style.background = color;
-                spine.appendChild(num);
-                const left = el('div'), right = el('div');
-                (step.lane === 'joe' ? left : right).appendChild(node);
-                row.append(left, spine, right);
-                return row;
+                const article = el('article', 'fstep min-h-[55svh] md:min-h-[70vh] flex items-center py-8');
+                article.dataset.step = i;
+                const card = el('div', 'step-card w-full p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm');
+                const who = el('p', 'text-xs font-bold', `STEP ${i + 1} · ${t[step.lane === 'joe' ? 'flow.laneJoe' : 'flow.laneClaude']}`);
+                who.style.color = step.lane === 'joe' ? 'var(--joe)' : 'var(--claude)';
+                card.append(who, el('h3', 'text-xl font-bold mt-1', `${FLOW_STOPS[i].emoji} ${step[lang][0]}`),
+                    el('p', 'mt-2 text-sm text-slate-600 dark:text-slate-400', step[lang][1]));
+                if (step.loop) card.appendChild(el('p', 'mt-3 inline-block text-xs font-semibold px-2 py-0.5 rounded-full border border-dashed border-amber-400 text-amber-600 dark:text-amber-300', t['flow.loop']));
+                article.appendChild(card);
+                return article;
             }));
+            wrap.querySelectorAll('.fstep').forEach(a => flowObserver.observe(a));
+            setFlowStep(flowStep);
+        }
+
+        // Voice input: speech bubble travels me → Typeless → Claude app → Max.
+        const VOICE_STOPS = [{ z: 'joe', at: [112, 24] }, { z: 'typeless', at: [160, 22] }, { z: 'claude', at: [260, 18] }, { z: 'max', at: [312, 26] }];
+        let voiceStep = 0;
+        function setVoiceStep(s) {
+            voiceStep = s;
+            const stage = document.getElementById('voiceStage');
+            stage.dataset.step = s;
+            moveTo(document.getElementById('voiceToken'), VOICE_STOPS[s].at, s === 0);
+            setZones(stage, VOICE_STOPS[s].z);
+            highlight(document.getElementById('voiceSteps'), s);
+        }
+
+        // Two sites: both slips start together; mine waits at the review gate.
+        const RACE = {
+            joe: { y: 70, xs: [110, 190, 240, 368], seq: [0, 1, 2, 2, 3, 3, 3] },
+            max: { y: 140, xs: [110, 245, 368], seq: [0, 1, 2, 2, 2, 2, 2] }
+        };
+        let raceT = 0;
+        function setRace(t) {
+            raceT = t;
+            const race = document.getElementById('race');
+            document.getElementById('raceGate').classList.toggle('done', t >= 3);
+            setZones(race, t === 3 ? 'gate' : '');
+            [['joe', 'raceJoe', 'finishJoe'], ['max', 'raceMax', 'finishMax']].forEach(([key, token, finish]) => {
+                const lane = RACE[key], idx = lane.seq[t];
+                moveTo(document.getElementById(token), [lane.xs[idx], lane.y], t === 0);
+                document.getElementById(finish).classList.toggle('done', idx === lane.xs.length - 1);
+            });
+            highlightSites();
+        }
+        function highlightSites() {
+            highlight(document.getElementById('sitesJoe'), RACE.joe.seq[raceT]);
+            highlight(document.getElementById('sitesMax'), RACE.max.seq[raceT]);
         }
 
         function renderHow(lang) {
@@ -766,6 +1002,8 @@
 
         render(currentLang);
         loadHistory();
+        autoplay(document.getElementById('voiceStage'), VOICE_STOPS.length, setVoiceStep, 1600);
+        autoplay(document.getElementById('race'), RACE.joe.seq.length, setRace, 1300);
     </script>
 </body>
 </html>
